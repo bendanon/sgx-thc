@@ -15,14 +15,12 @@ enclave {
             [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
             [out, size=pk_size]sgx_ec256_public_t* bb_pk,
             [in, size=pk_size]sgx_ec256_public_t* skg_pk, size_t pk_size, 
-            [out, size=k_encrypted_size]uint8_t* k_encrypted, size_t k_encrypted_size,
             [in]sgx_target_info_t* target_info, 
             [out]sgx_report_t* p_report);
         
         public sgx_status_t skg_exec(
             [in, size=pk_size]sgx_ec256_public_t* p_bb_pk, 
-            [in, size=pk_size]sgx_ec256_public_t* p_skg_pk, size_t pk_size, 
-            [in, size=k_encrypted_size]uint8_t* k_encrypted, size_t k_encrypted_size,
+            [in, size=pk_size]sgx_ec256_public_t* p_skg_pk, size_t pk_size,
             [in, size=sealed_size]sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, 
             [out, size=s_encrypted_size]uint8_t* s_encrypted, size_t s_encrypted_size);
         

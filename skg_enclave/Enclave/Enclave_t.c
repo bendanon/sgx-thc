@@ -34,8 +34,6 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint8_t* ms_k_encrypted;
-	size_t ms_k_encrypted_size;
 	sgx_target_info_t* ms_target_info;
 	sgx_report_t* ms_p_report;
 } ms_bb_init_1_t;
@@ -45,8 +43,6 @@ typedef struct ms_skg_exec_t {
 	sgx_ec256_public_t* ms_p_bb_pk;
 	sgx_ec256_public_t* ms_p_skg_pk;
 	size_t ms_pk_size;
-	uint8_t* ms_k_encrypted;
-	size_t ms_k_encrypted_size;
 	sgx_sealed_data_t* ms_p_sealed_s_sk;
 	size_t ms_sealed_size;
 	uint8_t* ms_s_encrypted;
@@ -184,10 +180,6 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	sgx_ec256_public_t* _tmp_skg_pk = ms->ms_skg_pk;
 	size_t _len_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_skg_pk = NULL;
-	uint8_t* _tmp_k_encrypted = ms->ms_k_encrypted;
-	size_t _tmp_k_encrypted_size = ms->ms_k_encrypted_size;
-	size_t _len_k_encrypted = _tmp_k_encrypted_size;
-	uint8_t* _in_k_encrypted = NULL;
 	sgx_target_info_t* _tmp_target_info = ms->ms_target_info;
 	size_t _len_target_info = sizeof(*_tmp_target_info);
 	sgx_target_info_t* _in_target_info = NULL;
@@ -199,7 +191,6 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
-	CHECK_UNIQUE_POINTER(_tmp_k_encrypted, _len_k_encrypted);
 	CHECK_UNIQUE_POINTER(_tmp_target_info, _len_target_info);
 	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 
@@ -228,14 +219,6 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
-	if (_tmp_k_encrypted != NULL) {
-		if ((_in_k_encrypted = (uint8_t*)malloc(_len_k_encrypted)) == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memset((void*)_in_k_encrypted, 0, _len_k_encrypted);
-	}
 	if (_tmp_target_info != NULL) {
 		_in_target_info = (sgx_target_info_t*)malloc(_len_target_info);
 		if (_in_target_info == NULL) {
@@ -253,7 +236,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memset((void*)_in_p_report, 0, _len_p_report);
 	}
-	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_k_encrypted, _tmp_k_encrypted_size, _in_target_info, _in_p_report);
+	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_target_info, _in_p_report);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -264,10 +247,6 @@ err:
 		free(_in_bb_pk);
 	}
 	if (_in_skg_pk) free(_in_skg_pk);
-	if (_in_k_encrypted) {
-		memcpy(_tmp_k_encrypted, _in_k_encrypted, _len_k_encrypted);
-		free(_in_k_encrypted);
-	}
 	if (_in_target_info) free(_in_target_info);
 	if (_in_p_report) {
 		memcpy(_tmp_p_report, _in_p_report, _len_p_report);
@@ -288,10 +267,6 @@ static sgx_status_t SGX_CDECL sgx_skg_exec(void* pms)
 	sgx_ec256_public_t* _tmp_p_skg_pk = ms->ms_p_skg_pk;
 	size_t _len_p_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_p_skg_pk = NULL;
-	uint8_t* _tmp_k_encrypted = ms->ms_k_encrypted;
-	size_t _tmp_k_encrypted_size = ms->ms_k_encrypted_size;
-	size_t _len_k_encrypted = _tmp_k_encrypted_size;
-	uint8_t* _in_k_encrypted = NULL;
 	sgx_sealed_data_t* _tmp_p_sealed_s_sk = ms->ms_p_sealed_s_sk;
 	size_t _tmp_sealed_size = ms->ms_sealed_size;
 	size_t _len_p_sealed_s_sk = _tmp_sealed_size;
@@ -304,7 +279,6 @@ static sgx_status_t SGX_CDECL sgx_skg_exec(void* pms)
 	CHECK_REF_POINTER(pms, sizeof(ms_skg_exec_t));
 	CHECK_UNIQUE_POINTER(_tmp_p_bb_pk, _len_p_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_p_skg_pk, _len_p_skg_pk);
-	CHECK_UNIQUE_POINTER(_tmp_k_encrypted, _len_k_encrypted);
 	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s_sk, _len_p_sealed_s_sk);
 	CHECK_UNIQUE_POINTER(_tmp_s_encrypted, _len_s_encrypted);
 
@@ -326,15 +300,6 @@ static sgx_status_t SGX_CDECL sgx_skg_exec(void* pms)
 
 		memcpy(_in_p_skg_pk, _tmp_p_skg_pk, _len_p_skg_pk);
 	}
-	if (_tmp_k_encrypted != NULL) {
-		_in_k_encrypted = (uint8_t*)malloc(_len_k_encrypted);
-		if (_in_k_encrypted == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_k_encrypted, _tmp_k_encrypted, _len_k_encrypted);
-	}
 	if (_tmp_p_sealed_s_sk != NULL) {
 		_in_p_sealed_s_sk = (sgx_sealed_data_t*)malloc(_len_p_sealed_s_sk);
 		if (_in_p_sealed_s_sk == NULL) {
@@ -352,11 +317,10 @@ static sgx_status_t SGX_CDECL sgx_skg_exec(void* pms)
 
 		memset((void*)_in_s_encrypted, 0, _len_s_encrypted);
 	}
-	ms->ms_retval = skg_exec(_in_p_bb_pk, _in_p_skg_pk, _tmp_pk_size, _in_k_encrypted, _tmp_k_encrypted_size, _in_p_sealed_s_sk, _tmp_sealed_size, _in_s_encrypted, _tmp_s_encrypted_size);
+	ms->ms_retval = skg_exec(_in_p_bb_pk, _in_p_skg_pk, _tmp_pk_size, _in_p_sealed_s_sk, _tmp_sealed_size, _in_s_encrypted, _tmp_s_encrypted_size);
 err:
 	if (_in_p_bb_pk) free(_in_p_bb_pk);
 	if (_in_p_skg_pk) free(_in_p_skg_pk);
-	if (_in_k_encrypted) free(_in_k_encrypted);
 	if (_in_p_sealed_s_sk) free(_in_p_sealed_s_sk);
 	if (_in_s_encrypted) {
 		memcpy(_tmp_s_encrypted, _in_s_encrypted, _len_s_encrypted);

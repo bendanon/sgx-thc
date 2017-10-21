@@ -18,8 +18,6 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint8_t* ms_k_encrypted;
-	size_t ms_k_encrypted_size;
 	sgx_target_info_t* ms_target_info;
 	sgx_report_t* ms_p_report;
 } ms_bb_init_1_t;
@@ -29,8 +27,6 @@ typedef struct ms_skg_exec_t {
 	sgx_ec256_public_t* ms_p_bb_pk;
 	sgx_ec256_public_t* ms_p_skg_pk;
 	size_t ms_pk_size;
-	uint8_t* ms_k_encrypted;
-	size_t ms_k_encrypted_size;
 	sgx_sealed_data_t* ms_p_sealed_s_sk;
 	size_t ms_sealed_size;
 	uint8_t* ms_s_encrypted;
@@ -108,7 +104,7 @@ sgx_status_t skg_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_dat
 	return status;
 }
 
-sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint8_t* k_encrypted, size_t k_encrypted_size, sgx_target_info_t* target_info, sgx_report_t* p_report)
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, sgx_target_info_t* target_info, sgx_report_t* p_report)
 {
 	sgx_status_t status;
 	ms_bb_init_1_t ms;
@@ -117,8 +113,6 @@ sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_da
 	ms.ms_bb_pk = bb_pk;
 	ms.ms_skg_pk = skg_pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_k_encrypted = k_encrypted;
-	ms.ms_k_encrypted_size = k_encrypted_size;
 	ms.ms_target_info = target_info;
 	ms.ms_p_report = p_report;
 	status = sgx_ecall(eid, 1, &ocall_table_Enclave, &ms);
@@ -126,15 +120,13 @@ sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_da
 	return status;
 }
 
-sgx_status_t skg_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size, uint8_t* k_encrypted, size_t k_encrypted_size, sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, uint8_t* s_encrypted, size_t s_encrypted_size)
+sgx_status_t skg_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, uint8_t* s_encrypted, size_t s_encrypted_size)
 {
 	sgx_status_t status;
 	ms_skg_exec_t ms;
 	ms.ms_p_bb_pk = p_bb_pk;
 	ms.ms_p_skg_pk = p_skg_pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_k_encrypted = k_encrypted;
-	ms.ms_k_encrypted_size = k_encrypted_size;
 	ms.ms_p_sealed_s_sk = p_sealed_s_sk;
 	ms.ms_sealed_size = sealed_size;
 	ms.ms_s_encrypted = s_encrypted;
