@@ -1,5 +1,6 @@
 enclave {
     from "Sealing/Sealing.edl" import *;
+    /*from "sgx_tkey_exchange.edl" import *;*/
     include "sgx_uae_service.h"
 
     trusted {
