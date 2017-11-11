@@ -1,0 +1,3 @@
+export LD_LIBRARY_PATH=/home/ben/Projects/sgx/linux-sgx/psw/urts/linux/:/home/ben/Projects/sgx/linux-sgx/psw/uae_service/linux/    
+./app
+
