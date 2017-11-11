@@ -26,4 +26,12 @@
 #define B_OUT_SIZE_BYTES 50
 #define B_IN_SIZE_BYTES 50
 
+#define IAS_URL "https://test-as.sgx.trustedservices.intel.com:443/"
+#define IAS_ATTESTATION_URI "attestation/sgx/v2/"
+#define IAS_REPORT_URI "report"
+#define IAS_SIGRL_URI "sigrl/"
+
+#define IAS_FULL_REPORT_URL (IAS_URL IAS_ATTESTATION_URI IAS_REPORT_URI)
+#define IAS_FULL_SIGRL_URL (IAS_URL IAS_ATTESTATION_URI IAS_SIGRL_URI)
+
 #endif //TH_DEFINES_H
