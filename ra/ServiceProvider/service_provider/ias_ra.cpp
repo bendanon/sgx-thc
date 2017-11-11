@@ -82,21 +82,24 @@ int ias_verify_attestation_evidence(
         return -1;
     }
 
-    string report_id;
     uintmax_t test;
     ias_quote_status_t quoteStatus;
-    string timestamp, epidPseudonym, isvEnclaveQuoteStatus;
+    string id,
+           isvEnclaveQuoteStatus,
+           isvEnclaveQuoteBody,
+           platformInfoBlob, 
+           revocationReason,
+           pseManifestStatus,
+           pseManifestHash,
+           nonce,
+           /*epidPseudonym*/
+           timestamp;
 
     for (auto x : result) {
         if (x.first == "id") {
-            report_id = x.second;
-        } else if (x.first == "timestamp") {
-            timestamp = x.second;
-        #ifdef USING_LINKABLE_EPID_SIGS
-        } else if (x.first == "epidPseudonym") {
-            epidPseudonym = x.second;
-        #endif
+            id = x.second;
         } else if (x.first == "isvEnclaveQuoteStatus") {
+
             if (x.second == "OK")
                 quoteStatus = IAS_QUOTE_OK;
             else if (x.second == "SIGNATURE_INVALID")
@@ -111,23 +114,25 @@ int ias_verify_attestation_evidence(
                 quoteStatus = IAS_QUOTE_SIGRL_VERSION_MISMATCH;
             else if (x.second == "GROUP_OUT_OF_DATE")
                 quoteStatus = IAS_QUOTE_GROUP_OUT_OF_DATE;
+
+        } else if (x.first == "isvEnclaveQuoteBody") {
+            isvEnclaveQuoteBody = x.second;
+        } else if (x.first == "platformInfoBlob") {
+            platformInfoBlob = x.second;
+        } else if (x.first == "revocationReason") {
+            revocationReason = x.second;
+        } else if (x.first == "pseManifestStatus") {
+            pseManifestStatus = x.second;
+        } else if (x.first == "pseManifestHash") { 
+            pseManifestHash = x.second;
+        } else if (x.first == "nonce") {
+            nonce = x.second;
+        } else if (x.first == "timestamp") {
+            timestamp = x.second;
         }
-    }
+    }    
 
-    /** TODO
-     * "id":"<report_id>",
-       "isvEnclaveQuoteStatus":"<quote_status>",
-       "isvEnclaveQuoteBody":"<quote_body>",               (===> V2)
-       "platformInfoBlob":"<platform_info_blob><optional>", (???) 
-       "revocationReason":<recovation_reason><optional>,   (???)
-       "pseManifestStatus": "<manifest_status><optional>", (???)
-       "pseManifestHash": "<pse_manifest_hash><optional>", (===> V2)
-       "nonce":"<custom_value_passed_by_caller><optional>", (???)
-       "epidPseudonym":"<epid_pseudonym_for_linkable><optional>",
-       "timestamp":"<timestamp>"
-     **/
-
-    report_id.copy(p_attestation_verification_report->id, report_id.size());
+    id.copy(p_attestation_verification_report->id, id.size());
     p_attestation_verification_report->status = quoteStatus;
     p_attestation_verification_report->revocation_reason = IAS_REVOC_REASON_NONE;
 

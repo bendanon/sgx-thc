@@ -51,37 +51,33 @@ vector<pair<string, string>> WebService::parseJSONfromIAS(string json) {
 
     vector<pair<string,string>> values;
 
-    string id = root.get("id", "UTF-8" ).asString();
-    string timestamp = root.get("timestamp", "UTF-8" ).asString();
-
-    #ifdef USING_LINKABLE_EPID_SIGS
-    string epidPseudonym = root.get("epidPseudonym", "UTF-8" ).asString();
-    #endif
+    string id = root.get("id", "UTF-8" ).asString();  
+    values.push_back({"id", id});
 
     string isvEnclaveQuoteStatus = root.get("isvEnclaveQuoteStatus", "UTF-8" ).asString();
-
-    values.push_back({"id", id});
-    values.push_back({"timestamp", timestamp});
-
-    #ifdef USING_LINKABLE_EPID_SIGS
-    values.push_back({"epidPseudonym", epidPseudonym});
-    #endif
-
     values.push_back({"isvEnclaveQuoteStatus", isvEnclaveQuoteStatus});
 
-    
-    /** TODO
-     * "id":"<report_id>",
-       "isvEnclaveQuoteStatus":"<quote_status>",
-       "isvEnclaveQuoteBody":"<quote_body>",               (===> V2)
-       "platformInfoBlob":"<platform_info_blob><optional>", (???) 
-       "revocationReason":<recovation_reason><optional>,   (???)
-       "pseManifestStatus": "<manifest_status><optional>", (???)
-       "pseManifestHash": "<pse_manifest_hash><optional>", (===> V2)
-       "nonce":"<custom_value_passed_by_caller><optional>", (???)
-       "epidPseudonym":"<epid_pseudonym_for_linkable><optional>",
-       "timestamp":"<timestamp>"
-     **/
+    string isvEnclaveQuoteBody = root.get("isvEnclaveQuoteBody", "UTF-8" ).asString();
+    values.push_back({"isvEnclaveQuoteBody", isvEnclaveQuoteBody});
+
+    string platformInfoBlob = root.get("platformInfoBlob", "UTF-8" ).asString();
+    values.push_back({"platformInfoBlob", platformInfoBlob});
+
+    string revocationReason = root.get("revocationReason", "UTF-8" ).asString();
+    values.push_back({"revocationReason", revocationReason});
+
+    string pseManifestStatus = root.get("pseManifestStatus", "UTF-8" ).asString();
+    values.push_back({"pseManifestStatus", pseManifestStatus});
+
+    string pseManifestHash = root.get("pseManifestHash", "UTF-8" ).asString();
+    values.push_back({"pseManifestHash", pseManifestHash});
+
+    string nonce = root.get("nonce", "UTF-8" ).asString();
+    values.push_back({"nonce", nonce});
+
+    string timestamp = root.get("timestamp", "UTF-8" ).asString();
+    values.push_back({"timestamp", timestamp});
+   
 
      //TODO - What about X-IASReport-Signature and X-IASReport-Signing-Certificate? 
      //this should be extracted, verified and passed to AttestationClient as a part
