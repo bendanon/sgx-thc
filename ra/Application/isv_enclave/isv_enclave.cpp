@@ -48,6 +48,11 @@ typedef struct _hash_buffer_t {
 const char ID_U[] = "SGXRAENCLAVE";
 const char ID_V[] = "SGXRASERVER";
 
+typedef enum _derive_key_type_t {
+    DERIVE_KEY_SMK_SK = 0,
+    DERIVE_KEY_MK_VK,
+} derive_key_type_t;
+
 // Derive two keys from shared key and key id.
 bool derive_key(
     const sgx_ec256_dh_shared_t *p_shared_key,
@@ -98,6 +103,12 @@ bool derive_key(
     memcpy(first_derived_key, &key_material, sizeof(sgx_ec_key_128bit_t));
     memcpy(second_derived_key, (uint8_t*)&key_material + sizeof(sgx_ec_key_128bit_t), sizeof(sgx_ec_key_128bit_t));
 
+    /*vk - The default implementation means this is a derivative of the shared secret gab. 
+    For our use, this is not good since we plan on the verification report to be 
+    publicly verifiable, hence need vk to be public. So we set it to be zeroes.*/
+    if(key_id == DERIVE_KEY_MK_VK)
+        memset(second_derived_key, 0, sizeof(sgx_ec_key_128bit_t));
+
     // memset here can be optimized away by compiler, so please use memset_s on
     // windows for production code and similar functions on other OSes.
     memset(&key_material, 0, sizeof(sgx_sha256_hash_t));
@@ -105,13 +116,6 @@ bool derive_key(
     return true;
 }
 
-//isv defined key derivation function id
-#define ISV_KDF_ID 2
-
-typedef enum _derive_key_type_t {
-    DERIVE_KEY_SMK_SK = 0,
-    DERIVE_KEY_MK_VK,
-} derive_key_type_t;
 
 sgx_status_t key_derivation(const sgx_ec256_dh_shared_t* shared_key,
                             uint16_t kdf_id,
@@ -125,11 +129,6 @@ sgx_status_t key_derivation(const sgx_ec256_dh_shared_t* shared_key,
         return SGX_ERROR_INVALID_PARAMETER;
     }
 
-    if (ISV_KDF_ID != kdf_id) {
-        //fprintf(stderr, "\nError, key derivation id mismatch in [%s].", __FUNCTION__);
-        return SGX_ERROR_KDF_MISMATCH;
-    }
-
     derive_ret = derive_key(shared_key, DERIVE_KEY_SMK_SK,
                             smk_key, sk_key);
     if (derive_ret != true) {
@@ -139,6 +138,8 @@ sgx_status_t key_derivation(const sgx_ec256_dh_shared_t* shared_key,
 
     derive_ret = derive_key(shared_key, DERIVE_KEY_MK_VK,
                             mk_key, vk_key);
+
+
     if (derive_ret != true) {
         //fprintf(stderr, "\nError, derive key fail in [%s].", __FUNCTION__);
         return SGX_ERROR_UNEXPECTED;

@@ -104,6 +104,12 @@ bool derive_key(
     memcpy(first_derived_key, &key_material, sizeof(sample_ec_key_128bit_t));
     memcpy(second_derived_key, (uint8_t*)&key_material + sizeof(sample_ec_key_128bit_t), sizeof(sample_ec_key_128bit_t));
 
+    /*vk - The default implementation means this is a derivative of the shared secret gab. 
+    For our use, this is not good since we plan on the verification report to be 
+    publicly verifiable, hence need vk to be public. So we set it to be zeroes.*/
+    if(key_id == SAMPLE_DERIVE_KEY_MK_VK)
+        memset(second_derived_key, 0, sizeof(sample_ec_key_128bit_t)); 
+
     // memset here can be optimized away by compiler, so please use memset_s on
     // windows for production code and similar functions on other OSes.
     memset(&key_material, 0, sizeof(sample_sha256_hash_t));

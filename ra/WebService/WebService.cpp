@@ -119,15 +119,14 @@ size_t ias_response_header_parser(void *ptr, size_t size, size_t nmemb, void *us
         return ret;
     }
 
-    char *p_request_id = (char*) calloc(1, REQUEST_ID_MAX_LEN);
-    parsed_fields = sscanf(x, "request-id: %s", p_request_id );
+    char *p_location = (char*) calloc(1, LOCATION_MAX_LEN);
+    parsed_fields = sscanf(x, "location: %s", p_location );
 
     if (parsed_fields == 1) {
-        std::string request_id_str( p_request_id );
-        ( ( ias_response_header_t * ) userdata )->request_id = request_id_str;
+        std::string location_str( p_location );
+        ( ( ias_response_header_t * ) userdata )->location = location_str;
         return ret;
     }
-
 
     char *p_iasreport_sig = (char*) calloc(1, X_IASREPORT_SIG_MAX_LEN);
     parsed_fields = sscanf(x, "x-iasreport-signature: %s", p_iasreport_sig );
@@ -148,14 +147,14 @@ size_t ias_response_header_parser(void *ptr, size_t size, size_t nmemb, void *us
         return ret;
     }
 
-    char *p_location = (char*) calloc(1, LOCATION_MAX_LEN);
-    parsed_fields = sscanf(x, "location: %s", p_location );
+    char *p_request_id = (char*) calloc(1, REQUEST_ID_MAX_LEN);
+    parsed_fields = sscanf(x, "request-id: %s", p_request_id );
 
     if (parsed_fields == 1) {
-        std::string location_str( p_location );
-        ( ( ias_response_header_t * ) userdata )->location = location_str;
+        std::string request_id_str( p_request_id );
+        ( ( ias_response_header_t * ) userdata )->request_id = request_id_str;
         return ret;
-    }
+    }    
 
     return ret;
 }
@@ -251,8 +250,6 @@ bool WebService::getSigRL(string gid, string *sigrl) {
 bool WebService::verifyQuote(uint8_t *quote, uint8_t *pseManifest, uint8_t *nonce, vector<pair<string, string>> *result) {
     string encoded_quote = this->createJSONforIAS(quote, pseManifest, nonce);
 
-    Log("\tencoded_quote: %s", encoded_quote);
-
     ias_response_container_t ias_response_container;
     ias_response_header_t response_header;
 
@@ -263,7 +260,6 @@ bool WebService::verifyQuote(uint8_t *quote, uint8_t *pseManifest, uint8_t *nonc
 
     string url = Settings::ias_url + "report";
     this->sendToIAS(url, IAS::report, payload, headers, &ias_response_container, &response_header);
-
 
     if (response_header.response_status == 201) {
         Log("Quote attestation successful, new report has been created");

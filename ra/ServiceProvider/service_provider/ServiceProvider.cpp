@@ -133,7 +133,7 @@ int ServiceProvider::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::M
             break;
         }
 
-
+        #ifndef SUPPLIED_KEY_DERIVATION        
         // smk is only needed for msg2 generation.
         derive_ret = derive_key(&dh_key, SAMPLE_DERIVE_KEY_SMK, &g_sp_db.smk_key);
         if (derive_ret != true) {
@@ -163,7 +163,25 @@ int ServiceProvider::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::M
             ret = SP_INTERNAL_ERROR;
             break;
         }
+        
+        #else
 
+        derive_ret = derive_key(&dh_key, SAMPLE_DERIVE_KEY_SMK_SK, &g_sp_db.smk_key, &g_sp_db.sk_key);
+        if (derive_ret != true) {
+            Log("Error, derive key fail", log::error);
+            ret = SP_INTERNAL_ERROR;
+            break;
+        }
+
+        // The rest of the keys are the shared secrets for future communication.
+        derive_ret = derive_key(&dh_key, SAMPLE_DERIVE_KEY_MK_VK, &g_sp_db.mk_key, &g_sp_db.vk_key);
+        if (derive_ret != true) {
+            Log("Error, derive key fail", log::error);
+            ret = SP_INTERNAL_ERROR;
+            break;
+        }
+
+        #endif
 
         uint32_t msg2_size = sizeof(sgx_ra_msg2_t) + sig_rl_size;
         p_msg2_full = (ra_samp_response_header_t*)malloc(msg2_size + sizeof(ra_samp_response_header_t));
@@ -402,6 +420,8 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::At
             ret = SP_INTERNAL_ERROR;
             break;
         }
+
+        Log("vk is %s", Base64encodeUint8((uint8_t *)&g_sp_db.vk_key,sizeof(sgx_ec_key_128bit_t)));
 
         sample_ret = sample_sha256_update((uint8_t *)&(g_sp_db.vk_key), sizeof(g_sp_db.vk_key), sha_handle);
         if (sample_ret != SAMPLE_SUCCESS) {
