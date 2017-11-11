@@ -128,6 +128,35 @@ size_t ias_response_header_parser(void *ptr, size_t size, size_t nmemb, void *us
         return ret;
     }
 
+
+    char *p_iasreport_sig = (char*) calloc(1, X_IASREPORT_SIG_MAX_LEN);
+    parsed_fields = sscanf(x, "x-iasreport-signature: %s", p_iasreport_sig );
+
+    if (parsed_fields == 1) {
+        std::string iasreport_sig_str( p_iasreport_sig );
+        ( ( ias_response_header_t * ) userdata )->x_iasreport_signature = iasreport_sig_str;
+        return ret;
+    }
+
+    char *p_iasreport_sig_cert = (char*) calloc(1, X_IASREPORT_SIG_CERT_MAX_LEN);
+    parsed_fields = sscanf(x, "x-iasreport-signing-certificate: %s", p_iasreport_sig_cert );
+
+    if (parsed_fields == 1) {
+        std::string iasreport_sig_cert_str( p_iasreport_sig_cert );
+        ( ( ias_response_header_t * ) userdata )->x_iasreport_signing_certificate 
+            = iasreport_sig_cert_str;
+        return ret;
+    }
+
+    char *p_location = (char*) calloc(1, LOCATION_MAX_LEN);
+    parsed_fields = sscanf(x, "location: %s", p_location );
+
+    if (parsed_fields == 1) {
+        std::string location_str( p_location );
+        ( ( ias_response_header_t * ) userdata )->location = location_str;
+        return ret;
+    }
+
     return ret;
 }
 
@@ -171,6 +200,7 @@ bool WebService::sendToIAS(string url,
 
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, ias_response_header_parser);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, response_header);
+
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ias_reponse_body_handler);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, ias_response_container);
 
