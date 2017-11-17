@@ -22,7 +22,7 @@ using namespace util;
 class AttestationClient {
 
 public:
-    AttestationClient();
+    AttestationClient(Enclave *enclave);
     virtual ~AttestationClient();
 
     sgx_ra_msg3_t* getMSG3();
@@ -31,7 +31,7 @@ public:
     vector<string> incomingHandler(string v, int type);
 
 private:
-    sgx_status_t initEnclave();
+    sgx_status_t initRa();
     uint32_t getExtendedEPID_GID(uint32_t *extended_epid_group_id);
     sgx_status_t getEnclaveStatus();
 
@@ -45,7 +45,7 @@ private:
     //string createInitMsg(int type, string msg);
 
 protected:
-    Enclave *enclave = NULL;
+    Enclave *m_pEnclave = NULL;
 
 private:
     int busy_retry_time = 4;

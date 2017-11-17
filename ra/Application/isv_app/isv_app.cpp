@@ -12,9 +12,21 @@ int Main(int argc, char* argv[]) {
 
     int ret = 0;
 
-    AttestationClient msg;
-    msg.init();
-    msg.start();
+
+    sgx_status_t sgx_ret;
+    Enclave* enclave = Enclave::getInstance();
+    sgx_ret = enclave->createEnclave();
+    if (sgx_ret != SGX_SUCCESS)
+    {
+        Log("createEnclave failed");
+        return -1;
+    }
+
+    AttestationClient raClient(enclave);
+    raClient.init();
+    raClient.start();
+    
+    delete enclave;
 
     return ret;
 }

@@ -2,13 +2,15 @@
 
 using namespace util;
 
-AttestationClient::AttestationClient() {
+AttestationClient::AttestationClient(Enclave *enclave) {
+    if(enclave == NULL)
+        Log("AttestationClient created with NULL enclave, should crash");
+
     this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
+    m_pEnclave = enclave;
 }
 
-AttestationClient::~AttestationClient() {
-    delete this->enclave;
-}
+AttestationClient::~AttestationClient() { }
 
 
 int AttestationClient::init() {
@@ -24,16 +26,13 @@ void AttestationClient::start() {
 }
 
 
-sgx_status_t AttestationClient::initEnclave() {
-    sgx_status_t ret;
-    this->enclave = Enclave::getInstance();
-    ret = this->enclave->createEnclave();
-    return ret == SGX_SUCCESS? this->enclave->initRa() : ret;
+sgx_status_t AttestationClient::initRa() {
+    return this->m_pEnclave->initRa();
 }
 
 
 sgx_status_t AttestationClient::getEnclaveStatus() {
-    return this->enclave->getStatus();
+    return this->m_pEnclave->getStatus();
 }
 
 
@@ -82,8 +81,8 @@ string AttestationClient::generateMSG1() {
     sgx_ra_msg1_t sgxMsg1Obj;
 
     while (1) {
-        retGIDStatus = sgx_ra_get_msg1(this->enclave->getContext(),
-                                       this->enclave->getID(),
+        retGIDStatus = sgx_ra_get_msg1(this->m_pEnclave->getContext(),
+                                       this->m_pEnclave->getID(),
                                        sgx_ra_get_ga,
                                        &sgxMsg1Obj);
 
@@ -192,8 +191,8 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
     int ret = 0;
 
     do {
-        ret = sgx_ra_proc_msg2(this->enclave->getContext(),
-                               this->enclave->getID(),
+        ret = sgx_ra_proc_msg2(this->m_pEnclave->getContext(),
+                               this->m_pEnclave->getID(),
                                sgx_ra_proc_msg2_trusted,
                                sgx_ra_get_msg3_trusted,
                                p_msg2,
@@ -309,9 +308,9 @@ string AttestationClient::handleAttestationResult(Messages::AttestationMessage m
     sgx_status_t status;
     sgx_status_t ret;
 
-    ret = verify_att_result_mac(this->enclave->getID(),
+    ret = verify_att_result_mac(this->m_pEnclave->getID(),
                                 &status,
-                                this->enclave->getContext(),
+                                this->m_pEnclave->getContext(),
                                 (uint8_t*)&p_att_result_msg_body->platform_info_blob,
                                 sizeof(ias_platform_info_blob_t),
                                 (uint8_t*)&p_att_result_msg_body->mac,
@@ -326,9 +325,9 @@ string AttestationClient::handleAttestationResult(Messages::AttestationMessage m
     if (0 != p_att_result_msg_full->status[0] || 0 != p_att_result_msg_full->status[1]) {
         Log("Error, attestation mac result message MK based cmac failed", log::error);
     } else {
-        ret = verify_secret_data(this->enclave->getID(),
+        ret = verify_secret_data(this->m_pEnclave->getID(),
                                  &status,
-                                 this->enclave->getContext(),
+                                 this->m_pEnclave->getContext(),
                                  p_att_result_msg_body->secret.payload,
                                  p_att_result_msg_body->secret.payload_size,
                                  p_att_result_msg_body->secret.payload_tag,
@@ -364,7 +363,7 @@ string AttestationClient::handleMSG0Response(Messages::MessageMsg0 msg) {
     Log("MSG0 response received");
 
     if (msg.status() == TYPE_OK) {
-        sgx_status_t ret = this->initEnclave();
+        sgx_status_t ret = this->initRa();
 
         if (SGX_SUCCESS != ret || this->getEnclaveStatus()) {
             Log("Error, call enclave_init_ra fail", log::error);
