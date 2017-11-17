@@ -15,6 +15,7 @@
 #include "remote_attestation_result.h"
 #include "LogBase.h"
 #include "../GeneralSettings.h"
+#include "VerificationReport.h"
 
 using namespace std;
 using namespace util;
@@ -22,7 +23,7 @@ using namespace util;
 class AttestationClient {
 
 public:
-    AttestationClient(Enclave *enclave);
+    AttestationClient(Enclave *enclave, VerificationReport& report);
     virtual ~AttestationClient();
 
     sgx_ra_msg3_t* getMSG3();
@@ -50,6 +51,7 @@ protected:
 private:
     int busy_retry_time = 4;
     NetworkManagerClient *nm = NULL;
+    VerificationReport& m_report;
 
 };
 

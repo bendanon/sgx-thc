@@ -2,7 +2,7 @@
 
 using namespace util;
 
-AttestationClient::AttestationClient(Enclave *enclave) {
+AttestationClient::AttestationClient(Enclave *enclave, VerificationReport& report) : m_report(report) {
     if(enclave == NULL)
         Log("AttestationClient created with NULL enclave, should crash");
 
@@ -352,6 +352,8 @@ string AttestationClient::handleAttestationResult(Messages::AttestationMessage m
             return nm->serialize(msg);
         }
     }
+
+    //TODO: call m_report.deserialize(...) with the parameters recieved from AttestationServer
 
     SafeFree(p_att_result_msg_full);
 

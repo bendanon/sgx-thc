@@ -6,6 +6,7 @@
 using namespace util;
 
 #include "AttestationClient.h"
+#include "VerificationReport.h"
 
 int Main(int argc, char* argv[]) {
     LogBase::Inst();
@@ -22,10 +23,13 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    AttestationClient raClient(enclave);
+    VerificationReport report;
+    AttestationClient raClient(enclave, report);
     raClient.init();
     raClient.start();
-    
+
+    //Here I can expect report.isValid() == true
+
     delete enclave;
 
     return ret;
