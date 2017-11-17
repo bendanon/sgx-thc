@@ -22,6 +22,8 @@ public:
     static Enclave* getInstance();
     virtual ~Enclave();
     sgx_status_t createEnclave();
+    sgx_status_t initRa();
+    sgx_status_t closeRa();
     sgx_enclave_id_t getID();
     sgx_status_t getStatus();
     sgx_ra_context_t getContext();
@@ -33,6 +35,8 @@ private:
     sgx_enclave_id_t enclave_id;
     sgx_status_t status;
     sgx_ra_context_t context;
+    bool m_raInitialized;
+    bool m_enclaveCreated;
 };
 
 #endif

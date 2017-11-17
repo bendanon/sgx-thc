@@ -7,7 +7,7 @@ using namespace std;
 
 Enclave* Enclave::instance = NULL;
 
-Enclave::Enclave() {}
+Enclave::Enclave() : m_enclaveCreated(false), m_raInitialized(false) {}
 
 Enclave* Enclave::getInstance() {
     if (instance == NULL) {
@@ -19,26 +19,72 @@ Enclave* Enclave::getInstance() {
 
 
 Enclave::~Enclave() {
-    int ret = -1;
-
-    if (INT_MAX != context) {
-        int ret_save = -1;
-        ret = enclave_ra_close(enclave_id, &status, context);
-        if (SGX_SUCCESS != ret || status) {
-            ret = -1;
-            Log("Error, call enclave_ra_close fail", log::error);
-        } else {
-            // enclave_ra_close was successful, let's restore the value that
-            // led us to this point in the code.
-            ret = ret_save;
-        }
-
-        Log("Call enclave_ra_close success");
-    }
-
+    closeRa();
     sgx_destroy_enclave(enclave_id);
 }
 
+
+sgx_status_t Enclave::initRa() {
+    sgx_status_t ret;
+
+    if(!m_enclaveCreated)
+    {
+        Log("Called initRa but enclave not created");
+        return SGX_ERROR_INVALID_ENCLAVE;
+    }
+
+    if(m_raInitialized)
+    {
+        Log("Called initRa but enclave already initialized");
+        return SGX_SUCCESS;
+    }
+
+    ret = enclave_init_ra(this->enclave_id,
+                                  &this->status,
+                                  false,
+                                  &this->context);
+    if(ret != SGX_SUCCESS)
+    {
+        Log("Call enclave_init_ra failed");
+        return ret;
+    }
+
+    Log("Call enclave_init_ra success");
+    m_raInitialized = true;    
+    return SGX_SUCCESS;
+}
+
+sgx_status_t Enclave::closeRa(){
+    sgx_status_t ret;
+
+    if(!m_enclaveCreated)
+    {
+        Log("Called closeRa but enclave not created");
+        return SGX_ERROR_INVALID_ENCLAVE;
+    }
+
+    if(!m_raInitialized)
+    {
+        Log("Called closeRa but enclave not initialized");
+        return SGX_SUCCESS;
+    }
+
+    if(context == INT_MAX)
+    {
+        Log("Called closeRa but INT_MAX == context, enclave_ra_close NOT called");
+        return SGX_ERROR_INVALID_ENCLAVE;
+    }
+
+    ret = enclave_ra_close(enclave_id, &status, context);
+    if (SGX_SUCCESS != ret || status) {            
+        Log("Error, call enclave_ra_close fail", log::error);
+        return ret;
+    }
+
+    Log("Call enclave_ra_close success");  
+    m_raInitialized = false;
+    return SGX_SUCCESS;
+}
 
 
 sgx_status_t Enclave::createEnclave() {
@@ -61,19 +107,16 @@ sgx_status_t Enclave::createEnclave() {
             print_error_message(ret);
             break;
         } else {
-            Log("Call sgx_create_enclave success");
-
-            ret = enclave_init_ra(this->enclave_id,
-                                  &this->status,
-                                  false,
-                                  &this->context);
+            Log("Call sgx_create_enclave success");            
         }
 
     } while (SGX_ERROR_ENCLAVE_LOST == ret && enclave_lost_retry_time--);
 
     if (ret == SGX_SUCCESS)
+    {
         Log("Enclave created, ID: %llx", this->enclave_id);
-
+        m_enclaveCreated = true;
+    }
 
     return ret;
 }

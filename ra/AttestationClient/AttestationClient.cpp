@@ -25,8 +25,10 @@ void AttestationClient::start() {
 
 
 sgx_status_t AttestationClient::initEnclave() {
+    sgx_status_t ret;
     this->enclave = Enclave::getInstance();
-    return this->enclave->createEnclave();
+    ret = this->enclave->createEnclave();
+    return ret == SGX_SUCCESS? this->enclave->initRa() : ret;
 }
 
 
