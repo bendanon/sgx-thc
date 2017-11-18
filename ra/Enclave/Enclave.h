@@ -27,7 +27,26 @@ public:
     sgx_enclave_id_t getID();
     sgx_status_t getStatus();
     sgx_ra_context_t getContext();
-    sgx_status_t SkgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* pk, size_t pk_size);
+
+    sgx_status_t skgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+                         sgx_ec256_public_t* pk, size_t pk_size);
+
+    sgx_status_t bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+                         sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, 
+                         size_t pk_size);
+
+    sgx_status_t skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, 
+                         size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, 
+                         size_t sealed_size, uint8_t* s_encrypted, 
+                         size_t s_encrypted_size);
+    
+    sgx_status_t bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, 
+                         size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, 
+                         size_t sealed_size);
+
+    sgx_status_t bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, 
+                        uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
+                        size_t B_out_size);
 
 private:
     Enclave();

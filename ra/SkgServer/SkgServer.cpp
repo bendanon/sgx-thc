@@ -46,7 +46,7 @@ bool SkgServer::Init() {
     size_t pk_size = sizeof(sgx_ec256_public_t);
     memset(this->p_skg_pk, 0, pk_size);
 
-    status = m_pEnclave->SkgInit(this->p_sealed_s_sk, 
+    status = m_pEnclave->skgInit(this->p_sealed_s_sk, 
                                 SKG_DATA_SEALED_SIZE_BYTES, 
                                 this->p_skg_pk, 
                                 pk_size);
@@ -68,12 +68,24 @@ bool SkgServer::Init() {
     return true;
 }
 
-bool SkgServer::processPkRequest(Messages::PkRequest pkRequest, Messages::PkResponse pkResponse){
-    Log("SkgServer::processPkRequest - not implemented");
-    return false;
+bool SkgServer::processPkRequest(Messages::PkRequest& pkRequest, 
+                                 Messages::PkResponse& pkResponse){
+    //TODO: process pk request
+    
+    pkResponse.set_type(THC_PK_RES);
+
+    for (auto x : p_skg_pk->gx)
+        pkResponse.add_gx(x);
+
+    for (auto x : p_skg_pk->gy)
+        pkResponse.add_gy(x);
+    
+    Log("SkgServer::processPkRequest - success");
+    return true;
 } 
 
-bool SkgServer::processGetSecretRequest(Messages::GetSecretRequest getSecretRequest, Messages::GetSecretResponse getSecretResponse){
+bool SkgServer::processGetSecretRequest(Messages::GetSecretRequest& getSecretRequest, 
+                                        Messages::GetSecretResponse& getSecretResponse){
     Log("SkgServer::processGetSecretRequest - not implemented");
     return false;
 }

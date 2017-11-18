@@ -8,7 +8,6 @@
 #include <iostream>
 #include <iomanip>
 
-//#include "Enclave_u.h"
 #include "sgx_urts.h"
 #include <cassert>
 #include "sgx_trts.h"
@@ -25,6 +24,7 @@
 #include "Messages.pb.h"
 #include "VerificationReport.h"
 #include "AttestationClient.h"
+#include "Network_def.h"
 
 using namespace std;
 using namespace util;
@@ -45,11 +45,12 @@ public:
     ***/
     bool Init();
 
-    bool processPkRequest(Messages::PkRequest pkRequest, Messages::PkResponse pkResponse);
+    bool processPkRequest(Messages::PkRequest& pkRequest, 
+                          Messages::PkResponse& pkResponse);
 
 
-    bool processGetSecretRequest(Messages::GetSecretRequest getSecretRequest, 
-                                 Messages::GetSecretResponse getSecretResponse);
+    bool processGetSecretRequest(Messages::GetSecretRequest& getSecretRequest, 
+                                 Messages::GetSecretResponse& getSecretResponse);
 
 private:
     bool readCertificateFromMemory();        

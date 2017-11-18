@@ -25,14 +25,16 @@ message PkRequest {
 
 message PkResponse {
 	required uint32 type = 1;
-	repeated uint32 pk = 2 [packed=true];
-	repeated uint32 verification_report = 3 [packed=true];
+	repeated uint32 gx = 2 [packed=true];
+	repeated uint32 gy = 3 [packed=true];
+	repeated uint32 verification_report = 4 [packed=true];
 }
 
 message GetSecretRequest {
 	required uint32 type = 1;
-	repeated uint32 pk = 2 [packed=true];
-	repeated uint32 verification_report = 3 [packed=true];
+	repeated uint32 gx = 2 [packed=true];
+	repeated uint32 gy = 3 [packed=true];
+	repeated uint32 verification_report = 4 [packed=true];
 }
 
 message GetSecretResponse {

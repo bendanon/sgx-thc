@@ -134,7 +134,7 @@ sgx_ra_context_t Enclave::getContext() {
     return this->context;
 }
 
-sgx_status_t Enclave::SkgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+sgx_status_t Enclave::skgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                               sgx_ec256_public_t* pk, size_t pk_size){
 
     skg_init(this->enclave_id,
@@ -145,6 +145,80 @@ sgx_status_t Enclave::SkgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size
              pk_size);
 
     Log("skg_init retval is %d", this->status);
+
+    return this->status;
+}
+
+
+sgx_status_t Enclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+                              sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, 
+                              size_t pk_size) {
+
+    bb_init_1(this->enclave_id,
+             &this->status, 
+             sealed_data, 
+             sealed_size, 
+             bb_pk,
+             skg_pk, 
+             pk_size);
+
+    Log("bb_init_1 retval is %d", this->status);
+
+    return this->status;
+}
+
+
+sgx_status_t Enclave::skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, 
+                              size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, 
+                              size_t sealed_size, uint8_t* s_encrypted, 
+                              size_t s_encrypted_size) {
+
+    skg_exec(this->enclave_id,
+             &this->status, 
+             p_bb_pk, 
+             p_skg_pk, 
+             pk_size, 
+             p_sealed_s_sk,
+             sealed_size,
+             s_encrypted,
+             s_encrypted_size);
+
+    Log("skg_exec retval is %d", this->status);
+
+    return this->status;
+}
+
+sgx_status_t Enclave::bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, 
+                              size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, 
+                              size_t sealed_size) {
+                                  
+    bb_init_2(this->enclave_id,
+             &this->status, 
+             p_sealed_k, 
+             s_encrypted, 
+             s_encrypted_size, 
+             p_sealed_s,
+             sealed_size);
+
+    Log("bb_init_2 retval is %d", this->status);
+
+    return this->status;
+}
+
+sgx_status_t Enclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, 
+                             uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
+                             size_t B_out_size){
+
+    bb_exec(this->enclave_id,
+             &this->status, 
+             p_sealed_s, 
+             sealed_size, 
+             B_in, 
+             B_in_size,
+             B_out,
+             B_out_size);
+
+    Log("bb_exec retval is %d", this->status);
 
     return this->status;
 }

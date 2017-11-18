@@ -495,22 +495,34 @@ class PkResponse : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 type() const;
   inline void set_type(::google::protobuf::uint32 value);
 
-  // repeated uint32 pk = 2 [packed = true];
-  inline int pk_size() const;
-  inline void clear_pk();
-  static const int kPkFieldNumber = 2;
-  inline ::google::protobuf::uint32 pk(int index) const;
-  inline void set_pk(int index, ::google::protobuf::uint32 value);
-  inline void add_pk(::google::protobuf::uint32 value);
+  // repeated uint32 gx = 2 [packed = true];
+  inline int gx_size() const;
+  inline void clear_gx();
+  static const int kGxFieldNumber = 2;
+  inline ::google::protobuf::uint32 gx(int index) const;
+  inline void set_gx(int index, ::google::protobuf::uint32 value);
+  inline void add_gx(::google::protobuf::uint32 value);
   inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      pk() const;
+      gx() const;
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_pk();
+      mutable_gx();
 
-  // repeated uint32 verification_report = 3 [packed = true];
+  // repeated uint32 gy = 3 [packed = true];
+  inline int gy_size() const;
+  inline void clear_gy();
+  static const int kGyFieldNumber = 3;
+  inline ::google::protobuf::uint32 gy(int index) const;
+  inline void set_gy(int index, ::google::protobuf::uint32 value);
+  inline void add_gy(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      gy() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_gy();
+
+  // repeated uint32 verification_report = 4 [packed = true];
   inline int verification_report_size() const;
   inline void clear_verification_report();
-  static const int kVerificationReportFieldNumber = 3;
+  static const int kVerificationReportFieldNumber = 4;
   inline ::google::protobuf::uint32 verification_report(int index) const;
   inline void set_verification_report(int index, ::google::protobuf::uint32 value);
   inline void add_verification_report(::google::protobuf::uint32 value);
@@ -528,8 +540,10 @@ class PkResponse : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > pk_;
-  mutable int _pk_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gx_;
+  mutable int _gx_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gy_;
+  mutable int _gy_cached_byte_size_;
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > verification_report_;
   mutable int _verification_report_cached_byte_size_;
   ::google::protobuf::uint32 type_;
@@ -602,22 +616,34 @@ class GetSecretRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 type() const;
   inline void set_type(::google::protobuf::uint32 value);
 
-  // repeated uint32 pk = 2 [packed = true];
-  inline int pk_size() const;
-  inline void clear_pk();
-  static const int kPkFieldNumber = 2;
-  inline ::google::protobuf::uint32 pk(int index) const;
-  inline void set_pk(int index, ::google::protobuf::uint32 value);
-  inline void add_pk(::google::protobuf::uint32 value);
+  // repeated uint32 gx = 2 [packed = true];
+  inline int gx_size() const;
+  inline void clear_gx();
+  static const int kGxFieldNumber = 2;
+  inline ::google::protobuf::uint32 gx(int index) const;
+  inline void set_gx(int index, ::google::protobuf::uint32 value);
+  inline void add_gx(::google::protobuf::uint32 value);
   inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      pk() const;
+      gx() const;
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_pk();
+      mutable_gx();
 
-  // repeated uint32 verification_report = 3 [packed = true];
+  // repeated uint32 gy = 3 [packed = true];
+  inline int gy_size() const;
+  inline void clear_gy();
+  static const int kGyFieldNumber = 3;
+  inline ::google::protobuf::uint32 gy(int index) const;
+  inline void set_gy(int index, ::google::protobuf::uint32 value);
+  inline void add_gy(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      gy() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_gy();
+
+  // repeated uint32 verification_report = 4 [packed = true];
   inline int verification_report_size() const;
   inline void clear_verification_report();
-  static const int kVerificationReportFieldNumber = 3;
+  static const int kVerificationReportFieldNumber = 4;
   inline ::google::protobuf::uint32 verification_report(int index) const;
   inline void set_verification_report(int index, ::google::protobuf::uint32 value);
   inline void add_verification_report(::google::protobuf::uint32 value);
@@ -635,8 +661,10 @@ class GetSecretRequest : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > pk_;
-  mutable int _pk_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gx_;
+  mutable int _gx_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gy_;
+  mutable int _gy_cached_byte_size_;
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > verification_report_;
   mutable int _verification_report_cached_byte_size_;
   ::google::protobuf::uint32 type_;
@@ -1769,37 +1797,67 @@ inline void PkResponse::set_type(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:Messages.PkResponse.type)
 }
 
-// repeated uint32 pk = 2 [packed = true];
-inline int PkResponse::pk_size() const {
-  return pk_.size();
+// repeated uint32 gx = 2 [packed = true];
+inline int PkResponse::gx_size() const {
+  return gx_.size();
 }
-inline void PkResponse::clear_pk() {
-  pk_.Clear();
+inline void PkResponse::clear_gx() {
+  gx_.Clear();
 }
-inline ::google::protobuf::uint32 PkResponse::pk(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.PkResponse.pk)
-  return pk_.Get(index);
+inline ::google::protobuf::uint32 PkResponse::gx(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.PkResponse.gx)
+  return gx_.Get(index);
 }
-inline void PkResponse::set_pk(int index, ::google::protobuf::uint32 value) {
-  pk_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.PkResponse.pk)
+inline void PkResponse::set_gx(int index, ::google::protobuf::uint32 value) {
+  gx_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.PkResponse.gx)
 }
-inline void PkResponse::add_pk(::google::protobuf::uint32 value) {
-  pk_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.PkResponse.pk)
+inline void PkResponse::add_gx(::google::protobuf::uint32 value) {
+  gx_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.PkResponse.gx)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-PkResponse::pk() const {
-  // @@protoc_insertion_point(field_list:Messages.PkResponse.pk)
-  return pk_;
+PkResponse::gx() const {
+  // @@protoc_insertion_point(field_list:Messages.PkResponse.gx)
+  return gx_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-PkResponse::mutable_pk() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.pk)
-  return &pk_;
+PkResponse::mutable_gx() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.gx)
+  return &gx_;
 }
 
-// repeated uint32 verification_report = 3 [packed = true];
+// repeated uint32 gy = 3 [packed = true];
+inline int PkResponse::gy_size() const {
+  return gy_.size();
+}
+inline void PkResponse::clear_gy() {
+  gy_.Clear();
+}
+inline ::google::protobuf::uint32 PkResponse::gy(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.PkResponse.gy)
+  return gy_.Get(index);
+}
+inline void PkResponse::set_gy(int index, ::google::protobuf::uint32 value) {
+  gy_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.PkResponse.gy)
+}
+inline void PkResponse::add_gy(::google::protobuf::uint32 value) {
+  gy_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.PkResponse.gy)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+PkResponse::gy() const {
+  // @@protoc_insertion_point(field_list:Messages.PkResponse.gy)
+  return gy_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+PkResponse::mutable_gy() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.gy)
+  return &gy_;
+}
+
+// repeated uint32 verification_report = 4 [packed = true];
 inline int PkResponse::verification_report_size() const {
   return verification_report_.size();
 }
@@ -1857,37 +1915,67 @@ inline void GetSecretRequest::set_type(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.type)
 }
 
-// repeated uint32 pk = 2 [packed = true];
-inline int GetSecretRequest::pk_size() const {
-  return pk_.size();
+// repeated uint32 gx = 2 [packed = true];
+inline int GetSecretRequest::gx_size() const {
+  return gx_.size();
 }
-inline void GetSecretRequest::clear_pk() {
-  pk_.Clear();
+inline void GetSecretRequest::clear_gx() {
+  gx_.Clear();
 }
-inline ::google::protobuf::uint32 GetSecretRequest::pk(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.pk)
-  return pk_.Get(index);
+inline ::google::protobuf::uint32 GetSecretRequest::gx(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.gx)
+  return gx_.Get(index);
 }
-inline void GetSecretRequest::set_pk(int index, ::google::protobuf::uint32 value) {
-  pk_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.pk)
+inline void GetSecretRequest::set_gx(int index, ::google::protobuf::uint32 value) {
+  gx_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.gx)
 }
-inline void GetSecretRequest::add_pk(::google::protobuf::uint32 value) {
-  pk_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.pk)
+inline void GetSecretRequest::add_gx(::google::protobuf::uint32 value) {
+  gx_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.gx)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-GetSecretRequest::pk() const {
-  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.pk)
-  return pk_;
+GetSecretRequest::gx() const {
+  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.gx)
+  return gx_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-GetSecretRequest::mutable_pk() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.pk)
-  return &pk_;
+GetSecretRequest::mutable_gx() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.gx)
+  return &gx_;
 }
 
-// repeated uint32 verification_report = 3 [packed = true];
+// repeated uint32 gy = 3 [packed = true];
+inline int GetSecretRequest::gy_size() const {
+  return gy_.size();
+}
+inline void GetSecretRequest::clear_gy() {
+  gy_.Clear();
+}
+inline ::google::protobuf::uint32 GetSecretRequest::gy(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.gy)
+  return gy_.Get(index);
+}
+inline void GetSecretRequest::set_gy(int index, ::google::protobuf::uint32 value) {
+  gy_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.gy)
+}
+inline void GetSecretRequest::add_gy(::google::protobuf::uint32 value) {
+  gy_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.gy)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+GetSecretRequest::gy() const {
+  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.gy)
+  return gy_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+GetSecretRequest::mutable_gy() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.gy)
+  return &gy_;
+}
+
+// repeated uint32 verification_report = 4 [packed = true];
 inline int GetSecretRequest::verification_report_size() const {
   return verification_report_.size();
 }

@@ -14,6 +14,13 @@ typedef enum _ra_msg_types {
     RA_APP_ATT_OK
 } ra_msg_types;
 
+typedef enum _thc_msg_types {    
+    THC_PK_REQ,
+    THC_PK_RES,
+    THC_SEC_REQ,
+    THC_SEC_RES
+} thc_msg_types;
+
 
 typedef enum _ra_msg {
     TYPE_OK,

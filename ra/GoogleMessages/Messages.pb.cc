@@ -130,9 +130,10 @@ void protobuf_AssignDesc_Messages_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(PkRequest));
   PkResponse_descriptor_ = file->message_type(4);
-  static const int PkResponse_offsets_[3] = {
+  static const int PkResponse_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PkResponse, type_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PkResponse, pk_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PkResponse, gx_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PkResponse, gy_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PkResponse, verification_report_),
   };
   PkResponse_reflection_ =
@@ -147,9 +148,10 @@ void protobuf_AssignDesc_Messages_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(PkResponse));
   GetSecretRequest_descriptor_ = file->message_type(5);
-  static const int GetSecretRequest_offsets_[3] = {
+  static const int GetSecretRequest_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetSecretRequest, type_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetSecretRequest, pk_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetSecretRequest, gx_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetSecretRequest, gy_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetSecretRequest, verification_report_),
   };
   GetSecretRequest_reflection_ =
@@ -346,35 +348,36 @@ void protobuf_AddDesc_Messages_2eproto() {
     "ageMsg0\022\014\n\004type\030\001 \002(\r\022\014\n\004epid\030\002 \002(\r\022\016\n\006s"
     "tatus\030\003 \001(\r\"N\n\013MessageMSG1\022\014\n\004type\030\001 \002(\r"
     "\022\017\n\003GaX\030\002 \003(\rB\002\020\001\022\017\n\003GaY\030\003 \003(\rB\002\020\001\022\017\n\003GI"
-    "D\030\004 \003(\rB\002\020\001\"\031\n\tPkRequest\022\014\n\004type\030\001 \002(\r\"K"
-    "\n\nPkResponse\022\014\n\004type\030\001 \002(\r\022\016\n\002pk\030\002 \003(\rB\002"
-    "\020\001\022\037\n\023verification_report\030\003 \003(\rB\002\020\001\"Q\n\020G"
-    "etSecretRequest\022\014\n\004type\030\001 \002(\r\022\016\n\002pk\030\002 \003("
-    "\rB\002\020\001\022\037\n\023verification_report\030\003 \003(\rB\002\020\001\"\?"
-    "\n\021GetSecretResponse\022\014\n\004type\030\001 \002(\r\022\034\n\020enc"
-    "rypted_secret\030\002 \003(\rB\002\020\001\"\205\002\n\013MessageMSG2\022"
-    "\014\n\004type\030\001 \002(\r\022\014\n\004size\030\002 \001(\r\022\031\n\rpublic_ke"
-    "y_gx\030\003 \003(\rB\002\020\001\022\031\n\rpublic_key_gy\030\004 \003(\rB\002\020"
-    "\001\022\022\n\nquote_type\030\005 \001(\r\022\020\n\004spid\030\006 \003(\rB\002\020\001\022"
-    "\023\n\013cmac_kdf_id\030\007 \001(\r\022\027\n\013signature_x\030\010 \003("
-    "\rB\002\020\001\022\027\n\013signature_y\030\t \003(\rB\002\020\001\022\020\n\004smac\030\n"
-    " \003(\rB\002\020\001\022\022\n\nsize_sigrl\030\013 \001(\r\022\021\n\005sigrl\030\014 "
-    "\003(\rB\002\020\001\"\227\001\n\013MessageMSG3\022\014\n\004type\030\001 \002(\r\022\014\n"
-    "\004size\030\002 \001(\r\022\023\n\007sgx_mac\030\003 \003(\rB\002\020\001\022\024\n\010gax_"
-    "msg3\030\004 \003(\rB\002\020\001\022\024\n\010gay_msg3\030\005 \003(\rB\002\020\001\022\030\n\014"
-    "sec_property\030\006 \003(\rB\002\020\001\022\021\n\005quote\030\007 \003(\rB\002\020"
-    "\001\"\262\003\n\022AttestationMessage\022\014\n\004type\030\001 \002(\r\022\014"
-    "\n\004size\030\002 \002(\r\022\031\n\021epid_group_status\030\003 \001(\r\022"
-    "\035\n\025tcb_evaluation_status\030\004 \001(\r\022\035\n\025pse_ev"
-    "aluation_status\030\005 \001(\r\022&\n\032latest_equivale"
-    "nt_tcb_psvn\030\006 \003(\rB\002\020\001\022\035\n\021latest_pse_isvs"
-    "vn\030\007 \003(\rB\002\020\001\022\033\n\017latest_psda_svn\030\010 \003(\rB\002\020"
-    "\001\022!\n\025performance_rekey_gid\030\t \003(\rB\002\020\001\022\030\n\014"
-    "ec_sign256_x\030\n \003(\rB\002\020\001\022\030\n\014ec_sign256_y\030\013"
-    " \003(\rB\002\020\001\022\023\n\007mac_smk\030\014 \003(\rB\002\020\001\022\023\n\013result_"
-    "size\030\r \001(\r\022\024\n\010reserved\030\016 \003(\rB\002\020\001\022\027\n\013payl"
-    "oad_tag\030\017 \003(\rB\002\020\001\022\023\n\007payload\030\020 \003(\rB\002\020\001\"\035"
-    "\n\rSecretMessage\022\014\n\004type\030\001 \002(\r", 1349);
+    "D\030\004 \003(\rB\002\020\001\"\031\n\tPkRequest\022\014\n\004type\030\001 \002(\r\"["
+    "\n\nPkResponse\022\014\n\004type\030\001 \002(\r\022\016\n\002gx\030\002 \003(\rB\002"
+    "\020\001\022\016\n\002gy\030\003 \003(\rB\002\020\001\022\037\n\023verification_repor"
+    "t\030\004 \003(\rB\002\020\001\"a\n\020GetSecretRequest\022\014\n\004type\030"
+    "\001 \002(\r\022\016\n\002gx\030\002 \003(\rB\002\020\001\022\016\n\002gy\030\003 \003(\rB\002\020\001\022\037\n"
+    "\023verification_report\030\004 \003(\rB\002\020\001\"\?\n\021GetSec"
+    "retResponse\022\014\n\004type\030\001 \002(\r\022\034\n\020encrypted_s"
+    "ecret\030\002 \003(\rB\002\020\001\"\205\002\n\013MessageMSG2\022\014\n\004type\030"
+    "\001 \002(\r\022\014\n\004size\030\002 \001(\r\022\031\n\rpublic_key_gx\030\003 \003"
+    "(\rB\002\020\001\022\031\n\rpublic_key_gy\030\004 \003(\rB\002\020\001\022\022\n\nquo"
+    "te_type\030\005 \001(\r\022\020\n\004spid\030\006 \003(\rB\002\020\001\022\023\n\013cmac_"
+    "kdf_id\030\007 \001(\r\022\027\n\013signature_x\030\010 \003(\rB\002\020\001\022\027\n"
+    "\013signature_y\030\t \003(\rB\002\020\001\022\020\n\004smac\030\n \003(\rB\002\020\001"
+    "\022\022\n\nsize_sigrl\030\013 \001(\r\022\021\n\005sigrl\030\014 \003(\rB\002\020\001\""
+    "\227\001\n\013MessageMSG3\022\014\n\004type\030\001 \002(\r\022\014\n\004size\030\002 "
+    "\001(\r\022\023\n\007sgx_mac\030\003 \003(\rB\002\020\001\022\024\n\010gax_msg3\030\004 \003"
+    "(\rB\002\020\001\022\024\n\010gay_msg3\030\005 \003(\rB\002\020\001\022\030\n\014sec_prop"
+    "erty\030\006 \003(\rB\002\020\001\022\021\n\005quote\030\007 \003(\rB\002\020\001\"\262\003\n\022At"
+    "testationMessage\022\014\n\004type\030\001 \002(\r\022\014\n\004size\030\002"
+    " \002(\r\022\031\n\021epid_group_status\030\003 \001(\r\022\035\n\025tcb_e"
+    "valuation_status\030\004 \001(\r\022\035\n\025pse_evaluation"
+    "_status\030\005 \001(\r\022&\n\032latest_equivalent_tcb_p"
+    "svn\030\006 \003(\rB\002\020\001\022\035\n\021latest_pse_isvsvn\030\007 \003(\r"
+    "B\002\020\001\022\033\n\017latest_psda_svn\030\010 \003(\rB\002\020\001\022!\n\025per"
+    "formance_rekey_gid\030\t \003(\rB\002\020\001\022\030\n\014ec_sign2"
+    "56_x\030\n \003(\rB\002\020\001\022\030\n\014ec_sign256_y\030\013 \003(\rB\002\020\001"
+    "\022\023\n\007mac_smk\030\014 \003(\rB\002\020\001\022\023\n\013result_size\030\r \001"
+    "(\r\022\024\n\010reserved\030\016 \003(\rB\002\020\001\022\027\n\013payload_tag\030"
+    "\017 \003(\rB\002\020\001\022\023\n\007payload\030\020 \003(\rB\002\020\001\"\035\n\rSecret"
+    "Message\022\014\n\004type\030\001 \002(\r", 1381);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Messages.proto", &protobuf_RegisterTypes);
   InitialMessage::default_instance_ = new InitialMessage();
@@ -1636,7 +1639,8 @@ void PkRequest::Swap(PkRequest* other) {
 
 #ifndef _MSC_VER
 const int PkResponse::kTypeFieldNumber;
-const int PkResponse::kPkFieldNumber;
+const int PkResponse::kGxFieldNumber;
+const int PkResponse::kGyFieldNumber;
 const int PkResponse::kVerificationReportFieldNumber;
 #endif  // !_MSC_VER
 
@@ -1695,7 +1699,8 @@ PkResponse* PkResponse::New() const {
 
 void PkResponse::Clear() {
   type_ = 0u;
-  pk_.Clear();
+  gx_.Clear();
+  gy_.Clear();
   verification_report_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -1721,39 +1726,57 @@ bool PkResponse::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(18)) goto parse_pk;
+        if (input->ExpectTag(18)) goto parse_gx;
         break;
       }
 
-      // repeated uint32 pk = 2 [packed = true];
+      // repeated uint32 gx = 2 [packed = true];
       case 2: {
         if (tag == 18) {
-         parse_pk:
+         parse_gx:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, this->mutable_pk())));
+                 input, this->mutable_gx())));
         } else if (tag == 16) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 18, input, this->mutable_pk())));
+                 1, 18, input, this->mutable_gx())));
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(26)) goto parse_verification_report;
+        if (input->ExpectTag(26)) goto parse_gy;
         break;
       }
 
-      // repeated uint32 verification_report = 3 [packed = true];
+      // repeated uint32 gy = 3 [packed = true];
       case 3: {
         if (tag == 26) {
+         parse_gy:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, this->mutable_gy())));
+        } else if (tag == 24) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 1, 26, input, this->mutable_gy())));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34)) goto parse_verification_report;
+        break;
+      }
+
+      // repeated uint32 verification_report = 4 [packed = true];
+      case 4: {
+        if (tag == 34) {
          parse_verification_report:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, this->mutable_verification_report())));
-        } else if (tag == 24) {
+        } else if (tag == 32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 26, input, this->mutable_verification_report())));
+                 1, 34, input, this->mutable_verification_report())));
         } else {
           goto handle_unusual;
         }
@@ -1791,19 +1814,29 @@ void PkResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->type(), output);
   }
 
-  // repeated uint32 pk = 2 [packed = true];
-  if (this->pk_size() > 0) {
+  // repeated uint32 gx = 2 [packed = true];
+  if (this->gx_size() > 0) {
     ::google::protobuf::internal::WireFormatLite::WriteTag(2, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_pk_cached_byte_size_);
+    output->WriteVarint32(_gx_cached_byte_size_);
   }
-  for (int i = 0; i < this->pk_size(); i++) {
+  for (int i = 0; i < this->gx_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
-      this->pk(i), output);
+      this->gx(i), output);
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
-  if (this->verification_report_size() > 0) {
+  // repeated uint32 gy = 3 [packed = true];
+  if (this->gy_size() > 0) {
     ::google::protobuf::internal::WireFormatLite::WriteTag(3, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    output->WriteVarint32(_gy_cached_byte_size_);
+  }
+  for (int i = 0; i < this->gy_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
+      this->gy(i), output);
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
+  if (this->verification_report_size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteTag(4, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
     output->WriteVarint32(_verification_report_cached_byte_size_);
   }
   for (int i = 0; i < this->verification_report_size(); i++) {
@@ -1826,24 +1859,38 @@ void PkResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->type(), target);
   }
 
-  // repeated uint32 pk = 2 [packed = true];
-  if (this->pk_size() > 0) {
+  // repeated uint32 gx = 2 [packed = true];
+  if (this->gx_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
       2,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
-      _pk_cached_byte_size_, target);
+      _gx_cached_byte_size_, target);
   }
-  for (int i = 0; i < this->pk_size(); i++) {
+  for (int i = 0; i < this->gx_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteUInt32NoTagToArray(this->pk(i), target);
+      WriteUInt32NoTagToArray(this->gx(i), target);
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
-  if (this->verification_report_size() > 0) {
+  // repeated uint32 gy = 3 [packed = true];
+  if (this->gy_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
       3,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      target);
+    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
+      _gy_cached_byte_size_, target);
+  }
+  for (int i = 0; i < this->gy_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteUInt32NoTagToArray(this->gy(i), target);
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
+  if (this->verification_report_size() > 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
+      4,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
@@ -1874,24 +1921,41 @@ int PkResponse::ByteSize() const {
     }
 
   }
-  // repeated uint32 pk = 2 [packed = true];
+  // repeated uint32 gx = 2 [packed = true];
   {
     int data_size = 0;
-    for (int i = 0; i < this->pk_size(); i++) {
+    for (int i = 0; i < this->gx_size(); i++) {
       data_size += ::google::protobuf::internal::WireFormatLite::
-        UInt32Size(this->pk(i));
+        UInt32Size(this->gx(i));
     }
     if (data_size > 0) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(data_size);
     }
     GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-    _pk_cached_byte_size_ = data_size;
+    _gx_cached_byte_size_ = data_size;
     GOOGLE_SAFE_CONCURRENT_WRITES_END();
     total_size += data_size;
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
+  // repeated uint32 gy = 3 [packed = true];
+  {
+    int data_size = 0;
+    for (int i = 0; i < this->gy_size(); i++) {
+      data_size += ::google::protobuf::internal::WireFormatLite::
+        UInt32Size(this->gy(i));
+    }
+    if (data_size > 0) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(data_size);
+    }
+    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+    _gy_cached_byte_size_ = data_size;
+    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    total_size += data_size;
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
   {
     int data_size = 0;
     for (int i = 0; i < this->verification_report_size(); i++) {
@@ -1933,7 +1997,8 @@ void PkResponse::MergeFrom(const ::google::protobuf::Message& from) {
 
 void PkResponse::MergeFrom(const PkResponse& from) {
   GOOGLE_CHECK_NE(&from, this);
-  pk_.MergeFrom(from.pk_);
+  gx_.MergeFrom(from.gx_);
+  gy_.MergeFrom(from.gy_);
   verification_report_.MergeFrom(from.verification_report_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_type()) {
@@ -1964,7 +2029,8 @@ bool PkResponse::IsInitialized() const {
 void PkResponse::Swap(PkResponse* other) {
   if (other != this) {
     std::swap(type_, other->type_);
-    pk_.Swap(&other->pk_);
+    gx_.Swap(&other->gx_);
+    gy_.Swap(&other->gy_);
     verification_report_.Swap(&other->verification_report_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
@@ -1985,7 +2051,8 @@ void PkResponse::Swap(PkResponse* other) {
 
 #ifndef _MSC_VER
 const int GetSecretRequest::kTypeFieldNumber;
-const int GetSecretRequest::kPkFieldNumber;
+const int GetSecretRequest::kGxFieldNumber;
+const int GetSecretRequest::kGyFieldNumber;
 const int GetSecretRequest::kVerificationReportFieldNumber;
 #endif  // !_MSC_VER
 
@@ -2044,7 +2111,8 @@ GetSecretRequest* GetSecretRequest::New() const {
 
 void GetSecretRequest::Clear() {
   type_ = 0u;
-  pk_.Clear();
+  gx_.Clear();
+  gy_.Clear();
   verification_report_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -2070,39 +2138,57 @@ bool GetSecretRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(18)) goto parse_pk;
+        if (input->ExpectTag(18)) goto parse_gx;
         break;
       }
 
-      // repeated uint32 pk = 2 [packed = true];
+      // repeated uint32 gx = 2 [packed = true];
       case 2: {
         if (tag == 18) {
-         parse_pk:
+         parse_gx:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, this->mutable_pk())));
+                 input, this->mutable_gx())));
         } else if (tag == 16) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 18, input, this->mutable_pk())));
+                 1, 18, input, this->mutable_gx())));
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(26)) goto parse_verification_report;
+        if (input->ExpectTag(26)) goto parse_gy;
         break;
       }
 
-      // repeated uint32 verification_report = 3 [packed = true];
+      // repeated uint32 gy = 3 [packed = true];
       case 3: {
         if (tag == 26) {
+         parse_gy:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, this->mutable_gy())));
+        } else if (tag == 24) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 1, 26, input, this->mutable_gy())));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34)) goto parse_verification_report;
+        break;
+      }
+
+      // repeated uint32 verification_report = 4 [packed = true];
+      case 4: {
+        if (tag == 34) {
          parse_verification_report:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, this->mutable_verification_report())));
-        } else if (tag == 24) {
+        } else if (tag == 32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 1, 26, input, this->mutable_verification_report())));
+                 1, 34, input, this->mutable_verification_report())));
         } else {
           goto handle_unusual;
         }
@@ -2140,19 +2226,29 @@ void GetSecretRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->type(), output);
   }
 
-  // repeated uint32 pk = 2 [packed = true];
-  if (this->pk_size() > 0) {
+  // repeated uint32 gx = 2 [packed = true];
+  if (this->gx_size() > 0) {
     ::google::protobuf::internal::WireFormatLite::WriteTag(2, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_pk_cached_byte_size_);
+    output->WriteVarint32(_gx_cached_byte_size_);
   }
-  for (int i = 0; i < this->pk_size(); i++) {
+  for (int i = 0; i < this->gx_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
-      this->pk(i), output);
+      this->gx(i), output);
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
-  if (this->verification_report_size() > 0) {
+  // repeated uint32 gy = 3 [packed = true];
+  if (this->gy_size() > 0) {
     ::google::protobuf::internal::WireFormatLite::WriteTag(3, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    output->WriteVarint32(_gy_cached_byte_size_);
+  }
+  for (int i = 0; i < this->gy_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32NoTag(
+      this->gy(i), output);
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
+  if (this->verification_report_size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteTag(4, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
     output->WriteVarint32(_verification_report_cached_byte_size_);
   }
   for (int i = 0; i < this->verification_report_size(); i++) {
@@ -2175,24 +2271,38 @@ void GetSecretRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->type(), target);
   }
 
-  // repeated uint32 pk = 2 [packed = true];
-  if (this->pk_size() > 0) {
+  // repeated uint32 gx = 2 [packed = true];
+  if (this->gx_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
       2,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
-      _pk_cached_byte_size_, target);
+      _gx_cached_byte_size_, target);
   }
-  for (int i = 0; i < this->pk_size(); i++) {
+  for (int i = 0; i < this->gx_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteUInt32NoTagToArray(this->pk(i), target);
+      WriteUInt32NoTagToArray(this->gx(i), target);
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
-  if (this->verification_report_size() > 0) {
+  // repeated uint32 gy = 3 [packed = true];
+  if (this->gy_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
       3,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      target);
+    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
+      _gy_cached_byte_size_, target);
+  }
+  for (int i = 0; i < this->gy_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteUInt32NoTagToArray(this->gy(i), target);
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
+  if (this->verification_report_size() > 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
+      4,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
@@ -2223,24 +2333,41 @@ int GetSecretRequest::ByteSize() const {
     }
 
   }
-  // repeated uint32 pk = 2 [packed = true];
+  // repeated uint32 gx = 2 [packed = true];
   {
     int data_size = 0;
-    for (int i = 0; i < this->pk_size(); i++) {
+    for (int i = 0; i < this->gx_size(); i++) {
       data_size += ::google::protobuf::internal::WireFormatLite::
-        UInt32Size(this->pk(i));
+        UInt32Size(this->gx(i));
     }
     if (data_size > 0) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(data_size);
     }
     GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-    _pk_cached_byte_size_ = data_size;
+    _gx_cached_byte_size_ = data_size;
     GOOGLE_SAFE_CONCURRENT_WRITES_END();
     total_size += data_size;
   }
 
-  // repeated uint32 verification_report = 3 [packed = true];
+  // repeated uint32 gy = 3 [packed = true];
+  {
+    int data_size = 0;
+    for (int i = 0; i < this->gy_size(); i++) {
+      data_size += ::google::protobuf::internal::WireFormatLite::
+        UInt32Size(this->gy(i));
+    }
+    if (data_size > 0) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(data_size);
+    }
+    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+    _gy_cached_byte_size_ = data_size;
+    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    total_size += data_size;
+  }
+
+  // repeated uint32 verification_report = 4 [packed = true];
   {
     int data_size = 0;
     for (int i = 0; i < this->verification_report_size(); i++) {
@@ -2282,7 +2409,8 @@ void GetSecretRequest::MergeFrom(const ::google::protobuf::Message& from) {
 
 void GetSecretRequest::MergeFrom(const GetSecretRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
-  pk_.MergeFrom(from.pk_);
+  gx_.MergeFrom(from.gx_);
+  gy_.MergeFrom(from.gy_);
   verification_report_.MergeFrom(from.verification_report_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_type()) {
@@ -2313,7 +2441,8 @@ bool GetSecretRequest::IsInitialized() const {
 void GetSecretRequest::Swap(GetSecretRequest* other) {
   if (other != this) {
     std::swap(type_, other->type_);
-    pk_.Swap(&other->pk_);
+    gx_.Swap(&other->gx_);
+    gy_.Swap(&other->gy_);
     verification_report_.Swap(&other->verification_report_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);

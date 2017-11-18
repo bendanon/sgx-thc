@@ -41,8 +41,8 @@ int Main(int argc, char* argv[]) {
         Log("SkgServer Failed to Init");
 
     BbClient bbClient(enclave);
-    if(!bbClient.obtainCertificate())    
-        Log("BbClient Failed to obtain a valid certificate*****************************");
+    if(!bbClient.Init())    
+        Log("BbClient Failed to Init");
     
 
     bbClient.generatePkRequest(pkRequest);
