@@ -47,6 +47,14 @@ typedef struct ms_verify_secret_data_t {
 	uint8_t* ms_p_ret;
 } ms_verify_secret_data_t;
 
+typedef struct ms_skg_init_t {
+	sgx_status_t ms_retval;
+	sgx_sealed_data_t* ms_sealed_data;
+	size_t ms_sealed_size;
+	sgx_ec256_public_t* ms_pk;
+	size_t ms_pk_size;
+} ms_skg_init_t;
+
 typedef struct ms_sgx_ra_get_ga_t {
 	sgx_status_t ms_retval;
 	sgx_ra_context_t ms_context;
@@ -70,6 +78,10 @@ typedef struct ms_sgx_ra_get_msg3_trusted_t {
 	sgx_ra_msg3_t* ms_p_msg3;
 	uint32_t ms_msg3_size;
 } ms_sgx_ra_get_msg3_trusted_t;
+
+typedef struct ms_ocall_print_t {
+	char* ms_str;
+} ms_ocall_print_t;
 
 typedef struct ms_create_session_ocall_t {
 	sgx_status_t ms_retval;
@@ -285,6 +297,53 @@ err:
 	return status;
 }
 
+static sgx_status_t SGX_CDECL sgx_skg_init(void* pms)
+{
+	ms_skg_init_t* ms = SGX_CAST(ms_skg_init_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	sgx_sealed_data_t* _tmp_sealed_data = ms->ms_sealed_data;
+	size_t _tmp_sealed_size = ms->ms_sealed_size;
+	size_t _len_sealed_data = _tmp_sealed_size;
+	sgx_sealed_data_t* _in_sealed_data = NULL;
+	sgx_ec256_public_t* _tmp_pk = ms->ms_pk;
+	size_t _tmp_pk_size = ms->ms_pk_size;
+	size_t _len_pk = _tmp_pk_size;
+	sgx_ec256_public_t* _in_pk = NULL;
+
+	CHECK_REF_POINTER(pms, sizeof(ms_skg_init_t));
+	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
+	CHECK_UNIQUE_POINTER(_tmp_pk, _len_pk);
+
+	if (_tmp_sealed_data != NULL) {
+		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_sealed_data, 0, _len_sealed_data);
+	}
+	if (_tmp_pk != NULL) {
+		if ((_in_pk = (sgx_ec256_public_t*)malloc(_len_pk)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_pk, 0, _len_pk);
+	}
+	ms->ms_retval = skg_init(_in_sealed_data, _tmp_sealed_size, _in_pk, _tmp_pk_size);
+err:
+	if (_in_sealed_data) {
+		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
+		free(_in_sealed_data);
+	}
+	if (_in_pk) {
+		memcpy(_tmp_pk, _in_pk, _len_pk);
+		free(_in_pk);
+	}
+
+	return status;
+}
+
 static sgx_status_t SGX_CDECL sgx_sgx_ra_get_ga(void* pms)
 {
 	ms_sgx_ra_get_ga_t* ms = SGX_CAST(ms_sgx_ra_get_ga_t*, pms);
@@ -417,14 +476,15 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[7];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[8];
 } g_ecall_table = {
-	7,
+	8,
 	{
 		{(void*)(uintptr_t)sgx_enclave_init_ra, 0},
 		{(void*)(uintptr_t)sgx_enclave_ra_close, 0},
 		{(void*)(uintptr_t)sgx_verify_att_result_mac, 0},
 		{(void*)(uintptr_t)sgx_verify_secret_data, 0},
+		{(void*)(uintptr_t)sgx_skg_init, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_get_ga, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_proc_msg2_trusted, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_get_msg3_trusted, 0},
@@ -433,22 +493,60 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[9][7];
+	uint8_t entry_table[10][8];
 } g_dyn_entry_table = {
-	9,
+	10,
 	{
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, },
 	}
 };
 
+
+sgx_status_t SGX_CDECL ocall_print(const char* str)
+{
+	sgx_status_t status = SGX_SUCCESS;
+	size_t _len_str = str ? strlen(str) + 1 : 0;
+
+	ms_ocall_print_t* ms = NULL;
+	size_t ocalloc_size = sizeof(ms_ocall_print_t);
+	void *__tmp = NULL;
+
+	ocalloc_size += (str != NULL && sgx_is_within_enclave(str, _len_str)) ? _len_str : 0;
+
+	__tmp = sgx_ocalloc(ocalloc_size);
+	if (__tmp == NULL) {
+		sgx_ocfree();
+		return SGX_ERROR_UNEXPECTED;
+	}
+	ms = (ms_ocall_print_t*)__tmp;
+	__tmp = (void *)((size_t)__tmp + sizeof(ms_ocall_print_t));
+
+	if (str != NULL && sgx_is_within_enclave(str, _len_str)) {
+		ms->ms_str = (char*)__tmp;
+		__tmp = (void *)((size_t)__tmp + _len_str);
+		memcpy((void*)ms->ms_str, str, _len_str);
+	} else if (str == NULL) {
+		ms->ms_str = NULL;
+	} else {
+		sgx_ocfree();
+		return SGX_ERROR_INVALID_PARAMETER;
+	}
+	
+	status = sgx_ocall(0, ms);
+
+
+	sgx_ocfree();
+	return status;
+}
 
 sgx_status_t SGX_CDECL create_session_ocall(sgx_status_t* retval, uint32_t* sid, uint8_t* dh_msg1, uint32_t dh_msg1_size, uint32_t timeout)
 {
@@ -495,7 +593,7 @@ sgx_status_t SGX_CDECL create_session_ocall(sgx_status_t* retval, uint32_t* sid,
 	
 	ms->ms_dh_msg1_size = dh_msg1_size;
 	ms->ms_timeout = timeout;
-	status = sgx_ocall(0, ms);
+	status = sgx_ocall(1, ms);
 
 	if (retval) *retval = ms->ms_retval;
 	if (sid) memcpy((void*)sid, ms->ms_sid, _len_sid);
@@ -552,7 +650,7 @@ sgx_status_t SGX_CDECL exchange_report_ocall(sgx_status_t* retval, uint32_t sid,
 	
 	ms->ms_dh_msg3_size = dh_msg3_size;
 	ms->ms_timeout = timeout;
-	status = sgx_ocall(1, ms);
+	status = sgx_ocall(2, ms);
 
 	if (retval) *retval = ms->ms_retval;
 	if (dh_msg3) memcpy((void*)dh_msg3, ms->ms_dh_msg3, _len_dh_msg3);
@@ -580,7 +678,7 @@ sgx_status_t SGX_CDECL close_session_ocall(sgx_status_t* retval, uint32_t sid, u
 
 	ms->ms_sid = sid;
 	ms->ms_timeout = timeout;
-	status = sgx_ocall(2, ms);
+	status = sgx_ocall(3, ms);
 
 	if (retval) *retval = ms->ms_retval;
 
@@ -634,7 +732,7 @@ sgx_status_t SGX_CDECL invoke_service_ocall(sgx_status_t* retval, uint8_t* pse_m
 	
 	ms->ms_pse_message_resp_size = pse_message_resp_size;
 	ms->ms_timeout = timeout;
-	status = sgx_ocall(3, ms);
+	status = sgx_ocall(4, ms);
 
 	if (retval) *retval = ms->ms_retval;
 	if (pse_message_resp) memcpy((void*)pse_message_resp, ms->ms_pse_message_resp, _len_pse_message_resp);
@@ -675,7 +773,7 @@ sgx_status_t SGX_CDECL sgx_oc_cpuidex(int cpuinfo[4], int leaf, int subleaf)
 	
 	ms->ms_leaf = leaf;
 	ms->ms_subleaf = subleaf;
-	status = sgx_ocall(4, ms);
+	status = sgx_ocall(5, ms);
 
 	if (cpuinfo) memcpy((void*)cpuinfo, ms->ms_cpuinfo, _len_cpuinfo);
 
@@ -701,7 +799,7 @@ sgx_status_t SGX_CDECL sgx_thread_wait_untrusted_event_ocall(int* retval, const 
 	__tmp = (void *)((size_t)__tmp + sizeof(ms_sgx_thread_wait_untrusted_event_ocall_t));
 
 	ms->ms_self = SGX_CAST(void*, self);
-	status = sgx_ocall(5, ms);
+	status = sgx_ocall(6, ms);
 
 	if (retval) *retval = ms->ms_retval;
 
@@ -727,7 +825,7 @@ sgx_status_t SGX_CDECL sgx_thread_set_untrusted_event_ocall(int* retval, const v
 	__tmp = (void *)((size_t)__tmp + sizeof(ms_sgx_thread_set_untrusted_event_ocall_t));
 
 	ms->ms_waiter = SGX_CAST(void*, waiter);
-	status = sgx_ocall(6, ms);
+	status = sgx_ocall(7, ms);
 
 	if (retval) *retval = ms->ms_retval;
 
@@ -754,7 +852,7 @@ sgx_status_t SGX_CDECL sgx_thread_setwait_untrusted_events_ocall(int* retval, co
 
 	ms->ms_waiter = SGX_CAST(void*, waiter);
 	ms->ms_self = SGX_CAST(void*, self);
-	status = sgx_ocall(7, ms);
+	status = sgx_ocall(8, ms);
 
 	if (retval) *retval = ms->ms_retval;
 
@@ -793,7 +891,7 @@ sgx_status_t SGX_CDECL sgx_thread_set_multiple_untrusted_events_ocall(int* retva
 	}
 	
 	ms->ms_total = total;
-	status = sgx_ocall(8, ms);
+	status = sgx_ocall(9, ms);
 
 	if (retval) *retval = ms->ms_retval;
 

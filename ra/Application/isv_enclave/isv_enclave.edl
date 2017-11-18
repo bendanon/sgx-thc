@@ -1,6 +1,6 @@
 enclave {
     from "sgx_tkey_exchange.edl" import *;
-
+    include "sgx_tseal.h"
     include "sgx_key_exchange.h"
     include "sgx_trts.h"
 
@@ -21,6 +21,15 @@ enclave {
 												[in,count=16] uint8_t* gcm_mac,
 												uint32_t max_verification_length,
 												[out, count=16] uint8_t *p_ret);
+
+         public sgx_status_t skg_init(
+            [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+            [out, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size);
+    };
+
+    untrusted {
+        /* define OCALLs here. */
+        void ocall_print([in, string]const char* str);
     };
 
 };

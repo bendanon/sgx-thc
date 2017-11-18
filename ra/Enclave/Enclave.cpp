@@ -134,7 +134,20 @@ sgx_ra_context_t Enclave::getContext() {
     return this->context;
 }
 
+sgx_status_t Enclave::SkgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+                              sgx_ec256_public_t* pk, size_t pk_size){
 
+    skg_init(this->enclave_id,
+             &this->status, 
+             sealed_data, 
+             sealed_size, 
+             pk, 
+             pk_size);
+
+    Log("skg_init retval is %d", this->status);
+
+    return this->status;
+}
 
 
 

@@ -27,6 +27,7 @@ public:
     sgx_enclave_id_t getID();
     sgx_status_t getStatus();
     sgx_ra_context_t getContext();
+    sgx_status_t SkgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* pk, size_t pk_size);
 
 private:
     Enclave();

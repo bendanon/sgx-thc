@@ -31,7 +31,44 @@ bool SkgServer::readCertificateFromMemory(){
     return false;
 }
 
-bool SkgServer::processPkRequest(Messages::PkRequest pkRequest, Messages::PkResponse pkResponse){                    
+
+bool SkgServer::Init() {
+
+    sgx_status_t status;
+
+    //Sealed data structs
+    this->p_sealed_s_sk = (sgx_sealed_data_t*)malloc(SKG_DATA_SEALED_SIZE_BYTES);
+    memset(this->p_sealed_s_sk, 0, SKG_DATA_SEALED_SIZE_BYTES);
+    this->p_sealed_s_sk->key_request.key_policy = KEYPOLICY_MRENCLAVE;
+
+    //pk structs
+    this->p_skg_pk = (sgx_ec256_public_t*)malloc(sizeof(sgx_ec256_public_t));    
+    size_t pk_size = sizeof(sgx_ec256_public_t);
+    memset(this->p_skg_pk, 0, pk_size);
+
+    status = m_pEnclave->SkgInit(this->p_sealed_s_sk, 
+                                SKG_DATA_SEALED_SIZE_BYTES, 
+                                this->p_skg_pk, 
+                                pk_size);
+
+    
+    if(status)
+    {
+        Log("SkgInit failed, status is %d", status);
+        return false;
+    }
+
+    if(!obtainCertificate())
+    {
+        Log("SkgServer Failed to obtain a valid certificate");
+        return false;
+    }       
+
+    Log("SkgServer::Init succeeded");
+    return true;
+}
+
+bool SkgServer::processPkRequest(Messages::PkRequest pkRequest, Messages::PkResponse pkResponse){
     Log("SkgServer::processPkRequest - not implemented");
     return false;
 } 

@@ -11,6 +11,10 @@ using namespace util;
 #include "BbClient.h"
 #include "SkgServer.h"
 
+void ocall_print(const char* str) {
+    printf("%s\n", str);
+}
+
 int Main(int argc, char* argv[]) {
     LogBase::Inst();
 
@@ -33,12 +37,12 @@ int Main(int argc, char* argv[]) {
     //TODO: For now, both skg and bb are on the same machine and use the same enclave
     //for testing purposes. In the future, both will encapsulate their own enclaves
     SkgServer skgServer(enclave);
-    if(!skgServer.obtainCertificate())
-        Log("SkgServer Failed to obtain a valid certificate****************************");
+    if(!skgServer.Init())
+        Log("SkgServer Failed to Init");
 
     BbClient bbClient(enclave);
     if(!bbClient.obtainCertificate())    
-        Log("BbClient Failed to obtain a valid certificate");
+        Log("BbClient Failed to obtain a valid certificate*****************************");
     
 
     bbClient.generatePkRequest(pkRequest);

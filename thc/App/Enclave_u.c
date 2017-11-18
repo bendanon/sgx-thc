@@ -7,8 +7,6 @@ typedef struct ms_skg_init_t {
 	size_t ms_sealed_size;
 	sgx_ec256_public_t* ms_pk;
 	size_t ms_pk_size;
-	sgx_target_info_t* ms_target_info;
-	sgx_report_t* ms_p_report;
 } ms_skg_init_t;
 
 typedef struct ms_bb_init_1_t {
@@ -18,8 +16,6 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	sgx_target_info_t* ms_target_info;
-	sgx_report_t* ms_p_report;
 } ms_bb_init_1_t;
 
 typedef struct ms_skg_exec_t {
@@ -89,7 +85,7 @@ static const struct {
 		(void*)Enclave_ocall_print,
 	}
 };
-sgx_status_t skg_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* pk, size_t pk_size, sgx_target_info_t* target_info, sgx_report_t* p_report)
+sgx_status_t skg_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* pk, size_t pk_size)
 {
 	sgx_status_t status;
 	ms_skg_init_t ms;
@@ -97,14 +93,12 @@ sgx_status_t skg_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_dat
 	ms.ms_sealed_size = sealed_size;
 	ms.ms_pk = pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_target_info = target_info;
-	ms.ms_p_report = p_report;
 	status = sgx_ecall(eid, 0, &ocall_table_Enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
 
-sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, sgx_target_info_t* target_info, sgx_report_t* p_report)
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size)
 {
 	sgx_status_t status;
 	ms_bb_init_1_t ms;
@@ -113,8 +107,6 @@ sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_da
 	ms.ms_bb_pk = bb_pk;
 	ms.ms_skg_pk = skg_pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_target_info = target_info;
-	ms.ms_p_report = p_report;
 	status = sgx_ecall(eid, 1, &ocall_table_Enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;

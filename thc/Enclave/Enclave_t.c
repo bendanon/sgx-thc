@@ -23,8 +23,6 @@ typedef struct ms_skg_init_t {
 	size_t ms_sealed_size;
 	sgx_ec256_public_t* ms_pk;
 	size_t ms_pk_size;
-	sgx_target_info_t* ms_target_info;
-	sgx_report_t* ms_p_report;
 } ms_skg_init_t;
 
 typedef struct ms_bb_init_1_t {
@@ -34,8 +32,6 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	sgx_target_info_t* ms_target_info;
-	sgx_report_t* ms_p_report;
 } ms_bb_init_1_t;
 
 typedef struct ms_skg_exec_t {
@@ -100,18 +96,10 @@ static sgx_status_t SGX_CDECL sgx_skg_init(void* pms)
 	size_t _tmp_pk_size = ms->ms_pk_size;
 	size_t _len_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_pk = NULL;
-	sgx_target_info_t* _tmp_target_info = ms->ms_target_info;
-	size_t _len_target_info = sizeof(*_tmp_target_info);
-	sgx_target_info_t* _in_target_info = NULL;
-	sgx_report_t* _tmp_p_report = ms->ms_p_report;
-	size_t _len_p_report = sizeof(*_tmp_p_report);
-	sgx_report_t* _in_p_report = NULL;
 
 	CHECK_REF_POINTER(pms, sizeof(ms_skg_init_t));
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_pk, _len_pk);
-	CHECK_UNIQUE_POINTER(_tmp_target_info, _len_target_info);
-	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 
 	if (_tmp_sealed_data != NULL) {
 		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
@@ -129,24 +117,7 @@ static sgx_status_t SGX_CDECL sgx_skg_init(void* pms)
 
 		memset((void*)_in_pk, 0, _len_pk);
 	}
-	if (_tmp_target_info != NULL) {
-		_in_target_info = (sgx_target_info_t*)malloc(_len_target_info);
-		if (_in_target_info == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_target_info, _tmp_target_info, _len_target_info);
-	}
-	if (_tmp_p_report != NULL) {
-		if ((_in_p_report = (sgx_report_t*)malloc(_len_p_report)) == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memset((void*)_in_p_report, 0, _len_p_report);
-	}
-	ms->ms_retval = skg_init(_in_sealed_data, _tmp_sealed_size, _in_pk, _tmp_pk_size, _in_target_info, _in_p_report);
+	ms->ms_retval = skg_init(_in_sealed_data, _tmp_sealed_size, _in_pk, _tmp_pk_size);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -155,11 +126,6 @@ err:
 	if (_in_pk) {
 		memcpy(_tmp_pk, _in_pk, _len_pk);
 		free(_in_pk);
-	}
-	if (_in_target_info) free(_in_target_info);
-	if (_in_p_report) {
-		memcpy(_tmp_p_report, _in_p_report, _len_p_report);
-		free(_in_p_report);
 	}
 
 	return status;
@@ -180,19 +146,11 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	sgx_ec256_public_t* _tmp_skg_pk = ms->ms_skg_pk;
 	size_t _len_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_skg_pk = NULL;
-	sgx_target_info_t* _tmp_target_info = ms->ms_target_info;
-	size_t _len_target_info = sizeof(*_tmp_target_info);
-	sgx_target_info_t* _in_target_info = NULL;
-	sgx_report_t* _tmp_p_report = ms->ms_p_report;
-	size_t _len_p_report = sizeof(*_tmp_p_report);
-	sgx_report_t* _in_p_report = NULL;
 
 	CHECK_REF_POINTER(pms, sizeof(ms_bb_init_1_t));
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
-	CHECK_UNIQUE_POINTER(_tmp_target_info, _len_target_info);
-	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 
 	if (_tmp_sealed_data != NULL) {
 		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
@@ -219,24 +177,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
-	if (_tmp_target_info != NULL) {
-		_in_target_info = (sgx_target_info_t*)malloc(_len_target_info);
-		if (_in_target_info == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_target_info, _tmp_target_info, _len_target_info);
-	}
-	if (_tmp_p_report != NULL) {
-		if ((_in_p_report = (sgx_report_t*)malloc(_len_p_report)) == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memset((void*)_in_p_report, 0, _len_p_report);
-	}
-	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_target_info, _in_p_report);
+	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -247,11 +188,6 @@ err:
 		free(_in_bb_pk);
 	}
 	if (_in_skg_pk) free(_in_skg_pk);
-	if (_in_target_info) free(_in_target_info);
-	if (_in_p_report) {
-		memcpy(_tmp_p_report, _in_p_report, _len_p_report);
-		free(_in_p_report);
-	}
 
 	return status;
 }

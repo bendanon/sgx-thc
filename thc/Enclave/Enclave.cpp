@@ -71,9 +71,7 @@ BlackBoxExecuter bbx;
 4. Seal the data (s,sk) [sealing to MRENCLAVE] and output sealed data. output.
 ***/
 sgx_status_t skg_init(sgx_sealed_data_t* p_sealed_data, size_t sealed_size, 
-                      sgx_ec256_public_t* p_pk,size_t pk_size,
-                      sgx_target_info_t* p_target_info,
-                      sgx_report_t* p_report) {
+                      sgx_ec256_public_t* p_pk,size_t pk_size) {
     
         memset(s_sk, 0, sizeof(s_sk));        
         sgx_status_t status;
@@ -96,16 +94,6 @@ sgx_status_t skg_init(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
         ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
         if(status) return status;        
         memcpy(s_sk + SECRET_KEY_SIZE_BYTES, &sk, sizeof(sgx_ec256_private_t));
-
-
-        //Create the report for the skg pk attestation quote (Q')
-        sgx_report_data_t report_data;
-        memset(&report_data, 0, sizeof(report_data));
-        memcpy(&report_data, p_pk, sizeof(sgx_ec256_public_t));
-                
-        status = sgx_create_report(p_target_info, NULL, p_report);
-        ocall_print("sgx_create_report status is %d\n", status);
-        if(status) return status;
 
         //Seal the data (s,sk) [sealing to MRENCLAVE] and output sealed data.        
         status = sgx_seal_data(0, NULL, sizeof(s_sk), s_sk, sealed_size, p_sealed_data);
@@ -181,9 +169,7 @@ sgx_status_t decrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES],
 5. Seal (k) [sealing to MRENCLAVE] and output the sealed data.
 ***/
 sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size, 
-                       sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,                        
-                       sgx_target_info_t* p_target_info,
-                       sgx_report_t* p_report) {
+                       sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size) {
 
     
     memset(k, 0, sizeof(k));
@@ -208,16 +194,6 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
 
     //shared_key is k
     memcpy(k ,&shared_key, SECRET_KEY_SIZE_BYTES);
-
-    //Create the report for the bb attestation quote (Q) containing bbpk
-    sgx_report_data_t report_data;
-    memset(&report_data, 0, sizeof(report_data));
-    assert(sizeof(sgx_report_data_t) >= sizeof(sgx_ec256_public_t));
-    memcpy(&report_data, p_bb_pk, sizeof(sgx_ec256_public_t));
-            
-    status = sgx_create_report(p_target_info, NULL, p_report);
-    ocall_print("sgx_create_report status is %d\n", status);
-    if(status) return status;
 
     //Seal (k) [sealing to MRENCLAVE]
     status = sgx_seal_data(0, NULL, sizeof(k), k, sealed_size, p_sealed_data);
