@@ -22,6 +22,7 @@ public:
     void handle_accept(Session* new_session, const boost::system::error_code& error);
     void start_accept();
     void connectCallbackHandler(CallbackHandler cb);
+    void restart();
 
 private:
     boost::asio::io_service& io_service_;

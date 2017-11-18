@@ -19,17 +19,20 @@ ServiceProvider::~ServiceProvider() {}
 
 
 int ServiceProvider::sp_ra_proc_msg0_req(const uint32_t id) {
-    int ret = -1;
 
-    if (!this->g_is_sp_registered || (this->extended_epid_group_id != id)) {
-        Log("Received extended EPID group ID: %d", id);
-
-        extended_epid_group_id = id;
-        this->g_is_sp_registered = true;
-        ret = SP_OK;
+    //This means we only support a single epid group id at a time.
+    if(this->g_is_sp_registered && (id != this->extended_epid_group_id))
+    {
+        Log("Got msg0 request with id %d but a different id is already registered", id);
+        return SP_UNSUPPORTED_EXTENDED_EPID_GROUP;
     }
 
-    return ret;
+    Log("Received extended EPID group ID: %d", id);
+
+    this->extended_epid_group_id = id;
+    this->g_is_sp_registered = true; //TODO: falsify when session terminates
+
+    return SP_OK;
 }
 
 

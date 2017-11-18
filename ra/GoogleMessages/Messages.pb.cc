@@ -50,6 +50,9 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* AttestationMessage_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   AttestationMessage_reflection_ = NULL;
+const ::google::protobuf::Descriptor* SecretMessage_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  SecretMessage_reflection_ = NULL;
 
 }  // namespace
 
@@ -253,6 +256,21 @@ void protobuf_AssignDesc_Messages_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(AttestationMessage));
+  SecretMessage_descriptor_ = file->message_type(10);
+  static const int SecretMessage_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SecretMessage, type_),
+  };
+  SecretMessage_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      SecretMessage_descriptor_,
+      SecretMessage::default_instance_,
+      SecretMessage_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SecretMessage, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SecretMessage, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(SecretMessage));
 }
 
 namespace {
@@ -285,6 +303,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
     MessageMSG3_descriptor_, &MessageMSG3::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     AttestationMessage_descriptor_, &AttestationMessage::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    SecretMessage_descriptor_, &SecretMessage::default_instance());
 }
 
 }  // namespace
@@ -310,6 +330,8 @@ void protobuf_ShutdownFile_Messages_2eproto() {
   delete MessageMSG3_reflection_;
   delete AttestationMessage::default_instance_;
   delete AttestationMessage_reflection_;
+  delete SecretMessage::default_instance_;
+  delete SecretMessage_reflection_;
 }
 
 void protobuf_AddDesc_Messages_2eproto() {
@@ -351,7 +373,8 @@ void protobuf_AddDesc_Messages_2eproto() {
     "ec_sign256_x\030\n \003(\rB\002\020\001\022\030\n\014ec_sign256_y\030\013"
     " \003(\rB\002\020\001\022\023\n\007mac_smk\030\014 \003(\rB\002\020\001\022\023\n\013result_"
     "size\030\r \001(\r\022\024\n\010reserved\030\016 \003(\rB\002\020\001\022\027\n\013payl"
-    "oad_tag\030\017 \003(\rB\002\020\001\022\023\n\007payload\030\020 \003(\rB\002\020\001", 1318);
+    "oad_tag\030\017 \003(\rB\002\020\001\022\023\n\007payload\030\020 \003(\rB\002\020\001\"\035"
+    "\n\rSecretMessage\022\014\n\004type\030\001 \002(\r", 1349);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Messages.proto", &protobuf_RegisterTypes);
   InitialMessage::default_instance_ = new InitialMessage();
@@ -364,6 +387,7 @@ void protobuf_AddDesc_Messages_2eproto() {
   MessageMSG2::default_instance_ = new MessageMSG2();
   MessageMSG3::default_instance_ = new MessageMSG3();
   AttestationMessage::default_instance_ = new AttestationMessage();
+  SecretMessage::default_instance_ = new SecretMessage();
   InitialMessage::default_instance_->InitAsDefaultInstance();
   MessageMsg0::default_instance_->InitAsDefaultInstance();
   MessageMSG1::default_instance_->InitAsDefaultInstance();
@@ -374,6 +398,7 @@ void protobuf_AddDesc_Messages_2eproto() {
   MessageMSG2::default_instance_->InitAsDefaultInstance();
   MessageMSG3::default_instance_->InitAsDefaultInstance();
   AttestationMessage::default_instance_->InitAsDefaultInstance();
+  SecretMessage::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_Messages_2eproto);
 }
 
@@ -5078,6 +5103,229 @@ void AttestationMessage::Swap(AttestationMessage* other) {
   ::google::protobuf::Metadata metadata;
   metadata.descriptor = AttestationMessage_descriptor_;
   metadata.reflection = AttestationMessage_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int SecretMessage::kTypeFieldNumber;
+#endif  // !_MSC_VER
+
+SecretMessage::SecretMessage()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:Messages.SecretMessage)
+}
+
+void SecretMessage::InitAsDefaultInstance() {
+}
+
+SecretMessage::SecretMessage(const SecretMessage& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:Messages.SecretMessage)
+}
+
+void SecretMessage::SharedCtor() {
+  _cached_size_ = 0;
+  type_ = 0u;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+SecretMessage::~SecretMessage() {
+  // @@protoc_insertion_point(destructor:Messages.SecretMessage)
+  SharedDtor();
+}
+
+void SecretMessage::SharedDtor() {
+  if (this != default_instance_) {
+  }
+}
+
+void SecretMessage::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* SecretMessage::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return SecretMessage_descriptor_;
+}
+
+const SecretMessage& SecretMessage::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_Messages_2eproto();
+  return *default_instance_;
+}
+
+SecretMessage* SecretMessage::default_instance_ = NULL;
+
+SecretMessage* SecretMessage::New() const {
+  return new SecretMessage;
+}
+
+void SecretMessage::Clear() {
+  type_ = 0u;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool SecretMessage::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:Messages.SecretMessage)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // required uint32 type = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &type_)));
+          set_has_type();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:Messages.SecretMessage)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:Messages.SecretMessage)
+  return false;
+#undef DO_
+}
+
+void SecretMessage::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:Messages.SecretMessage)
+  // required uint32 type = 1;
+  if (has_type()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->type(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:Messages.SecretMessage)
+}
+
+::google::protobuf::uint8* SecretMessage::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:Messages.SecretMessage)
+  // required uint32 type = 1;
+  if (has_type()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->type(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:Messages.SecretMessage)
+  return target;
+}
+
+int SecretMessage::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // required uint32 type = 1;
+    if (has_type()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->type());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void SecretMessage::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const SecretMessage* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const SecretMessage*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void SecretMessage::MergeFrom(const SecretMessage& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_type()) {
+      set_type(from.type());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void SecretMessage::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void SecretMessage::CopyFrom(const SecretMessage& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool SecretMessage::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+
+  return true;
+}
+
+void SecretMessage::Swap(SecretMessage* other) {
+  if (other != this) {
+    std::swap(type_, other->type_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata SecretMessage::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = SecretMessage_descriptor_;
+  metadata.reflection = SecretMessage_reflection_;
   return metadata;
 }
 

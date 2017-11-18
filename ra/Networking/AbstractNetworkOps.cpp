@@ -31,6 +31,10 @@ void AbstractNetworkOps::saveCloseSocket() {
 void AbstractNetworkOps::read() {
     char buffer_header[20];
     memset(buffer_header, '\0', 20);
+    
+    int msg_size = 0;
+    int type = 0;
+    char *buffer = NULL;
 
     boost::system::error_code ec;
     int read = boost::asio::read(socket_, boost::asio::buffer(buffer_header, 20), ec);
@@ -45,16 +49,16 @@ void AbstractNetworkOps::read() {
         vector<string> incomming;
         boost::split(incomming, buffer_header, boost::is_any_of("@"));
 
-        int msg_size = boost::lexical_cast<int>(incomming[0]);
-        int type = boost::lexical_cast<int>(incomming[1]);
+        msg_size = boost::lexical_cast<int>(incomming[0]);
+        type = boost::lexical_cast<int>(incomming[1]);
 
-        char *buffer = (char*) malloc(sizeof(char) * msg_size);
+        buffer = (char*) malloc(sizeof(char) * msg_size);
         memset(buffer, '\0', sizeof(char)*msg_size);
 
-        read = boost::asio::read(socket_, boost::asio::buffer(buffer, msg_size));
-
-        process_read(buffer, msg_size, type);
+        read = boost::asio::read(socket_, boost::asio::buffer(buffer, msg_size));        
     }
+
+    process_read(buffer, msg_size, type);
 }
 
 
@@ -96,8 +100,15 @@ void AbstractNetworkOps::setCallbackHandler(CallbackHandler cb) {
 
 
 void AbstractNetworkOps::process_read(char* buffer, int msg_size, int type) {
-    std::string str(reinterpret_cast<const char*>(buffer), msg_size);
+    
+    if(buffer == NULL)
+    {
+        std::string str;
+        this->callback_handler(str, type);
+        return;
+    }
 
+    std::string str(reinterpret_cast<const char*>(buffer), msg_size);
     free(buffer);
 
     auto msg = this->callback_handler(str, type);

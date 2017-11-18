@@ -86,6 +86,10 @@ message AttestationMessage {
 	repeated uint32 payload = 16 [packed=true];
 }
 
+message SecretMessage { 
+	required uint32 type = 1;
+}
+
 
 
 

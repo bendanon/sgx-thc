@@ -109,10 +109,22 @@ string AttestationServer::handleAppAttOk() {
     return "";
 }
 
+void AttestationServer::restart()
+{
+    //TODO: Maybe re-initialize some session state?
+}
+
 vector<string> AttestationServer::incomingHandler(string v, int type) {
     vector<string> res;
     string s;
     bool ret;
+
+    if(type == RA_FAILED_READ)
+    {
+        Log("AttestationServer::incomingHandler - Failed read, restarting");
+        restart();
+        return res;
+    }
 
     switch (type) {
         case RA_MSG0: {

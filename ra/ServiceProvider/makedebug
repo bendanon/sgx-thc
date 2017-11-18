@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH=/opt/intel/sgxsdk/lib64
+make SGX_MODE=SIM SGX_DEBUG=1 SUPPLIED_KEY_DERIVATION=1

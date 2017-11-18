@@ -49,7 +49,7 @@ sgx_status_t Enclave::initRa() {
         return ret;
     }
 
-    Log("Call enclave_init_ra success");
+    Log("Ra initizalized");
     m_raInitialized = true;    
     return SGX_SUCCESS;
 }
@@ -65,7 +65,7 @@ sgx_status_t Enclave::closeRa(){
 
     if(!m_raInitialized)
     {
-        Log("Called closeRa but enclave not initialized");
+        Log("Called closeRa but ra not initialized");
         return SGX_SUCCESS;
     }
 

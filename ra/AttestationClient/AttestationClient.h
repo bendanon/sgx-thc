@@ -44,6 +44,7 @@ private:
     string generateMSG1();
     string generateMSG0();
     //string createInitMsg(int type, string msg);
+    void restart();
 
 protected:
     Enclave *m_pEnclave = NULL;

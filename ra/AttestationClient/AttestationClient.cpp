@@ -37,13 +37,8 @@ sgx_status_t AttestationClient::getEnclaveStatus() {
 
 
 uint32_t AttestationClient::getExtendedEPID_GID(uint32_t *extended_epid_group_id) {
-
-    #ifndef NO_HW_SUPPORT
+    
     int ret = sgx_get_extended_epid_group_id(extended_epid_group_id);
-    #else
-    int ret = SGX_SUCCESS;
-    *extended_epid_group_id = 0;
-    #endif
 
     if (SGX_SUCCESS != ret) {
         Log("Error, call sgx_get_extended_epid_group_id fail: 0x%x", ret);
@@ -396,10 +391,22 @@ string AttestationClient::createInitMsg(int type, string msg) {
 }
 */
 
+
+void AttestationClient::restart(){
+    m_pEnclave->closeRa();
+}
+
 vector<string> AttestationClient::incomingHandler(string v, int type) {
     vector<string> res;
     string s;
     bool ret;
+
+    if(type == RA_FAILED_READ)
+    {
+        Log("AttestationClient::incomingHandler - Failed read, restarting");
+        restart();
+        return res;
+    }
 
     if (!v.empty()) {
         

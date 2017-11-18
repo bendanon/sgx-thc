@@ -9,6 +9,7 @@ using namespace util;
 #include "VerificationReport.h"
 #include "Messages.pb.h"
 #include "BbClient.h"
+#include "SkgServer.h"
 
 int Main(int argc, char* argv[]) {
     LogBase::Inst();
@@ -31,19 +32,20 @@ int Main(int argc, char* argv[]) {
 
     //TODO: For now, both skg and bb are on the same machine and use the same enclave
     //for testing purposes. In the future, both will encapsulate their own enclaves
-    //SkgServer skgServer(enclave);
-    //skgServer.obtainCertificate();
+    SkgServer skgServer(enclave);
+    if(!skgServer.obtainCertificate())
+        Log("SkgServer Failed to obtain a valid certificate****************************");
 
     BbClient bbClient(enclave);
     if(!bbClient.obtainCertificate())    
-        Log("Failed to obtain a valid certificate");
+        Log("BbClient Failed to obtain a valid certificate");
     
 
     bbClient.generatePkRequest(pkRequest);
 
     /*** PROTOCOL(bb--->skg): get_pk_request ***/
     
-    //skgServer.processPkRequest(pkRequest, pkResponse);
+    skgServer.processPkRequest(pkRequest, pkResponse);
 
     /*** PROTOCOL(skg--->bb): get_pk_response ***/
 
@@ -51,7 +53,7 @@ int Main(int argc, char* argv[]) {
 
     /*** PROTOCOL(bb--->skg): get_secret_request ***/
 
-    //skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
+    skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
 
     /*** PROTOCOL(skg--->bb): get_secret_response ***/
 

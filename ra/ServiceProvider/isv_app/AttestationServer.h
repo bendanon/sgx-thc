@@ -31,6 +31,7 @@ private:
     string handleMSG1(Messages::MessageMSG1 msg);
     string handleMSG3(Messages::MessageMSG3 msg);
     string handleAppAttOk();
+    void restart();
 
 private:
     static AttestationServer* instance;
