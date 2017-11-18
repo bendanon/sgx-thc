@@ -7,12 +7,13 @@ using namespace util;
 
 #include "AttestationClient.h"
 #include "VerificationReport.h"
+#include "Messages.pb.h"
+#include "BbClient.h"
 
 int Main(int argc, char* argv[]) {
     LogBase::Inst();
 
     int ret = 0;
-
 
     sgx_status_t sgx_ret;
     Enclave* enclave = Enclave::getInstance();
@@ -23,15 +24,51 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    VerificationReport report;
-    AttestationClient raClient(enclave, report);
-    raClient.init();
-    raClient.start();
+    Messages::PkRequest pkRequest;
+    Messages::PkResponse pkResponse;
+    Messages::GetSecretRequest getSecretRequest;
+    Messages::GetSecretResponse getSecretResponse;
 
-    //Here I can expect report.isValid() == true
+    //TODO: For now, both skg and bb are on the same machine and use the same enclave
+    //for testing purposes. In the future, both will encapsulate their own enclaves
+    //SkgServer skgServer(enclave);
+    //skgServer.obtainCertificate();
 
+    BbClient bbClient(enclave);
+    if(!bbClient.obtainCertificate())    
+        Log("Failed to obtain a valid certificate");
+    
+
+    bbClient.generatePkRequest(pkRequest);
+
+    /*** PROTOCOL(bb--->skg): get_pk_request ***/
+    
+    //skgServer.processPkRequest(pkRequest, pkResponse);
+
+    /*** PROTOCOL(skg--->bb): get_pk_response ***/
+
+    bbClient.processPkResponse(pkResponse, getSecretRequest);
+
+    /*** PROTOCOL(bb--->skg): get_secret_request ***/
+
+    //skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
+
+    /*** PROTOCOL(skg--->bb): get_secret_response ***/
+
+    bbClient.processGetSecretResponse(getSecretResponse);
+
+#if 0
+    /*BB EXECUTION*/
+    uint8_t B_out[B_OUT_SIZE_BYTES];
+    memset(B_out, 0, B_OUT_SIZE_BYTES);   
+    
+    uint8_t B_in[B_IN_SIZE_BYTES];          //TODO: Recieve this as input from neighbor
+    memset(B_in, 0, B_IN_SIZE_BYTES);
+
+    bbClient.execute(B_in, B_out);
+    /*BB EXECUTION end*/
+#endif
     delete enclave;
-
     return ret;
 }
 
