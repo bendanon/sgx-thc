@@ -63,17 +63,14 @@ int Main(int argc, char* argv[]) {
 
     bbClient.processGetSecretResponse(getSecretResponse);
 
-#if 0
-    /*BB EXECUTION*/
     uint8_t B_out[B_OUT_SIZE_BYTES];
     memset(B_out, 0, B_OUT_SIZE_BYTES);   
     
     uint8_t B_in[B_IN_SIZE_BYTES];          //TODO: Recieve this as input from neighbor
     memset(B_in, 0, B_IN_SIZE_BYTES);
 
-    bbClient.execute(B_in, B_out);
-    /*BB EXECUTION end*/
-#endif
+    bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);
+
     delete enclave;
     return ret;
 }

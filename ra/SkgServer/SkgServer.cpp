@@ -80,12 +80,45 @@ bool SkgServer::processPkRequest(Messages::PkRequest& pkRequest,
     for (auto x : p_skg_pk->gy)
         pkResponse.add_gy(x);
     
+    //TODO: add attestation report
+
     Log("SkgServer::processPkRequest - success");
     return true;
 } 
 
+
 bool SkgServer::processGetSecretRequest(Messages::GetSecretRequest& getSecretRequest, 
                                         Messages::GetSecretResponse& getSecretResponse){
-    Log("SkgServer::processGetSecretRequest - not implemented");
+
+    //TODO: Extract attestation report (from getSecretRequest) and Verify
+
+    sgx_status_t status;
+    sgx_ec256_public_t bb_pk;
+
+    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
+        bb_pk.gx[i] = getSecretRequest.gx(i);
+        bb_pk.gy[i] = getSecretRequest.gy(i);
+    }
+
+    uint8_t s_encrypted[SECRET_KEY_ENCRYPTED_SIZE_BYTES];
+    memset(s_encrypted, 0, SECRET_KEY_ENCRYPTED_SIZE_BYTES);
+
+
+    status = m_pEnclave->skgExec(&bb_pk, p_skg_pk, sizeof(sgx_ec256_public_t),
+                                 this->p_sealed_s_sk, SKG_DATA_SEALED_SIZE_BYTES,
+                                 s_encrypted, SECRET_KEY_ENCRYPTED_SIZE_BYTES);
+    
+    if(status)
+    {
+        Log("skgExec failed, status is %d", status);
+        return false;
+    }
+
+    getSecretResponse.set_type(THC_SEC_RES);
+
+    for(auto x : s_encrypted)
+        getSecretResponse.add_encrypted_secret(x);    
+
+    Log("SkgServer::processGetSecretRequest - success");
     return false;
 }

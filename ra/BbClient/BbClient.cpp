@@ -79,7 +79,17 @@ bool BbClient::processPkResponse(Messages::PkResponse& pkResponse,
     {
         Log("bb_init_1 failed with status %d", status);
         return false;
-    }    
+    }
+
+    getSecretRequest.set_type(THC_SEC_REQ);
+
+    for (auto x : this->p_bb_pk->gx)
+        getSecretRequest.add_gx(x);
+
+    for (auto x : this->p_bb_pk->gy)
+        getSecretRequest.add_gy(x);
+
+    //TODO: add attestation report
 
     Log("BbClient::processPkResponse succeeded");
     return true;
@@ -87,6 +97,52 @@ bool BbClient::processPkResponse(Messages::PkResponse& pkResponse,
 
 
 bool BbClient::processGetSecretResponse(Messages::GetSecretResponse& getSecretResponse){
-    Log("BbClient::processGetSecretResponse - not implemented");
-    return false;
+
+    sgx_status_t status;
+    sgx_status_t retval;
+
+    uint8_t s_encrypted[SECRET_KEY_ENCRYPTED_SIZE_BYTES];
+    memset(s_encrypted, 0, SECRET_KEY_ENCRYPTED_SIZE_BYTES);
+
+    for (int i=0; i< SECRET_KEY_ENCRYPTED_SIZE_BYTES; i++) {
+        s_encrypted[i] = getSecretResponse.encrypted_secret(i);
+    }
+
+    //Sealed data structs
+    this->p_sealed_s = (sgx_sealed_data_t*)malloc(SECRET_KEY_SEALED_SIZE_BYTES);
+    memset(this->p_sealed_s, 0, SECRET_KEY_SEALED_SIZE_BYTES);
+    this->p_sealed_s->key_request.key_policy = KEYPOLICY_MRENCLAVE;
+
+    status = m_pEnclave->bbInit2(this->p_sealed_k, 
+                                 s_encrypted, SECRET_KEY_ENCRYPTED_SIZE_BYTES,
+                                 this->p_sealed_s, SECRET_KEY_SEALED_SIZE_BYTES);
+                       
+    if(status)
+    {
+        Log("bbInit2 status is %d", status);
+        return false;
+    }
+
+    Log("BbClient::processGetSecretResponse - success");
+    return true;
+}
+
+bool BbClient::execute(uint8_t* B_in, size_t B_in_size, 
+                       uint8_t* B_out, size_t B_out_size) {
+
+
+    sgx_status_t status;    
+
+    status = m_pEnclave->bbExec(this->p_sealed_s, SECRET_KEY_SEALED_SIZE_BYTES, 
+                                B_in, B_in_size, 
+                                B_out, B_out_size);
+
+    if(status)
+    {
+        Log("bbExec failed with status is %d", status);
+        return false;
+    }
+
+    Log("BbClient::execute - success");
+    return true;
 }

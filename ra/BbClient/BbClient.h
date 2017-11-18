@@ -51,7 +51,21 @@ public:
                            Messages::GetSecretRequest& getSecretRequest);
 
 
+    /***
+    [Initialization-step 2: input sealed data (k), ciphertext c']
+    1. Unseal k
+    2. Decrypt c' with k to get s
+    3. Seal (s) [to MRENCLAVE] and output sealed data.
+    ***/
     bool processGetSecretResponse(Messages::GetSecretResponse& getSecretResponse);
+
+    /*
+    [Execution: input sealed data (s), memory buffer B_in]
+    1. Unseal s
+    2. Execute B_out=X_s(B_in)
+    3. Output B_out
+    */
+    bool execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 
 private:
     bool readCertificateFromMemory();
@@ -64,6 +78,7 @@ private:
     AttestationClient* m_pClient;
     sgx_ec256_public_t* p_bb_pk = NULL;
     sgx_sealed_data_t* p_sealed_k = NULL;
+    sgx_sealed_data_t* p_sealed_s = NULL;
 };
 
 #endif
