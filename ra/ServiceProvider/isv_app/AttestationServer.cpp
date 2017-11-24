@@ -88,10 +88,10 @@ string AttestationServer::handleMSG1(Messages::MessageMSG1 msg1) {
 string AttestationServer::handleMSG3(Messages::MessageMSG3 msg) {
     Log("MSG3 received");
 
-    Messages::AttestationMessage att_msg;
+    Messages::MessageMSG4 att_msg;
     att_msg.set_type(RA_ATT_RESULT);
 
-    int ret = this->sp->sp_ra_proc_msg3_req(msg, &att_msg);
+    int ret = this->sp->sp_ra_proc_msg3_req(msg, att_msg);
 
     if (ret == -1) {
         Log("Error, processing MSG3 failed");

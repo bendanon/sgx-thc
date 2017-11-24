@@ -25,11 +25,17 @@
 #include "VerificationReport.h"
 #include "AttestationClient.h"
 #include "Network_def.h"
+#include "UtilityFunctions.h"
 
 using namespace std;
 using namespace util;
 
 class SkgServer {
+
+private:
+    static string public_file_name;
+    static string secrets_file_name;
+    static string report_file_name;
 
 public:
     SkgServer(Enclave* pEnclave);
@@ -60,15 +66,15 @@ public:
                                  Messages::GetSecretResponse& getSecretResponse);
 
 private:
-    bool readCertificateFromMemory();        
-    bool obtainCertificate();
+    bool readAssets();
+    bool writeAssets();
+    bool obtainAssets();
 
 private:
     VerificationReport m_report;
     Enclave* m_pEnclave;
     AttestationClient* m_pClient;
     sgx_ec256_public_t* p_skg_pk = NULL;
-    sgx_quote_t* p_skg_quote = NULL;
     sgx_sealed_data_t* p_sealed_s_sk = NULL;
 };
 

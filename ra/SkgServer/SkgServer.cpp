@@ -1,6 +1,10 @@
 #include "SkgServer.h"
 
 
+string SkgServer::public_file_name = "public.skg";
+string SkgServer::secrets_file_name = "secrets.skg";
+string SkgServer::report_file_name = "report.skg";
+
 SkgServer::SkgServer(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
     
     m_pClient = new AttestationClient(m_pEnclave, m_report);
@@ -8,31 +12,106 @@ SkgServer::SkgServer(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) 
 
 SkgServer::~SkgServer(){
     delete m_pClient;
+    SafeFree(this->p_skg_pk);
+    SafeFree(this->p_sealed_s_sk);
 }
 
-bool SkgServer::obtainCertificate(){
-    if(m_report.isValid())
+bool SkgServer::writeAssets()
+{
+    if(!writeEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
+                   (uint8_t*)this->p_sealed_s_sk, 
+                   SKG_DATA_SEALED_SIZE_BYTES, 
+                   SKG_DATA_SEALED_BASE64_SIZE_BYTES))
     {
-         Log("SkgServer::obtainCertificate - already has a valid certificate");
-         return true;
+        Log("SkgServer::writeAssets writeAssets failed");
+        return false;
     }
-    if(readCertificateFromMemory())
+
+    sgx_sealed_data_t* sealed = (sgx_sealed_data_t*)malloc(SKG_DATA_SEALED_SIZE_BYTES);
+
+    if(!readEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
+                  (uint8_t*)sealed, 
+                  SKG_DATA_SEALED_SIZE_BYTES, 
+                  SKG_DATA_SEALED_BASE64_SIZE_BYTES)) 
     {
-        Log("SkgServer::obtainCertificate - certificate read from memory successfully");
-        return true;
+    
+        Log("SkgServer::readAssets sealed_s_sk failed");
+        return false;
     }
-    m_pClient->init();
-    m_pClient->start();
-    return m_report.isValid();
+
+    assert(0==memcmp(p_sealed_s_sk, sealed, SKG_DATA_SEALED_SIZE_BYTES));
+
+    if(!writeEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
+                   (uint8_t*)this->p_skg_pk, 
+                   sizeof(sgx_ec256_public_t), 
+                   PK_BASE64_SIZE_BYTES))
+    {
+        Log("SkgServer::writeAssets writeAssets failed");
+        return false;
+    }
+
+    sgx_ec256_public_t pk;
+
+    if(!readEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
+                  (uint8_t*)&pk, 
+                  sizeof(sgx_ec256_public_t), 
+                  PK_BASE64_SIZE_BYTES)) 
+    {
+    
+        Log("SkgServer::readAssets sealed_s_sk failed");
+        return false;
+    }
+
+    assert(0==memcmp(&pk, this->p_skg_pk, sizeof(sgx_ec256_public_t)));
+
+    if(!m_report.write(Settings::assets_path + SkgServer::report_file_name)) {
+        Log("SkgServer::writeAssets report failed");
+        return false;
+    }
+
+    Log("SkgServer::writeAssets success");
+    return true;
 }
 
-bool SkgServer::readCertificateFromMemory(){
-    Log("SkgServer::readCertificateFromMemory - not implemented");
-    return false;
+bool SkgServer::readAssets() {
+
+    SafeFree(this->p_sealed_s_sk);
+    this->p_sealed_s_sk = (sgx_sealed_data_t*)malloc(SKG_DATA_SEALED_SIZE_BYTES);
+
+    SafeFree(this->p_skg_pk);
+    this->p_skg_pk = (sgx_ec256_public_t*)malloc(sizeof(sgx_ec256_public_t));    
+
+    if(!readEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
+                  (uint8_t*)this->p_sealed_s_sk, 
+                  SKG_DATA_SEALED_SIZE_BYTES, 
+                  SKG_DATA_SEALED_BASE64_SIZE_BYTES)) 
+    {
+    
+        Log("SkgServer::readAssets sealed_s_sk failed");
+        return false;
+    }
+
+    if(!readEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
+                  (uint8_t*)this->p_skg_pk, 
+                  sizeof(sgx_ec256_public_t), 
+                  PK_BASE64_SIZE_BYTES)) 
+    {
+    
+        Log("SkgServer::readAssets p_skg_pk failed");
+        return false;
+    }
+
+    if(!m_report.read(Settings::assets_path + SkgServer::report_file_name)){
+
+        Log("SkgServer::readAssets report failed");
+        return false;
+    }
+
+    Log("SkgServer::readAssets succeeded");
+    return true;
 }
 
-
-bool SkgServer::Init() {
+bool SkgServer::obtainAssets(){
 
     sgx_status_t status;
 
@@ -58,11 +137,38 @@ bool SkgServer::Init() {
         return false;
     }
 
-    if(!obtainCertificate())
+    m_pClient->init();
+    m_pClient->start(); 
+
+    if(!m_report.isValid())
     {
-        Log("SkgServer Failed to obtain a valid certificate");
+        Log("SkgServer::Init invalid report"); 
         return false;
-    }       
+    }
+
+    Log("SkgServer::obtainAssets succeeded");
+    return true;
+}
+
+bool SkgServer::Init() {
+
+    if(readAssets())
+    {
+        Log("SkgServer::Init - assets read from memory successfully");
+        return true;
+    }
+
+    if(!obtainAssets())
+    {
+        Log("SkgServer::Init - obtainAssets failed");
+        return false;
+    }    
+
+    if(!writeAssets())
+    {
+        Log("SkgServer::Init failed to write assets"); 
+        return false;
+    }
 
     Log("SkgServer::Init succeeded");
     return true;

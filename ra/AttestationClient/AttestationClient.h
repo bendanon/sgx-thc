@@ -32,12 +32,12 @@ public:
     vector<string> incomingHandler(string v, int type);
 
 private:
-    sgx_status_t initRa();
     uint32_t getExtendedEPID_GID(uint32_t *extended_epid_group_id);
     sgx_status_t getEnclaveStatus();
 
-    void assembleAttestationMSG(Messages::AttestationMessage msg, ra_samp_response_header_t **pp_att_msg);
-    string handleAttestationResult(Messages::AttestationMessage msg);
+    //void assembleAttestationMSG(Messages::MessageMSG4 msg, ra_samp_response_header_t **pp_att_msg);
+    //string handleAttestationResult(Messages::MessageMSG4 msg);
+    string handleMSG4(Messages::MessageMSG4 msg);
     void assembleMSG2(Messages::MessageMSG2 msg, sgx_ra_msg2_t **pp_msg2);
     string handleMSG2(Messages::MessageMSG2 msg);
     string handleMSG0Response(Messages::MessageMsg0 msg);
@@ -53,6 +53,7 @@ private:
     int busy_retry_time = 4;
     NetworkManagerClient *nm = NULL;
     VerificationReport& m_report;
+    sgx_report_body_t m_sent_report_body;
 
 };
 

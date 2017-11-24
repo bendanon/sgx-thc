@@ -67,6 +67,13 @@ message MessageMSG3 {
 	repeated uint32 quote = 7 [packed=true];
 }
 
+message MessageMSG4 { 
+	required uint32 type = 1;
+	required uint32 size = 2;
+	repeated uint32 response_body = 3 [packed=true];
+	repeated uint32 intel_signature = 4 [packed=true];
+}
+
 message AttestationMessage {
 	required uint32 type = 1;
 	required uint32 size = 2;

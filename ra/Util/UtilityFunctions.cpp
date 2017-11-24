@@ -9,6 +9,45 @@ void SafeFree(void *ptr) {
     }
 }
 
+bool writeEncodedAssets(string file, uint8_t* i_buf, size_t decoded_size, size_t encoded_size)
+{
+    int fd = open(file.c_str(), O_WRONLY | O_CREAT, 0644);
+    if(fd == -1){
+       Log("failed to open %s, error is %s", file, strerror(errno));
+       return false; 
+    }
+     
+    ssize_t ret_out = write(fd, i_buf, decoded_size);
+    
+    if(ret_out != decoded_size){        
+        Log("writeAsset::failed to write %d bytes", decoded_size);
+        return false;
+    }
+
+    Log("writeAsset success");
+    return true;
+}
+
+bool readEncodedAssets(string file, uint8_t* o_buf, size_t decoded_size, size_t encoded_size) {
+
+    int fd = open(file.c_str(), O_RDONLY);
+    if(fd == -1){
+       Log("failed to open %s, error is %s", file, strerror(errno));
+       return false; 
+    }    
+    
+    size_t read_size = read(fd, o_buf, decoded_size);
+
+    if(read_size != decoded_size)
+    {
+       Log("read %d bytes instead of %d", read_size, decoded_size);
+       return false;
+    }
+
+    Log("readAssets succeeded");
+    return true;
+}
+
 
 string GetRandomString() {
     string str = lexical_cast<string>((random_generator())());

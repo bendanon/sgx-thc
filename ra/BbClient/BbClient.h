@@ -28,11 +28,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "UtilityFunctions.h"
 
 using namespace std;
 using namespace util;
 
 class BbClient {
+
+
+private:
+    static string secret_file_name;
 
 public:
     BbClient(Enclave* pEnclave);

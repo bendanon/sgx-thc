@@ -25,12 +25,6 @@ void AttestationClient::start() {
     this->nm->startService();
 }
 
-
-sgx_status_t AttestationClient::initRa() {
-    return this->m_pEnclave->initRa();
-}
-
-
 sgx_status_t AttestationClient::getEnclaveStatus() {
     return this->m_pEnclave->getStatus();
 }
@@ -196,6 +190,8 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
                                &msg3_size);
     } while (SGX_ERROR_BUSY == ret && busy_retry_time--);
 
+    m_pEnclave->closeRa();
+
     SafeFree(p_msg2);
 
     if (SGX_SUCCESS != (sgx_status_t)ret) {
@@ -236,7 +232,8 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
 }
 
 
-void AttestationClient::assembleAttestationMSG(Messages::AttestationMessage msg, ra_samp_response_header_t **pp_att_msg) {
+#if 0
+void AttestationClient::assembleAttestationMSG(Messages::MessageMSG4 msg, ra_samp_response_header_t **pp_att_msg) {
     sample_ra_att_result_msg_t *p_att_result_msg = NULL;
     ra_samp_response_header_t* p_att_result_msg_full = NULL;
 
@@ -292,12 +289,11 @@ void AttestationClient::assembleAttestationMSG(Messages::AttestationMessage msg,
     *pp_att_msg = p_att_result_msg_full;
 }
 
-
-string AttestationClient::handleAttestationResult(Messages::AttestationMessage msg) {
+string AttestationClient::handleAttestationResult(Messages::MessageMSG4 msg) {
     Log("Received Attestation result");
 
     ra_samp_response_header_t *p_att_result_msg_full = NULL;
-    this->assembleAttestationMSG(msg, &p_att_result_msg_full);
+    //this->assembleAttestationMSG(msg, &p_att_result_msg_full);
     sample_ra_att_result_msg_t *p_att_result_msg_body = (sample_ra_att_result_msg_t *) ((uint8_t*) p_att_result_msg_full + sizeof(ra_samp_response_header_t));
 
     sgx_status_t status;
@@ -354,13 +350,28 @@ string AttestationClient::handleAttestationResult(Messages::AttestationMessage m
 
     return "";
 }
+#endif
 
+string AttestationClient::handleMSG4(Messages::MessageMSG4 msg){
+
+    if(!m_report.fromMsg4(msg))
+    {
+        Log("failed to parse report from msg4", log::error);
+         return "";
+    }   
+
+    Messages::InitialMessage response;
+    response.set_type(RA_APP_ATT_OK);
+    response.set_size(0);
+    Log("AttestationClient::handleMSG4 - success");
+    return nm->serialize(response);   
+}
 
 string AttestationClient::handleMSG0Response(Messages::MessageMsg0 msg) {
     Log("MSG0 response received");
 
     if (msg.status() == TYPE_OK) {
-        sgx_status_t ret = this->initRa();
+        sgx_status_t ret = m_pEnclave->initRa();
 
         if (SGX_SUCCESS != ret || this->getEnclaveStatus()) {
             Log("Error, call enclave_init_ra fail", log::error);
@@ -430,10 +441,11 @@ vector<string> AttestationClient::incomingHandler(string v, int type) {
         }
         break;
         case RA_ATT_RESULT: {	//MSG4
-            Messages::AttestationMessage att_msg;
+            Messages::MessageMSG4 att_msg;
             ret = att_msg.ParseFromString(v);
             if (ret && att_msg.type() == RA_ATT_RESULT) {
-                s = this->handleAttestationResult(att_msg);
+                //s = this->handleAttestationResult(att_msg);
+                s = this->handleMSG4(att_msg);
                 res.push_back(to_string(RA_APP_ATT_OK));
             }
         }

@@ -42,6 +42,7 @@ class GetSecretRequest;
 class GetSecretResponse;
 class MessageMSG2;
 class MessageMSG3;
+class MessageMSG4;
 class AttestationMessage;
 class SecretMessage;
 
@@ -1143,6 +1144,123 @@ class MessageMSG3 : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static MessageMSG3* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class MessageMSG4 : public ::google::protobuf::Message {
+ public:
+  MessageMSG4();
+  virtual ~MessageMSG4();
+
+  MessageMSG4(const MessageMSG4& from);
+
+  inline MessageMSG4& operator=(const MessageMSG4& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MessageMSG4& default_instance();
+
+  void Swap(MessageMSG4* other);
+
+  // implements Message ----------------------------------------------
+
+  MessageMSG4* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const MessageMSG4& from);
+  void MergeFrom(const MessageMSG4& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required uint32 type = 1;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 1;
+  inline ::google::protobuf::uint32 type() const;
+  inline void set_type(::google::protobuf::uint32 value);
+
+  // required uint32 size = 2;
+  inline bool has_size() const;
+  inline void clear_size();
+  static const int kSizeFieldNumber = 2;
+  inline ::google::protobuf::uint32 size() const;
+  inline void set_size(::google::protobuf::uint32 value);
+
+  // repeated uint32 response_body = 3 [packed = true];
+  inline int response_body_size() const;
+  inline void clear_response_body();
+  static const int kResponseBodyFieldNumber = 3;
+  inline ::google::protobuf::uint32 response_body(int index) const;
+  inline void set_response_body(int index, ::google::protobuf::uint32 value);
+  inline void add_response_body(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      response_body() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_response_body();
+
+  // repeated uint32 intel_signature = 4 [packed = true];
+  inline int intel_signature_size() const;
+  inline void clear_intel_signature();
+  static const int kIntelSignatureFieldNumber = 4;
+  inline ::google::protobuf::uint32 intel_signature(int index) const;
+  inline void set_intel_signature(int index, ::google::protobuf::uint32 value);
+  inline void add_intel_signature(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      intel_signature() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_intel_signature();
+
+  // @@protoc_insertion_point(class_scope:Messages.MessageMSG4)
+ private:
+  inline void set_has_type();
+  inline void clear_has_type();
+  inline void set_has_size();
+  inline void clear_has_size();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 type_;
+  ::google::protobuf::uint32 size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > response_body_;
+  mutable int _response_body_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > intel_signature_;
+  mutable int _intel_signature_cached_byte_size_;
+  friend void  protobuf_AddDesc_Messages_2eproto();
+  friend void protobuf_AssignDesc_Messages_2eproto();
+  friend void protobuf_ShutdownFile_Messages_2eproto();
+
+  void InitAsDefaultInstance();
+  static MessageMSG4* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -2597,6 +2715,118 @@ inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
 MessageMSG3::mutable_quote() {
   // @@protoc_insertion_point(field_mutable_list:Messages.MessageMSG3.quote)
   return &quote_;
+}
+
+// -------------------------------------------------------------------
+
+// MessageMSG4
+
+// required uint32 type = 1;
+inline bool MessageMSG4::has_type() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void MessageMSG4::set_has_type() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void MessageMSG4::clear_has_type() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void MessageMSG4::clear_type() {
+  type_ = 0u;
+  clear_has_type();
+}
+inline ::google::protobuf::uint32 MessageMSG4::type() const {
+  // @@protoc_insertion_point(field_get:Messages.MessageMSG4.type)
+  return type_;
+}
+inline void MessageMSG4::set_type(::google::protobuf::uint32 value) {
+  set_has_type();
+  type_ = value;
+  // @@protoc_insertion_point(field_set:Messages.MessageMSG4.type)
+}
+
+// required uint32 size = 2;
+inline bool MessageMSG4::has_size() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void MessageMSG4::set_has_size() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void MessageMSG4::clear_has_size() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void MessageMSG4::clear_size() {
+  size_ = 0u;
+  clear_has_size();
+}
+inline ::google::protobuf::uint32 MessageMSG4::size() const {
+  // @@protoc_insertion_point(field_get:Messages.MessageMSG4.size)
+  return size_;
+}
+inline void MessageMSG4::set_size(::google::protobuf::uint32 value) {
+  set_has_size();
+  size_ = value;
+  // @@protoc_insertion_point(field_set:Messages.MessageMSG4.size)
+}
+
+// repeated uint32 response_body = 3 [packed = true];
+inline int MessageMSG4::response_body_size() const {
+  return response_body_.size();
+}
+inline void MessageMSG4::clear_response_body() {
+  response_body_.Clear();
+}
+inline ::google::protobuf::uint32 MessageMSG4::response_body(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.MessageMSG4.response_body)
+  return response_body_.Get(index);
+}
+inline void MessageMSG4::set_response_body(int index, ::google::protobuf::uint32 value) {
+  response_body_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.MessageMSG4.response_body)
+}
+inline void MessageMSG4::add_response_body(::google::protobuf::uint32 value) {
+  response_body_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.MessageMSG4.response_body)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+MessageMSG4::response_body() const {
+  // @@protoc_insertion_point(field_list:Messages.MessageMSG4.response_body)
+  return response_body_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+MessageMSG4::mutable_response_body() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.MessageMSG4.response_body)
+  return &response_body_;
+}
+
+// repeated uint32 intel_signature = 4 [packed = true];
+inline int MessageMSG4::intel_signature_size() const {
+  return intel_signature_.size();
+}
+inline void MessageMSG4::clear_intel_signature() {
+  intel_signature_.Clear();
+}
+inline ::google::protobuf::uint32 MessageMSG4::intel_signature(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.MessageMSG4.intel_signature)
+  return intel_signature_.Get(index);
+}
+inline void MessageMSG4::set_intel_signature(int index, ::google::protobuf::uint32 value) {
+  intel_signature_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.MessageMSG4.intel_signature)
+}
+inline void MessageMSG4::add_intel_signature(::google::protobuf::uint32 value) {
+  intel_signature_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.MessageMSG4.intel_signature)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+MessageMSG4::intel_signature() const {
+  // @@protoc_insertion_point(field_list:Messages.MessageMSG4.intel_signature)
+  return intel_signature_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+MessageMSG4::mutable_intel_signature() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.MessageMSG4.intel_signature)
+  return &intel_signature_;
 }
 
 // -------------------------------------------------------------------

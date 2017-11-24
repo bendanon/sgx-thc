@@ -75,8 +75,8 @@ int ias_verify_attestation_evidence(
     sample_ecc_state_handle_t ecc_state = NULL;
 
     vector<pair<string, string>> result;
+    
     bool error = ws->verifyQuote(p_isv_quote, pse_manifest, NULL, &result);
-
 
     if (error || (NULL == p_isv_quote) || (NULL == p_attestation_verification_report)) {
         return -1;

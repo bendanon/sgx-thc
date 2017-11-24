@@ -340,7 +340,7 @@ sgx_ra_msg3_t* ServiceProvider::assembleMSG3(Messages::MessageMSG3 msg) {
 
 
 // Process remote attestation message 3
-int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::AttestationMessage *att_msg) {
+int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::MessageMSG4& att_msg) {
     int ret = 0;
     sample_status_t sample_ret = SAMPLE_SUCCESS;
     const uint8_t *p_msg3_cmaced = NULL;
@@ -447,14 +447,29 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::At
         }
 
         // Verify quote with attestation server.
-        ias_att_report_t attestation_report = {0};
-        ret = ias_verify_attestation_evidence(p_msg3->quote, p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, &attestation_report, ws);
+        //ias_att_report_t attestation_report = {0};
+        //ret = ias_verify_attestation_evidence(p_msg3->quote, p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, report, &attestation_report, ws);
 
-        if (0 != ret) {
+        vector<pair<string, string>> result;
+        #ifdef VERIFY_REPORT 
+        bool error = this->ws->verifyQuote(p_isv_quote, pse_manifest, NULL, &result);
+        //TODO - extract response body and intel signature
+        #else
+        bool error = false;
+        uint32_t* report_body_buf = reinterpret_cast<uint32_t*>(&p_quote->report_body);
+        for (int i=0; i<sizeof(sgx_report_body_t); i++)
+            att_msg.add_response_body(report_body_buf[i]);
+
+        att_msg.set_size(sizeof(sgx_report_body_t));
+        #endif
+
+        if (error) {
             ret = SP_IAS_FAILED;
             break;
         }
+    }while(0);
 
+        #if 0
         Log("Atestation Report:");
         Log("\tid: %s", attestation_report.id);
         Log("\tstatus: %d", attestation_report.status);
@@ -541,6 +556,7 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::At
         SafeFree(p_att_result_msg_full);
         return -1;
     } else {
+        
         att_msg->set_size(att_result_msg_size);
 
         ias_platform_info_blob_t platform_info_blob = p_att_result_msg->platform_info_blob;
@@ -579,6 +595,10 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::At
         for (int i=0; i<p_att_result_msg->secret.payload_size; i++)
             att_msg->add_payload(p_att_result_msg->secret.payload[i]);
     }
+   
+   #endif
+    
+
 
     return ret;
 }

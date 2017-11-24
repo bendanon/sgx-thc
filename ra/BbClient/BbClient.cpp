@@ -1,6 +1,8 @@
 #include "BbClient.h"
 
 
+string BbClient::secret_file_name = "secret.bb";
+
 BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
     
     m_pClient = new AttestationClient(m_pEnclave, m_report);
@@ -8,7 +10,7 @@ BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
 
 BbClient::~BbClient(){
     delete m_pClient;
-    SAFE_FREE(this->p_sealed_s); 
+    SafeFree(this->p_sealed_s); 
 }
 
 bool BbClient::Init() {
@@ -31,23 +33,12 @@ bool BbClient::Init() {
 
 bool BbClient::writeSecret()
 {
-    int fd = open((Settings::sealed_secret + ".bb").c_str(), O_WRONLY | O_CREAT, 0644);
-    if(fd == -1){
-       Log("BbClient::writeSecret can't open file, error is %s", strerror(errno));
-       return false; 
-    }
-
-    std::string base64encoded_sealed_secret = 
-        base64_encode(reinterpret_cast<unsigned char const*>(this->p_sealed_s), 
-                      SECRET_KEY_SEALED_SIZE_BYTES);
-
-    assert(base64encoded_sealed_secret.length() == SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
-     
-    ssize_t ret_out = write(fd, base64encoded_sealed_secret.c_str(), 
-                            SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
-    
-    if(ret_out != SECRET_KEY_SEALED_BASE64_SIZE_BYTES){        
-        Log("BbClient::writeSecret failed to write");
+    if(!writeEncodedAssets(Settings::assets_path + BbClient::secret_file_name, 
+                   (uint8_t*)this->p_sealed_s, 
+                   SECRET_KEY_SEALED_SIZE_BYTES, 
+                   SECRET_KEY_SEALED_BASE64_SIZE_BYTES))
+    {
+        Log("BbClient::writeSecret writeAssets failed");
         return false;
     }
 
@@ -57,32 +48,18 @@ bool BbClient::writeSecret()
 
 bool BbClient::readSecret() {
 
-    SAFE_FREE(this->p_sealed_s);
-
-    int fd = open((Settings::sealed_secret + ".bb").c_str(), O_RDONLY);
-    if(fd == -1){
-       Log("BbClient::readSecret no sealed secret file found");
-       return false; 
-    }
-
-    char sealed_secret_encoded_buf[SECRET_KEY_SEALED_BASE64_SIZE_BYTES];
-    size_t read_size = read(fd, sealed_secret_encoded_buf, 
-                            SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
-
-    if(read_size != SECRET_KEY_SEALED_BASE64_SIZE_BYTES)
-    {
-       Log("BbClient::readSecret read %d bytes instead of %d", read_size, 
-       SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
-
-       return false;
-    }
-
-    std::string base64encoded_sealed_secret(sealed_secret_encoded_buf);
-
-    char const *c = base64_decode(base64encoded_sealed_secret).c_str();
-
+    SafeFree(this->p_sealed_s);
     this->p_sealed_s = (sgx_sealed_data_t*)malloc(SECRET_KEY_SEALED_SIZE_BYTES);
-    memcpy(this->p_sealed_s, c, SECRET_KEY_SEALED_SIZE_BYTES);
+
+    if(!readEncodedAssets(Settings::assets_path + BbClient::secret_file_name, 
+                  (uint8_t*)this->p_sealed_s, 
+                  SECRET_KEY_SEALED_SIZE_BYTES, 
+                  SECRET_KEY_SEALED_BASE64_SIZE_BYTES)) 
+    {
+    
+        Log("BbClient::readSecret readAssets failed");
+        return false;
+    }    
 
     Log("BbClient::readSecret succeeded");
     return true;
