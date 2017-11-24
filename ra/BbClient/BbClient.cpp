@@ -8,9 +8,17 @@ BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
 
 BbClient::~BbClient(){
     delete m_pClient;
+    SAFE_FREE(this->p_sealed_s); 
 }
 
 bool BbClient::Init() {
+
+    if(readSecret())
+    {
+        Log("BbClient already has secret, no need for attestation");
+        return true;
+    }
+
     if(!obtainCertificate())
     {
         Log("BbClient Failed to obtain a valid certificate");
@@ -21,25 +29,74 @@ bool BbClient::Init() {
     return true; 
 }
 
+bool BbClient::writeSecret()
+{
+    int fd = open((Settings::sealed_secret + ".bb").c_str(), O_WRONLY | O_CREAT, 0644);
+    if(fd == -1){
+       Log("BbClient::writeSecret can't open file, error is %s", strerror(errno));
+       return false; 
+    }
+
+    std::string base64encoded_sealed_secret = 
+        base64_encode(reinterpret_cast<unsigned char const*>(this->p_sealed_s), 
+                      SECRET_KEY_SEALED_SIZE_BYTES);
+
+    assert(base64encoded_sealed_secret.length() == SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
+     
+    ssize_t ret_out = write(fd, base64encoded_sealed_secret.c_str(), 
+                            SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
+    
+    if(ret_out != SECRET_KEY_SEALED_BASE64_SIZE_BYTES){        
+        Log("BbClient::writeSecret failed to write");
+        return false;
+    }
+
+    Log("BbClient::writeSecret success");
+    return true;
+}
+
+bool BbClient::readSecret() {
+
+    SAFE_FREE(this->p_sealed_s);
+
+    int fd = open((Settings::sealed_secret + ".bb").c_str(), O_RDONLY);
+    if(fd == -1){
+       Log("BbClient::readSecret no sealed secret file found");
+       return false; 
+    }
+
+    char sealed_secret_encoded_buf[SECRET_KEY_SEALED_BASE64_SIZE_BYTES];
+    size_t read_size = read(fd, sealed_secret_encoded_buf, 
+                            SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
+
+    if(read_size != SECRET_KEY_SEALED_BASE64_SIZE_BYTES)
+    {
+       Log("BbClient::readSecret read %d bytes instead of %d", read_size, 
+       SECRET_KEY_SEALED_BASE64_SIZE_BYTES);
+
+       return false;
+    }
+
+    std::string base64encoded_sealed_secret(sealed_secret_encoded_buf);
+
+    char const *c = base64_decode(base64encoded_sealed_secret).c_str();
+
+    this->p_sealed_s = (sgx_sealed_data_t*)malloc(SECRET_KEY_SEALED_SIZE_BYTES);
+    memcpy(this->p_sealed_s, c, SECRET_KEY_SEALED_SIZE_BYTES);
+
+    Log("BbClient::readSecret succeeded");
+    return true;
+}
+
 bool BbClient::obtainCertificate(){
     if(m_report.isValid())
     {
          Log("BbClient::obtainCertificate - already has a valid certificate");
          return true;
     }
-    if(readCertificateFromMemory())
-    {
-        Log("BbClient::obtainCertificate - certificate read from memory successfully");
-        return true;
-    }
     m_pClient->init();
     m_pClient->start();
     return m_report.isValid();
-}
-
-bool BbClient::readCertificateFromMemory(){
-    Log("BbClient::readCertificateFromMemory - not implemented");
-    return false;
 }
 
 bool BbClient::generatePkRequest(Messages::PkRequest& pkRequest){
@@ -120,6 +177,12 @@ bool BbClient::processGetSecretResponse(Messages::GetSecretResponse& getSecretRe
     if(status)
     {
         Log("bbInit2 status is %d", status);
+        return false;
+    }
+
+    if(!writeSecret())
+    {
+        Log("BbClient::processGetSecretResponse failed to write secret");
         return false;
     }
 

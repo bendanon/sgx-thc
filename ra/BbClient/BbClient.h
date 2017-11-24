@@ -25,6 +25,10 @@
 #include "VerificationReport.h"
 #include "AttestationClient.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 using namespace std;
 using namespace util;
 
@@ -68,8 +72,9 @@ public:
     bool execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 
 private:
-    bool readCertificateFromMemory();
     bool obtainCertificate();
+    bool readSecret();
+    bool writeSecret();
 
 
 private:
