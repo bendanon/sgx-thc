@@ -64,6 +64,7 @@ int ServiceProvider::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::M
         #ifdef VERIFY_SIGRL
             error = this->ws->getSigRL(ByteArrayToString(GID, 4), &sigRl);
         #else
+        sdf
             sigRl = "";
         #endif
 
@@ -447,14 +448,17 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::Me
         }
 
         // Verify quote with attestation server.
-        //ias_att_report_t attestation_report = {0};
-        //ret = ias_verify_attestation_evidence(p_msg3->quote, p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, report, &attestation_report, ws);
+        ias_att_report_t attestation_report = {0};
+        ret = ias_verify_attestation_evidence(p_msg3->quote, 
+                                             p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, 
+                                             &attestation_report, 
+                                             ws);
 
         vector<pair<string, string>> result;
         #ifdef VERIFY_REPORT 
         bool error = this->ws->verifyQuote(p_isv_quote, pse_manifest, NULL, &result);
         //TODO - extract response body and intel signature
-        #else
+        #else        
         bool error = false;
         uint32_t* report_body_buf = reinterpret_cast<uint32_t*>(&p_quote->report_body);
         for (int i=0; i<sizeof(sgx_report_body_t); i++)

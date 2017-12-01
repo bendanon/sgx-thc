@@ -2,7 +2,8 @@
 #define GENERALSETTINGS_H
 
 #include <string>
-//#define NO_HW_SUPPORT
+#define VERIFY_SIGRL
+//#define VERIFY_REPORT
 using namespace std;
 
 namespace Settings {
