@@ -267,7 +267,13 @@ bool WebService::verifyQuote(uint8_t *quote, uint8_t *pseManifest, uint8_t *nonc
         string response(ias_response_container.p_response);
 
         auto res = parseJSONfromIAS(response);
+        res.push_back({"fullResponse", response});
+        res.push_back({"x-iasreport-signature", response_header.x_iasreport_signature});
+        res.push_back({"x-iasreport-signing-certificate", 
+                        response_header.x_iasreport_signing_certificate});
+        res.push_back({"location", response_header.location});
         *result = res;
+
     } else {
         Log("Quote attestation returned status: %d", response_header.response_status);
         return true;
