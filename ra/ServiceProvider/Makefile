@@ -48,9 +48,9 @@ endif
 App_Cpp_Files := isv_app/isv_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp \
 ../Networking/Session.cpp ../Networking/Client.cpp ../Networking/Server.cpp isv_app/AttestationServer.cpp ../Networking/NetworkManagerServer.cpp \
 ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp ../Util/UtilityFunctions.cpp ../WebService/WebService.cpp \
-../Util/Base64.cpp 
+../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp
 
-App_Include_Paths := -Iservice_provider -I$(SGX_SDK)/include -Iheaders -I../Util -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../WebService
+App_Include_Paths := -Iservice_provider -I$(SGX_SDK)/include -Iheaders -I../Util -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../WebService -I../VerificationReport
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -116,6 +116,10 @@ isv_app/%.o: isv_app/%.cpp
 	@echo "CXX  <=  $<"
 
 ../GoogleMessages/%.o: ../GoogleMessages/%.cpp
+	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+../VerificationReport/%.o: ../VerificationReport/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 

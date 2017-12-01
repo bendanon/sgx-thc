@@ -20,6 +20,7 @@
 #include "remote_attestation_result.h"
 #include "sgx_key_exchange.h"
 #include "ias_ra.h"
+#include "../VerificationReport/VerificationReport.h"
 
 using namespace std;
 
