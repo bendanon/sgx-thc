@@ -165,9 +165,8 @@ bool VerificationReport::verifySignature(){
   /* ---------------------------------------------------------- *
    * Load the certificate and cacert chain from file (PEM).     *
    * ---------------------------------------------------------- */
-  ret = BIO_read(certbio, 
-                 const_cast<char*>(m_x_iasreport_signing_certificate.c_str()), 
-                 m_x_iasreport_signing_certificate.length());
+  certbio = BIO_new_mem_buf(const_cast<char*>(m_x_iasreport_signing_certificate.c_str()), 
+                            m_x_iasreport_signing_certificate.length());
   if (! (cert = PEM_read_bio_X509(certbio, NULL, 0, NULL))) {
     BIO_printf(outbio, "Error loading cert into memory\n");
     exit(-1);
