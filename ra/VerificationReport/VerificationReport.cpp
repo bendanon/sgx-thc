@@ -306,7 +306,7 @@ bool VerificationReport::verifySignature() {
             break; /* failed */
         }
         
-        const EVP_MD* md = EVP_get_digestbyname(hn);
+        const EVP_MD* md = EVP_get_digestbyname(HASH_ALGORITHM);
         assert(md != NULL);
         if(md == NULL) {
             Log("EVP_get_digestbyname failed, error 0x%lx\n", ERR_get_error());
