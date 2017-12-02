@@ -447,168 +447,23 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::Me
             break;
         }
 
-        // Verify quote with attestation server.
-        //ias_att_report_t attestation_report = {0};
-        //ret = ias_verify_attestation_evidence(p_msg3->quote, 
-          //                                   p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, 
-            //                                 &attestation_report, 
-              //                               ws);
-
         vector<pair<string, string>> result;
         bool error = this->ws->verifyQuote(p_msg3->quote, 
                                        p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, 
                                        NULL, 
                                        &result);
 
-        VerificationReport report;
-        report.fromResult(result);
-        bool pkvalid = report.verifyPublicKey(g_sp_db.g_a, g_sp_db.g_b);
-
-        /*
-        bool error = false;
-        uint32_t* report_body_buf = reinterpret_cast<uint32_t*>(&p_quote->report_body);
-        for (int i=0; i<sizeof(sgx_report_body_t); i++)
-            att_msg.add_response_body(report_body_buf[i]);
-
-        att_msg.set_size(sizeof(sgx_report_body_t));
-        */
-
         if (error) {
             ret = SP_IAS_FAILED;
             break;
         }
+
+        m_report.fromResult(result);
+        bool pkvalid = m_report.verifyPublicKey(g_sp_db.g_a, g_sp_db.g_b);
+        Log("pkvalid %s", pkvalid ? "TRUE" : "FALSE");
+        assert(!pkvalid);
+
     }while(0);
-
-        #if 0
-        Log("Atestation Report:");
-        Log("\tid: %s", attestation_report.id);
-        Log("\tstatus: %d", attestation_report.status);
-        Log("\trevocation_reason: %u", attestation_report.revocation_reason);
-        Log("\tpse_status: %d",  attestation_report.pse_status);
-
-        Log("Enclave Report:");
-        Log("\tSignature Type: 0x%x", p_quote->sign_type);
-        Log("\tSignature Basename: %s", ByteArrayToNoHexString(p_quote->basename.name, 32));
-        Log("\tattributes.flags: 0x%0lx", p_quote->report_body.attributes.flags);
-        Log("\tattributes.xfrm: 0x%0lx", p_quote->report_body.attributes.xfrm);
-        Log("\tmr_enclave: %s", ByteArrayToString(p_quote->report_body.mr_enclave.m, SGX_HASH_SIZE));
-        Log("\tmr_signer: %s", ByteArrayToString(p_quote->report_body.mr_signer.m, SGX_HASH_SIZE));
-        Log("\tisv_prod_id: 0x%0x", p_quote->report_body.isv_prod_id);
-        Log("\tisv_svn: 0x%0x", p_quote->report_body.isv_svn);
-
-
-        // Respond the client with the results of the attestation.
-        att_result_msg_size = sizeof(sample_ra_att_result_msg_t);
-
-        p_att_result_msg_full = (ra_samp_response_header_t*) malloc(att_result_msg_size + sizeof(ra_samp_response_header_t) + sizeof(validation_result));
-        if (!p_att_result_msg_full) {
-            Log("Error, out of memory", log::error);
-            ret = SP_INTERNAL_ERROR;
-            break;
-        }
-
-        memset(p_att_result_msg_full, 0, att_result_msg_size + sizeof(ra_samp_response_header_t) + sizeof(validation_result));
-        p_att_result_msg_full->type = RA_ATT_RESULT;
-        p_att_result_msg_full->size = att_result_msg_size;
-
-        if (IAS_QUOTE_OK != attestation_report.status) {
-            p_att_result_msg_full->status[0] = 0xFF;
-        }
-
-        if (IAS_PSE_OK != attestation_report.pse_status) {
-            p_att_result_msg_full->status[1] = 0xFF;
-        }
-
-        p_att_result_msg = (sample_ra_att_result_msg_t *)p_att_result_msg_full->body;
-
-        bool isv_policy_passed = true;
-
-        p_att_result_msg->platform_info_blob = attestation_report.info_blob;
-
-        // Generate mac based on the mk key.
-        mac_size = sizeof(ias_platform_info_blob_t);
-        sample_ret = sample_rijndael128_cmac_msg(&g_sp_db.mk_key,
-                     (const uint8_t*)&p_att_result_msg->platform_info_blob,
-                     mac_size,
-                     &p_att_result_msg->mac);
-
-        if (SAMPLE_SUCCESS != sample_ret) {
-            Log("Error, cmac fail", log::error);
-            ret = SP_INTERNAL_ERROR;
-            break;
-        }
-
-        // Generate shared secret and encrypt it with SK, if attestation passed.
-        uint8_t aes_gcm_iv[SAMPLE_SP_IV_SIZE] = {0};
-        p_att_result_msg->secret.payload_size = MAX_VERIFICATION_RESULT;
-
-        if ((IAS_QUOTE_OK == attestation_report.status) &&
-                (IAS_PSE_OK == attestation_report.pse_status) &&
-                (isv_policy_passed == true)) {
-            memset(validation_result, '\0', MAX_VERIFICATION_RESULT);
-            validation_result[0] = 0;
-            validation_result[1] = 1;
-
-            ret = sample_rijndael128GCM_encrypt(&g_sp_db.sk_key,
-                                                &validation_result[0],
-                                                p_att_result_msg->secret.payload_size,
-                                                p_att_result_msg->secret.payload,
-                                                &aes_gcm_iv[0],
-                                                SAMPLE_SP_IV_SIZE,
-                                                NULL,
-                                                0,
-                                                &p_att_result_msg->secret.payload_tag);
-        }
-
-    } while(0);
-
-    if (ret) {
-        SafeFree(p_att_result_msg_full);
-        return -1;
-    } else {
-        
-        att_msg->set_size(att_result_msg_size);
-
-        ias_platform_info_blob_t platform_info_blob = p_att_result_msg->platform_info_blob;
-        att_msg->set_epid_group_status(platform_info_blob.sample_epid_group_status);
-        att_msg->set_tcb_evaluation_status(platform_info_blob.sample_tcb_evaluation_status);
-        att_msg->set_pse_evaluation_status(platform_info_blob.pse_evaluation_status);
-
-        for (int i=0; i<PSVN_SIZE; i++)
-            att_msg->add_latest_equivalent_tcb_psvn(platform_info_blob.latest_equivalent_tcb_psvn[i]);
-
-        for (int i=0; i<ISVSVN_SIZE; i++)
-            att_msg->add_latest_pse_isvsvn(platform_info_blob.latest_pse_isvsvn[i]);
-
-        for (int i=0; i<PSDA_SVN_SIZE; i++)
-            att_msg->add_latest_psda_svn(platform_info_blob.latest_psda_svn[i]);
-
-        for (int i=0; i<GID_SIZE; i++)
-            att_msg->add_performance_rekey_gid(platform_info_blob.performance_rekey_gid[i]);
-
-        for (int i=0; i<SAMPLE_NISTP256_KEY_SIZE; i++) {
-            att_msg->add_ec_sign256_x(platform_info_blob.signature.x[i]);
-            att_msg->add_ec_sign256_y(platform_info_blob.signature.y[i]);
-        }
-
-        for (int i=0; i<SAMPLE_MAC_SIZE; i++)
-            att_msg->add_mac_smk(p_att_result_msg->mac[i]);
-
-        att_msg->set_result_size(p_att_result_msg->secret.payload_size);
-
-        for (int i=0; i<12; i++)
-            att_msg->add_reserved(p_att_result_msg->secret.reserved[i]);
-
-        for (int i=0; i<16; i++)
-            att_msg->add_payload_tag(p_att_result_msg->secret.payload_tag[i]);
-
-        for (int i=0; i<p_att_result_msg->secret.payload_size; i++)
-            att_msg->add_payload(p_att_result_msg->secret.payload[i]);
-    }
-   
-   #endif
-    
-
 
     return ret;
 }

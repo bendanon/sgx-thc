@@ -66,6 +66,8 @@ public:
 
 private:
     WebService *ws = NULL;
+    VerificationReport m_report;
+    
     bool g_is_sp_registered = false;
     uint32_t extended_epid_group_id;
     sp_db_item_t g_sp_db;
