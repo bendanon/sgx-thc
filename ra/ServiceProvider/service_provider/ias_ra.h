@@ -5,7 +5,6 @@
 #include "sgx_quote.h"
 
 #include "LogBase.h"
-#include "WebService.h"
 
 using namespace util;
 
@@ -136,15 +135,5 @@ typedef struct _ias_att_report_t {
 #define SAMPLE_QUOTE_LINKABLE_SIGNATURE   1
 
 #pragma pack(pop)
-
-#ifdef  __cplusplus
-extern "C" {
-#endif
-
-int ias_verify_attestation_evidence(uint8_t* p_isv_quote, uint8_t* pse_manifest, ias_att_report_t* attestation_verification_report, WebService *ws);
-
-#ifdef  __cplusplus
-}
-#endif
 
 #endif
