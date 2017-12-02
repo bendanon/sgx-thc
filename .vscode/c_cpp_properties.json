@@ -39,7 +39,8 @@
                 "${workspaceRoot}/ra/Util",
                 "/opt/intel/sgxsdk/include",
                 "/usr/include/linux",
-                "${workspaceRoot}/ra/GoogleMessages"
+                "${workspaceRoot}/ra/GoogleMessages",
+                "${workspaceRoot}/ra/VerificationReport"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
