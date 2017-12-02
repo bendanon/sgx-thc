@@ -6,6 +6,7 @@
 #include "sgx_tkey_exchange.h"
 #include "sgx_tcrypto.h"
 #include "string.h"
+#include "../GeneralSettings.h"
 
 // This is the public EC key of the SP. The corresponding private EC key is
 // used by the SP to sign data used in the remote attestation SIGMA protocol
@@ -107,7 +108,7 @@ bool derive_key(
     For our use, this is not good since we plan on the verification report to be 
     publicly verifiable, hence need vk to be public. So we set it to be zeroes.*/
     if(key_id == DERIVE_KEY_MK_VK)
-        memset(second_derived_key, 0, sizeof(sgx_ec_key_128bit_t));
+        memcpy(second_derived_key, Settings::const_vk, sizeof(sgx_ec_key_128bit_t));
 
     // memset here can be optimized away by compiler, so please use memset_s on
     // windows for production code and similar functions on other OSes.

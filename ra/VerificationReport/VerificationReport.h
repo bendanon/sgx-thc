@@ -41,11 +41,11 @@ public:
     VerificationReport();
     virtual ~VerificationReport();
 
-    bool deserialize(uint8_t* buffer);
-    bool serialize(uint8_t* o_buffer);
     bool isValid();    
     bool fromMsg4(Messages::MessageMSG4& msg);
     bool fromResult(vector<pair<string, string>> result);
+
+    bool verifyPublicKey(sgx_ec256_public_t& ga, sgx_ec256_public_t& gb);
    
     bool read(std::string file);
     bool write(std::string file);
@@ -57,16 +57,20 @@ private:
 
 
 private:
+    
     bool m_isValid;
-    sgx_report_body_t m_report_body;
-    ias_quote_status_t m_quoteStatus;
-    string m_id;
+    X509* m_cert = NULL;
+
+    sgx_report_body_t m_report_body;  //TODO - remove
+    ias_quote_status_t m_quoteStatus; //TODO - remove
+    string m_id;                      //TODO - remove
+    string m_location;                //TODO - remove
+
+    /*All of those should be written to / read from drive*/
     sgx_quote_t m_quote_body;
     string m_x_iasreport_signature;
     string m_x_iasreport_signing_certificate;
-    string m_location;
     string m_full_response;
-    X509* m_cert = NULL;
 };
 
 #endif

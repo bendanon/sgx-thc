@@ -462,6 +462,7 @@ int ServiceProvider::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg, Messages::Me
 
         VerificationReport report;
         report.fromResult(result);
+        bool pkvalid = report.verifyPublicKey(g_sp_db.g_a, g_sp_db.g_b);
 
         /*
         bool error = false;

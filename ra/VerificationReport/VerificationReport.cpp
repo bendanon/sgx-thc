@@ -8,17 +8,61 @@ VerificationReport::~VerificationReport() {
     X509_free(m_cert);
 }
 
-bool VerificationReport::deserialize(uint8_t* buffer) {
-    Log("VerificationReport::deserialize - not implemented");
-    return false;
+bool VerificationReport::verifyPublicKey(sgx_ec256_public_t& ga, sgx_ec256_public_t& gb){
+
+    if(!m_isValid){
+        Log("VerificationReport::verifyPublicKey - report is not valid");
+        return false;
+    }
+
+    sgx_report_data_t report_data = {0};
+    sgx_sha_state_handle_t sha_handle = NULL;
+
+    // Verify the report_data in the Quote matches the expected value.
+    // The first 32 bytes of report_data are SHA256 HASH of {ga|gb|vk}.
+    // The second 32 bytes of report_data are set to zero.
+    sgx_status_t sgx_ret = sgx_sha256_init(&sha_handle);
+    if (sgx_ret != SGX_SUCCESS) {
+        Log("Error, init hash failed", log::error);
+        return false;
+    }
+
+    sgx_ret = sgx_sha256_update((uint8_t *)&(ga), sizeof(ga), sha_handle);
+    if (sgx_ret != SGX_SUCCESS) {
+        Log("Error, udpate hash failed", log::error);
+        return false;
+    }
+
+    sgx_ret = sgx_sha256_update((uint8_t *)&(gb), sizeof(gb), sha_handle);
+    if (sgx_ret != SGX_SUCCESS) {
+        Log("Error, udpate hash failed", log::error);
+        return false;
+    }
+
+    Log("vk is %s", Base64encodeUint8((uint8_t*)Settings::const_vk, sizeof(Settings::const_vk)));
+
+    sgx_ret = sgx_sha256_update(Settings::const_vk, sizeof(Settings::const_vk), sha_handle);
+    if (sgx_ret != SGX_SUCCESS) {
+        Log("Error, udpate hash failed", log::error);
+        return false;
+    }
+
+    sgx_ret = sgx_sha256_get_hash(sha_handle, (sgx_sha256_hash_t *)&report_data);
+    if (sgx_ret != SGX_SUCCESS) {
+        Log("Error, Get hash failed", log::error);
+        return false;
+    }
+
+    if (memcmp((uint8_t *)&report_data, (uint8_t *)&(m_quote_body.report_body.report_data), sizeof(report_data))) {
+        Log("Error, verify hash failed", log::error);
+        return false;
+    }
+
+    Log("VerificationReport::verifyPublicKey - success");
+    return true;
 }
 
-bool VerificationReport::serialize(uint8_t* o_buffer){
-    Log("VerificationReport::serialize - not implemented");
-    return false;
-}
-
- bool VerificationReport::fromMsg4(Messages::MessageMSG4& msg) {
+bool VerificationReport::fromMsg4(Messages::MessageMSG4& msg) {
 
     //TODO - this should extract the whole response body and signature, 
     //not just report body
@@ -126,7 +170,12 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
         return false;
     }
 
-    m_isValid = verifySignature();
+    if(!verifySignature()) {
+        Log("VerificationReport::fromResult - verifySignature failed");
+        return false;
+    }
+
+    m_isValid = true;
 
     Log("VerificationReport::fromResult - success");
     return true;
