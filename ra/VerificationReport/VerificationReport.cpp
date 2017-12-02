@@ -103,7 +103,7 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
         } else if (x.first == "fullResponse") {
             m_full_response = x.second;
         } else if (x.first == "x-iasreport-signature") {
-            m_x_iasreport_signature = Base64decode(x.second);
+            m_x_iasreport_signature = x.second;
         } else if (x.first == "x-iasreport-signing-certificate") {
             m_x_iasreport_signing_certificate = uriDecode(x.second);
         } else if (x.first == "location") {
