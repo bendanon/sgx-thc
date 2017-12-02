@@ -1,64 +1,5 @@
 #include "VerificationReport.h"
 
- const char VerificationReport::dummy_cert_buf[] = "-----BEGIN CERTIFICATE-----\n"
-  "MIIEoTCCAwmgAwIBAgIJANEHdl0yo7CWMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNV\n"
-  "BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLU2FudGEgQ2xhcmExGjAYBgNV\n"
-  "BAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQDDCdJbnRlbCBTR1ggQXR0ZXN0\n"
-  "YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwHhcNMTYxMTIyMDkzNjU4WhcNMjYxMTIw\n"
-  "MDkzNjU4WjB7MQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExFDASBgNVBAcMC1Nh\n"
-  "bnRhIENsYXJhMRowGAYDVQQKDBFJbnRlbCBDb3Jwb3JhdGlvbjEtMCsGA1UEAwwk\n"
-  "SW50ZWwgU0dYIEF0dGVzdGF0aW9uIFJlcG9ydCBTaWduaW5nMIIBIjANBgkqhkiG\n"
-  "9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqXot4OZuphR8nudFrAFiaGxxkgma/Es/BA+t\n"
-  "beCTUR106AL1ENcWA4FX3K+E9BBL0/7X5rj5nIgX/R/1ubhkKWw9gfqPG3KeAtId\n"
-  "cv/uTO1yXv50vqaPvE1CRChvzdS/ZEBqQ5oVvLTPZ3VEicQjlytKgN9cLnxbwtuv\n"
-  "LUK7eyRPfJW/ksddOzP8VBBniolYnRCD2jrMRZ8nBM2ZWYwnXnwYeOAHV+W9tOhA\n"
-  "ImwRwKF/95yAsVwd21ryHMJBcGH70qLagZ7Ttyt++qO/6+KAXJuKwZqjRlEtSEz8\n"
-  "gZQeFfVYgcwSfo96oSMAzVr7V0L6HSDLRnpb6xxmbPdqNol4tQIDAQABo4GkMIGh\n"
-  "MB8GA1UdIwQYMBaAFHhDe3amfrzQr35CN+s1fDuHAVE8MA4GA1UdDwEB/wQEAwIG\n"
-  "wDAMBgNVHRMBAf8EAjAAMGAGA1UdHwRZMFcwVaBToFGGT2h0dHA6Ly90cnVzdGVk\n"
-  "c2VydmljZXMuaW50ZWwuY29tL2NvbnRlbnQvQ1JML1NHWC9BdHRlc3RhdGlvblJl\n"
-  "cG9ydFNpZ25pbmdDQS5jcmwwDQYJKoZIhvcNAQELBQADggGBAGcIthtcK9IVRz4r\n"
-  "Rq+ZKE+7k50/OxUsmW8aavOzKb0iCx07YQ9rzi5nU73tME2yGRLzhSViFs/LpFa9\n"
-  "lpQL6JL1aQwmDR74TxYGBAIi5f4I5TJoCCEqRHz91kpG6Uvyn2tLmnIdJbPE4vYv\n"
-  "WLrtXXfFBSSPD4Afn7+3/XUggAlc7oCTizOfbbtOFlYA4g5KcYgS1J2ZAeMQqbUd\n"
-  "ZseZCcaZZZn65tdqee8UXZlDvx0+NdO0LR+5pFy+juM0wWbu59MvzcmTXbjsi7HY\n"
-  "6zd53Yq5K244fwFHRQ8eOB0IWB+4PfM7FeAApZvlfqlKOlLcZL2uyVmzRkyR5yW7\n"
-  "2uo9mehX44CiPJ2fse9Y6eQtcfEhMPkmHXI01sN+KwPbpA39+xOsStjhP9N1Y1a2\n"
-  "tQAVo+yVgLgV2Hws73Fc0o3wC78qPEA+v2aRs/Be3ZFDgDyghc/1fgU+7C+P6kbq\n"
-  "d4poyb6IW8KCJbxfMJvkordNOgOUUxndPHEi/tb/U7uLjLOgPA==\n"
-  "-----END CERTIFICATE-----\n"
-  "-----BEGIN CERTIFICATE-----\n"
-  "MIIFSzCCA7OgAwIBAgIJANEHdl0yo7CUMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNV\n"
-  "BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLU2FudGEgQ2xhcmExGjAYBgNV\n"
-  "BAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQDDCdJbnRlbCBTR1ggQXR0ZXN0\n"
-  "YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwIBcNMTYxMTE0MTUzNzMxWhgPMjA0OTEy\n"
-  "MzEyMzU5NTlaMH4xCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwL\n"
-  "U2FudGEgQ2xhcmExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQD\n"
-  "DCdJbnRlbCBTR1ggQXR0ZXN0YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwggGiMA0G\n"
-  "CSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQCfPGR+tXc8u1EtJzLA10Feu1Wg+p7e\n"
-  "LmSRmeaCHbkQ1TF3Nwl3RmpqXkeGzNLd69QUnWovYyVSndEMyYc3sHecGgfinEeh\n"
-  "rgBJSEdsSJ9FpaFdesjsxqzGRa20PYdnnfWcCTvFoulpbFR4VBuXnnVLVzkUvlXT\n"
-  "L/TAnd8nIZk0zZkFJ7P5LtePvykkar7LcSQO85wtcQe0R1Raf/sQ6wYKaKmFgCGe\n"
-  "NpEJUmg4ktal4qgIAxk+QHUxQE42sxViN5mqglB0QJdUot/o9a/V/mMeH8KvOAiQ\n"
-  "byinkNndn+Bgk5sSV5DFgF0DffVqmVMblt5p3jPtImzBIH0QQrXJq39AT8cRwP5H\n"
-  "afuVeLHcDsRp6hol4P+ZFIhu8mmbI1u0hH3W/0C2BuYXB5PC+5izFFh/nP0lc2Lf\n"
-  "6rELO9LZdnOhpL1ExFOq9H/B8tPQ84T3Sgb4nAifDabNt/zu6MmCGo5U8lwEFtGM\n"
-  "RoOaX4AS+909x00lYnmtwsDVWv9vBiJCXRsCAwEAAaOByTCBxjBgBgNVHR8EWTBX\n"
-  "MFWgU6BRhk9odHRwOi8vdHJ1c3RlZHNlcnZpY2VzLmludGVsLmNvbS9jb250ZW50\n"
-  "L0NSTC9TR1gvQXR0ZXN0YXRpb25SZXBvcnRTaWduaW5nQ0EuY3JsMB0GA1UdDgQW\n"
-  "BBR4Q3t2pn680K9+QjfrNXw7hwFRPDAfBgNVHSMEGDAWgBR4Q3t2pn680K9+Qjfr\n"
-  "NXw7hwFRPDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADANBgkq\n"
-  "hkiG9w0BAQsFAAOCAYEAeF8tYMXICvQqeXYQITkV2oLJsp6J4JAqJabHWxYJHGir\n"
-  "IEqucRiJSSx+HjIJEUVaj8E0QjEud6Y5lNmXlcjqRXaCPOqK0eGRz6hi+ripMtPZ\n"
-  "sFNaBwLQVV905SDjAzDzNIDnrcnXyB4gcDFCvwDFKKgLRjOB/WAqgscDUoGq5ZVi\n"
-  "zLUzTqiQPmULAQaB9c6Oti6snEFJiCQ67JLyW/E83/frzCmO5Ru6WjU4tmsmy8Ra\n"
-  "Ud4APK0wZTGtfPXU7w+IBdG5Ez0kE1qzxGQaL4gINJ1zMyleDnbuS8UicjJijvqA\n"
-  "152Sq049ESDz+1rRGc2NVEqh1KaGXmtXvqxXcTB+Ljy5Bw2ke0v8iGngFBPqCTVB\n"
-  "3op5KBG3RjbF6RRSzwzuWfL7QErNC8WEy5yDVARzTA5+xmBc388v9Dm21HGfcC8O\n"
-  "DD+gT9sSpssq0ascmvH49MOgjt1yoysLtdCtJW/9FZpoOypaHx0R+mJTLwPXVMrv\n"
-  "DaVzWh5aiEx+idkSGMnX\n"
-  "-----END CERTIFICATE-----";
-
 VerificationReport::VerificationReport() : m_isValid(false) 
 { 
     memset(&m_quote_body, 0, sizeof(m_quote_body));
@@ -164,7 +105,7 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
         } else if (x.first == "x-iasreport-signature") {
             m_x_iasreport_signature = Base64decode(x.second);
         } else if (x.first == "x-iasreport-signing-certificate") {
-            m_x_iasreport_signing_certificate = x.second;
+            m_x_iasreport_signing_certificate = uriDecode(x.second);
         } else if (x.first == "location") {
             m_location = x.second;
         } else if (x.first == "revocationReason") {
@@ -189,6 +130,17 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
 
     Log("VerificationReport::fromResult - success");
     return true;
+}
+
+string VerificationReport::uriDecode(string encoded){
+    CURL *curl = curl_easy_init();
+    int outlength;
+    char *cres = curl_easy_unescape(curl, encoded.c_str(), encoded.length(), &outlength);
+    std::string res(cres, cres + outlength);
+    curl_free(cres);
+    curl_easy_cleanup(curl);
+
+    return res;
 }
 
 bool VerificationReport::verifyCertificateChain(){
@@ -231,7 +183,8 @@ bool VerificationReport::verifyCertificateChain(){
         /* ---------------------------------------------------------- *
         * Load the certificate and cacert chain from file (PEM).     *
         * ---------------------------------------------------------- */
-        certbio = BIO_new_mem_buf(dummy_cert_buf, sizeof(dummy_cert_buf));
+        certbio = BIO_new_mem_buf(m_x_iasreport_signing_certificate.c_str(), 
+                                  m_x_iasreport_signing_certificate.length());
         if (!PEM_read_bio_X509(certbio, &m_cert, 0, NULL)) {
             Log("Error loading cert into memory\n");            
             break;
@@ -325,7 +278,8 @@ bool VerificationReport::verifySignature() {
             break; /* failed */
         }
         
-        rc = EVP_DigestVerifyUpdate(ctx, (const byte*)msg_dummy, mlen);
+        rc = EVP_DigestVerifyUpdate(ctx, (const byte*)m_full_response.c_str(), 
+                                    m_full_response.length());
         if(rc != 1) {
             Log("EVP_DigestVerifyUpdate failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
@@ -335,8 +289,8 @@ bool VerificationReport::verifySignature() {
         ERR_clear_error();
         
         rc = EVP_DigestVerifyFinal(ctx, 
-                                  (const byte*)base64_decode(sig_base64_dummy).c_str(), 
-                                  SIGNATURE_LENGTH_BYTES);
+                        (const byte*)base64_decode(m_x_iasreport_signature).c_str(), 
+                        SIGNATURE_LENGTH_BYTES);
         if(rc != 1) {
             Log("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
