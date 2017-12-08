@@ -3,7 +3,7 @@
 
 WebService* WebService::instance = NULL;
 
-WebService::WebService() {}
+WebService::WebService() : curl(NULL) {}
 
 WebService::~WebService() {
     if (curl)
@@ -40,6 +40,12 @@ void WebService::init() {
 
 
 vector<pair<string, string>> WebService::parseJSONfromIAS(string json) {
+
+    if(curl == NULL){
+        Log("WebService::parseJSONfromIAS - not initialized");
+        return vector<pair<string, string>>();
+    }
+
     Json::Value root;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(json.c_str(), root);
@@ -185,6 +191,10 @@ bool WebService::sendToIAS(string url,
                            ias_response_container_t *ias_response_container,
                            ias_response_header_t *response_header) {
 
+    if(curl == NULL){
+        Log("WebService::parseJSONfromIAS - not initialized");
+        return false;
+    }
     CURLcode res = CURLE_OK;
 
     curl_easy_setopt( curl, CURLOPT_URL, url.c_str());
@@ -192,7 +202,7 @@ bool WebService::sendToIAS(string url,
     if (headers) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
-    }
+    }    
 
     ias_response_container->p_response = (char*) malloc(1);
     ias_response_container->size = 0;
@@ -229,7 +239,14 @@ bool WebService::getSigRL(string gid, string *sigrl) {
 
     string url = Settings::ias_url + "sigrl/" + gid;
 
-    this->sendToIAS(url, IAS::sigrl, "", NULL, &ias_response_container, &response_header);
+    Log("WebService::getSigRL - Sending to IAS, url is %s", url);
+    bool ret = this->sendToIAS(url, IAS::sigrl, "", NULL, &ias_response_container, &response_header);
+
+    if(!ret){
+        Log("WebService::getSigRL - sendToIAS failed");
+        return false;
+    }
+
 
     Log("\tResponse status is: %d" , response_header.response_status);
     Log("\tContent-Length: %d", response_header.content_length);
@@ -240,6 +257,7 @@ bool WebService::getSigRL(string gid, string *sigrl) {
             *sigrl = Base64decode(response);
         }
         retrieved_sigrl.push_back({gid, *sigrl});
+        return true;
     } else
         return true;
 

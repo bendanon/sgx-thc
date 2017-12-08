@@ -1,4 +1,5 @@
 #include "AttestationClient.h"
+#include "sample_libcrypto.h"
 
 using namespace util;
 
@@ -12,6 +13,7 @@ AttestationClient::AttestationClient(Enclave *enclave,
         Log("AttestationClient created with NULL p_pk, should crash");
 
     this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
+    this->ws = WebService::getInstance();
     m_pEnclave = enclave;
     m_p_pk = p_pk;
 }
@@ -21,6 +23,7 @@ AttestationClient::~AttestationClient() { }
 
 int AttestationClient::init() {
     this->nm->Init();
+    this->ws->init();
     this->nm->connectCallbackHandler([this](string v, int type) {
         return this->incomingHandler(v, type);
     });
@@ -32,8 +35,8 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
     bool func_ret = true;
     ra_samp_response_header_t* p_msg2_full = NULL;
     sgx_ra_msg2_t *p_msg2 = NULL;
-    sgx_ecc_state_handle_t ecc_state = NULL;
-    sgx_status_t sgx_ret = SGX_SUCCESS;
+    sample_ecc_state_handle_t ecc_state = NULL;
+    sample_status_t sample_ret = SAMPLE_SUCCESS;
     bool derive_ret = false;
 
     do {
@@ -52,7 +55,8 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
             Log("sp_ra_proc_msg1_req - getSigRL failed");
             func_ret = false;
             break;
-        }            
+        }
+        Log("AttestationClient::sp_ra_proc_msg1_req - getSigRL success");       
 
         uint8_t *sig_rl;
         uint32_t sig_rl_size = StringToByteArray(sigRl, &sig_rl);        
@@ -74,8 +78,15 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
         }
 
 
+        sgx_status_t sgx_ret;
         sgx_ret = m_pEnclave->deriveSmk(&client_pub_key, sizeof(sgx_ec256_public_t),
                                         &m_smk_key, sizeof(sgx_ec_key_128bit_t));
+        
+        if(sgx_ret != SGX_SUCCESS){
+            Log("AttestationClient::sp_ra_proc_msg1_req - deriveSmk failed", log::error);
+            func_ret = false;
+            break;
+        }
 
         
 
@@ -105,33 +116,30 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
 
 
         // Assemble MSG2
-        if(memcpy(&p_msg2->g_b, m_p_pk, sizeof(sgx_ec256_public_t))) {
-            Log("Error, memcpy failed", log::error);
-            func_ret = false;
-            break;
-        }
+        memcpy(&p_msg2->g_b, m_p_pk, sizeof(sgx_ec256_public_t));
 
         p_msg2->quote_type = SAMPLE_QUOTE_UNLINKABLE_SIGNATURE;
         p_msg2->kdf_id = AES_CMAC_KDF_ID;
 
         // Create gb_ga
         sgx_ec256_public_t gb_ga[2];
-        if (memcpy(&gb_ga[0], m_p_pk, sizeof(sgx_ec256_public_t)) ||
-                memcpy(&gb_ga[1], &client_pub_key, sizeof(client_pub_key))) {
-            Log("Error, memcpy failed", log::error);
-            func_ret = false;
+        memcpy(&gb_ga[0], m_p_pk, sizeof(sgx_ec256_public_t));
+        memcpy(&gb_ga[1], &client_pub_key, sizeof(client_pub_key));
+        
+         // Generate the Service providers ECCDH key pair.
+        sample_ret = sample_ecc256_open_context(&ecc_state);
+        if(SAMPLE_SUCCESS != sample_ret) {
+            Log("Error, cannot get ECC context", log::error);
             break;
         }
 
-        
-
         // Sign gb_ga
-        sgx_ret = sgx_ecdsa_sign((uint8_t *)&gb_ga, sizeof(gb_ga),
-                                       (sgx_ec256_private_t *)&Settings::sp_priv_key,
-                                       (sgx_ec256_signature_t *)&p_msg2->sign_gb_ga,
+        sample_ret = sample_ecdsa_sign((uint8_t *)&gb_ga, sizeof(gb_ga),
+                                       (sample_ec256_private_t *)&Settings::sp_priv_key,
+                                       (sample_ec256_signature_t *)&p_msg2->sign_gb_ga,
                                        ecc_state);
 
-        if (SGX_SUCCESS != sgx_ret) {
+        if (SAMPLE_SUCCESS != sample_ret) {
             Log("Error, sign ga_gb fail", log::error);
             func_ret = false;
             break;
@@ -140,27 +148,18 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
         // Generate the CMACsmk for gb||SPID||TYPE||KDF_ID||Sigsp(gb,ga)
         uint8_t mac[EC_MAC_SIZE] = {0};
         uint32_t cmac_size = offsetof(sgx_ra_msg2_t, mac);
-        sgx_ret = sgx_rijndael128_cmac_msg(&m_smk_key, 
+        sample_ret = sample_rijndael128_cmac_msg(&m_smk_key, 
                                           (uint8_t *)&p_msg2->g_b, 
                                           cmac_size, &mac);
 
-        if (SGX_SUCCESS != sgx_ret) {
+        if (SAMPLE_SUCCESS != sample_ret) {
             Log("Error, cmac fail", log::error);
             func_ret = false;
             break;
         }
 
-        if (memcpy(&p_msg2->mac, mac, sizeof(mac))) {
-            Log("Error, memcpy failed", log::error);
-            func_ret = false;
-            break;
-        }
-       
-        if (memcpy(&p_msg2->sig_rl[0], sig_rl, sig_rl_size)) {
-            Log("Error, memcpy failed", log::error);
-            func_ret = false;
-            break;
-        }
+        memcpy(&p_msg2->mac, mac, sizeof(mac));
+        memcpy(&p_msg2->sig_rl[0], sig_rl, sig_rl_size);
         
         p_msg2->sig_rl_size = sig_rl_size;
         
@@ -206,7 +205,7 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
     }
 
     if (ecc_state) {
-        sgx_ecc256_close_context(ecc_state);
+        sample_ecc256_close_context(ecc_state);
     }
 
     return func_ret;
@@ -239,10 +238,7 @@ bool AttestationClient::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg){
 
     p_msg3 = assembleMSG3(msg);
 
-    if (memcpy(&m_ps_sec_prop, &p_msg3->ps_sec_prop, sizeof(p_msg3->ps_sec_prop))) {
-        Log("Error, memcpy fail", log::error);
-        return false;
-    }
+    memcpy(&m_ps_sec_prop, &p_msg3->ps_sec_prop, sizeof(p_msg3->ps_sec_prop));
 
     vector<pair<string, string>> result;
     if(!this->ws->verifyQuote(p_msg3->quote, 
@@ -254,18 +250,29 @@ bool AttestationClient::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg){
         return false;      
     }
 
-    m_report.fromResult(result);
-    bool pkvalid = m_report.verifyPublicKey(&p_msg3->g_a, m_p_pk);
-    Log("pkvalid %s", pkvalid ? "TRUE" : "FALSE");
-    assert(!pkvalid);
+    if(!m_report.fromResult(result)){
+        Log("AttestationClient::sp_ra_proc_msg3_req failed generate valid report from IAS verification report");
+        return false;
+    }
 
-    return false;
+    return true;
 }
 
 void AttestationClient::start() {
     
     /*MSG0 client-->server*/
-    int ret = getExtendedEPID_GID(&m_extended_epid_group_id);
+    if(SGX_SUCCESS !=  getExtendedEPID_GID(&m_extended_epid_group_id)) {
+        Log("AttestationClient::start - failed to getExtendedEPID_GID");
+        return;
+    }
+
+    if (SGX_SUCCESS != m_pEnclave->initRa() || 
+        SGX_SUCCESS != this->getEnclaveStatus()) {
+        Log("Error, call enclave_init_ra fail", log::error);
+        return;
+    }
+
+    bool ret = false;
 
     /*MSG1 client-->server*/
     string msg1_str = generateMSG1();
@@ -288,9 +295,9 @@ void AttestationClient::start() {
     Messages::MessageMSG3 msg3;
     string msg3_str = handleMSG2(msg2);
 
-    ret = msg2.ParseFromString(msg3_str);
+    ret = msg3.ParseFromString(msg3_str);
 
-    if (!ret || (msg1.type() != RA_MSG3)) {
+    if (!ret || (msg3.type() != RA_MSG3)) {
         Log("failed to generate MSG3");
         return;
     }
@@ -357,14 +364,14 @@ string AttestationClient::generateMSG1() {
             break;
         } else if (retGIDStatus == SGX_ERROR_BUSY) {
             if (count == 5) { //retried 5 times, so fail out
-                Log("Error, sgx_ra_get_msg1 is busy - 5 retries failed", log::error);
+                Log("AttestationClient::generateMSG1, sgx_ra_get_msg1 is busy - 5 retries failed", log::error);
                 break;;
             } else {
                 sleep(3);
                 count++;
             }
         } else {    //error other than busy
-            Log("Error, failed to generate MSG1", log::error);
+            Log("AttestationClient::generateMSG1, failed to generate MSG1, error is %d", retGIDStatus);
             break;
         }
     }
@@ -500,7 +507,6 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
         }
 
         SafeFree(p_msg3);
-
         return nm->serialize(msg3);
     }
 

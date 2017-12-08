@@ -51,10 +51,10 @@ App_Cpp_Files := isv_app/isv_app.cpp ../Util/LogBase.cpp ../Networking/NetworkMa
 ../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
 ../BbClient/BbClient.cpp ../SkgServer/SkgServer.cpp ../WebService/WebService.cpp
 
-App_Include_Paths := -I../Util -Iservice_provider -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
--I../AttestationClient -I../VerificationReport -I../BbClient -I../SkgServer -I../Networking -I../WebService
+App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
+-I../AttestationClient -I../VerificationReport -I../BbClient -I../SkgServer -I../Networking -I../WebService -Isample_libcrypto
 
-App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
+App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths) -lsample_libcrypto -Lsample_libcrypto
 
 # Three configuration modes - Debug, prerelease, release
 #   Debug - Macro DEBUG enabled.
@@ -68,8 +68,9 @@ else
 	App_C_Flags += -DNDEBUG -UEDEBUG -UDEBUG
 endif
 
-App_Cpp_Flags := $(App_C_Flags) -std=c++11 -DEnableServer
-App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L. -lsgx_ukey_exchange -lsgx_tcrypto -lpthread -Wl,-rpath=$(CURDIR)/../sample_libcrypto -Wl,-rpath=$(CURDIR) -llog4cpp -lboost_system -lssl -lcrypto -lboost_thread -lprotobuf -L /usr/local/lib -ljsoncpp -lcurl
+App_Cpp_Flags := $(App_C_Flags) -std=c++11 -DEnableServer -DEnableClient
+App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -L. -lsgx_ukey_exchange -lpthread -lsample_libcrypto -Lsample_libcrypto -Wl,-rpath=$(CURDIR) -llog4cpp -lboost_system -L/usr/lib -lssl -lcrypto -lboost_thread -lprotobuf -L /usr/local/lib -ljsoncpp -lcurl
+
 
 ifneq ($(SGX_MODE), HW)
 	App_Link_Flags += -lsgx_uae_service_sim
@@ -180,7 +181,7 @@ isv_app/%.o: isv_app/%.cpp
 	@echo "CXX  <=  $<"
 
 ../VerificationReport/%.o: ../VerificationReport/%.cpp
-	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@$(CXX) $(App_Cpp_Flags) -c $< -Wl,-rpath=$(CURDIR)/sample_libcrypto -lsample_libcrypto -o $@
 	@echo "CXX  <=  $<"
 
 ../WebService/%.o: ../WebService/%.cpp

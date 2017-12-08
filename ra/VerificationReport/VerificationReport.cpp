@@ -1,4 +1,5 @@
 #include "VerificationReport.h"
+#include "sample_libcrypto.h"
 
 VerificationReport::VerificationReport() : m_isValid(false) 
 { 
@@ -22,34 +23,34 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga,
     // Verify the report_data in the Quote matches the expected value.
     // The first 32 bytes of report_data are SHA256 HASH of {ga|gb|vk}.
     // The second 32 bytes of report_data are set to zero.
-    sgx_status_t sgx_ret = sgx_sha256_init(&sha_handle);
-    if (sgx_ret != SGX_SUCCESS) {
+    sample_status_t sample_ret = sample_sha256_init(&sha_handle);
+    if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, init hash failed", log::error);
         return false;
     }
 
-    sgx_ret = sgx_sha256_update((uint8_t *)p_ga, sizeof(sgx_ec256_public_t), sha_handle);
-    if (sgx_ret != SGX_SUCCESS) {
+    sample_ret = sample_sha256_update((uint8_t *)p_ga, sizeof(sgx_ec256_public_t), sha_handle);
+    if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;
     }
 
-    sgx_ret = sgx_sha256_update((uint8_t *)p_gb, sizeof(sgx_ec256_public_t), sha_handle);
-    if (sgx_ret != SGX_SUCCESS) {
+    sample_ret = sample_sha256_update((uint8_t *)p_gb, sizeof(sgx_ec256_public_t), sha_handle);
+    if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;
     }
 
     Log("vk is %s", Base64encodeUint8((uint8_t*)Settings::const_vk, sizeof(Settings::const_vk)));
 
-    sgx_ret = sgx_sha256_update(Settings::const_vk, sizeof(Settings::const_vk), sha_handle);
-    if (sgx_ret != SGX_SUCCESS) {
+    sample_ret = sample_sha256_update(Settings::const_vk, sizeof(Settings::const_vk), sha_handle);
+    if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;
     }
 
-    sgx_ret = sgx_sha256_get_hash(sha_handle, (sgx_sha256_hash_t *)&report_data);
-    if (sgx_ret != SGX_SUCCESS) {
+    sample_ret = sample_sha256_get_hash(sha_handle, (sgx_sha256_hash_t *)&report_data);
+    if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, Get hash failed", log::error);
         return false;
     }

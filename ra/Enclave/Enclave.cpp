@@ -123,6 +123,10 @@ sgx_status_t Enclave::createEnclave() {
 
 
 sgx_enclave_id_t Enclave::getID() {
+    if(!m_enclaveCreated){
+        Log("Enclave::getID - enclave not created");
+        return 0;
+    }
     return this->enclave_id;
 }
 
@@ -131,6 +135,9 @@ sgx_status_t Enclave::getStatus() {
 }
 
 sgx_ra_context_t Enclave::getContext() {
+    if(!m_enclaveCreated || !m_raInitialized){
+        Log("Enclave::getContext - !m_enclaveCreated || !m_raInitialized");
+    }
     return this->context;
 }
 
