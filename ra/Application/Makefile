@@ -93,8 +93,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_Cpp_Files := isv_enclave/BlackBoxExecuter.cpp isv_enclave/isv_enclave.cpp
-Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/
+Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp isv_enclave/isv_enclave.cpp
+Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++
@@ -186,6 +186,10 @@ isv_app/%.o: isv_app/%.cpp
 
 ../WebService/%.o: ../WebService/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+../BlackBoxExecuter/%.o: ../BlackBoxExecuter/%.cpp
+	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
 ../BbClient/%.o: ../BbClient/%.cpp

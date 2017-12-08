@@ -612,10 +612,9 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
         bbx.Init(s_unsealed, SECRET_KEY_SIZE_BYTES);
     }   
     
-    bool ret = false;
-    ret = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
-    ocall_print("bbx.Execute status is %d\n", ret);
-    if(ret) return SGX_ERROR_UNEXPECTED;
+    status = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
+    ocall_print("bbx.Execute status is %d\n", status);
+    if(status) return status;
 
     return SGX_SUCCESS;
 }
