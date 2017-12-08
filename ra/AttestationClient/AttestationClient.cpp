@@ -53,8 +53,7 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
 
         if (!this->ws->getSigRL(ByteArrayToString(GID, 4), &sigRl)){
             Log("sp_ra_proc_msg1_req - getSigRL failed");
-            func_ret = false;
-            break;
+            return false;
         }
         Log("AttestationClient::sp_ra_proc_msg1_req - getSigRL success");       
 
@@ -84,8 +83,7 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
         
         if(sgx_ret != SGX_SUCCESS){
             Log("AttestationClient::sp_ra_proc_msg1_req - deriveSmk failed", log::error);
-            func_ret = false;
-            break;
+            return false;
         }
 
         
