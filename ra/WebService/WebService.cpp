@@ -276,10 +276,10 @@ bool WebService::verifyQuote(uint8_t *quote, uint8_t *pseManifest, uint8_t *nonc
 
     } else {
         Log("Quote attestation returned status: %d", response_header.response_status);
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 

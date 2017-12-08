@@ -224,9 +224,20 @@ sgx_status_t Enclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size,
 }
 
 
+sgx_status_t Enclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
+                                sgx_ec_key_128bit_t* p_smk, size_t smk_size){
+    
+    derive_smk(this->enclave_id,
+               &this->status,
+               p_pk,
+               pk_size,
+               p_smk,
+               smk_size);
+    
+    Log("derive_smk retval is %d", this->status);
 
-
-
+    return this->status;
+}
 
 
 

@@ -45,7 +45,7 @@ public:
     bool fromMsg4(Messages::MessageMSG4& msg);
     bool fromResult(vector<pair<string, string>> result);
 
-    bool verifyPublicKey(sgx_ec256_public_t& ga, sgx_ec256_public_t& gb);
+    bool verifyPublicKey(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb);
    
     bool read(std::string file);
     bool write(std::string file);

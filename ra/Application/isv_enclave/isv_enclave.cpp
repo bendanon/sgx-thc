@@ -319,9 +319,11 @@ sgx_status_t verify_secret_data (
 
 /*SKG enclave internal data*/
 uint8_t s_sk[SKG_DATA_SIZE_BYTES];
+sgx_ec256_private_t skg_priv_key;
 
 /*BB enclave internal data*/
 uint8_t k[SECRET_KEY_SIZE_BYTES];
+sgx_ec256_private_t bb_priv_key;
 BlackBoxExecuter bbx;
 
 void ocall_print(const char* format, uint32_t number){
@@ -406,17 +408,16 @@ sgx_status_t skg_init(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
         
         //Generate an encryption key pair (pk,sk), output pk
         sgx_ecc_state_handle_t handle;
-        sgx_ec256_private_t sk;
     
         status = sgx_ecc256_open_context(&handle);
         ocall_print("sgx_ecc256_open_context status is %d\n", status);
         if(status) return status;
         
-        status = sgx_ecc256_create_key_pair(&sk, p_pk, handle);
+        status = sgx_ecc256_create_key_pair(&skg_priv_key, p_pk, handle);
 
         ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
         if(status) return status;        
-        memcpy(s_sk + SECRET_KEY_SIZE_BYTES, &sk, sizeof(sgx_ec256_private_t));
+        memcpy(s_sk + SECRET_KEY_SIZE_BYTES, &skg_priv_key, sizeof(sgx_ec256_private_t));
 
         //Seal the data (s,sk) [sealing to MRENCLAVE] and output sealed data.        
         status = sgx_seal_data(0, NULL, sizeof(s_sk), s_sk, sealed_size, p_sealed_data);
@@ -444,18 +445,17 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
     
     //Compute k=DH(bbsk, pk) the shared DH key of skg and bb
     sgx_ecc_state_handle_t handle;
-    sgx_ec256_private_t sk;
 
     status = sgx_ecc256_open_context(&handle);
     ocall_print("sgx_ecc256_open_context status is %d\n", status);
     if(status) return status;
     
-    status = sgx_ecc256_create_key_pair(&sk, p_bb_pk, handle);
+    status = sgx_ecc256_create_key_pair(&bb_priv_key, p_bb_pk, handle);
     ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
     if(status) return status;
     
     sgx_ec256_dh_shared_t shared_key;
-    status = sgx_ecc256_compute_shared_dhkey(&sk,p_skg_pk,&shared_key, handle);
+    status = sgx_ecc256_compute_shared_dhkey(&bb_priv_key,p_skg_pk,&shared_key, handle);
     ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
     if(status) return status;
 
@@ -617,4 +617,32 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
     if(status) return status;
 
     return SGX_SUCCESS;
+}
+
+
+sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size, 
+                        sgx_ec_key_128bit_t* p_smk, size_t smk_size) {
+
+    sgx_status_t status;
+    sgx_ecc_state_handle_t handle;
+    status = sgx_ecc256_open_context(&handle);
+    ocall_print("sgx_ecc256_open_context status is %d\n", status);
+    if(status) return status;
+   
+    //Compute the shared key with with c was encrypted
+    sgx_ec256_dh_shared_t shared_key;
+    status = sgx_ecc256_compute_shared_dhkey(&skg_priv_key, p_pk, &shared_key, handle);
+    ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
+    if(status) return status;
+
+    sgx_ec_key_128bit_t sk;
+    bool derive_ret = derive_key(&shared_key, DERIVE_KEY_SMK_SK, p_smk, &sk);
+                                 
+    if (!derive_ret) {
+        ocall_print("Error, derive key fail");
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    return SGX_SUCCESS;
+
 }

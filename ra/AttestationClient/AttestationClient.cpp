@@ -2,12 +2,18 @@
 
 using namespace util;
 
-AttestationClient::AttestationClient(Enclave *enclave, VerificationReport& report) : m_report(report) {
+AttestationClient::AttestationClient(Enclave *enclave, 
+                                     VerificationReport& report, 
+                                     sgx_ec256_public_t* p_pk) : m_report(report) {
     if(enclave == NULL)
         Log("AttestationClient created with NULL enclave, should crash");
+    
+    if(p_pk == NULL)
+        Log("AttestationClient created with NULL p_pk, should crash");
 
     this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
     m_pEnclave = enclave;
+    m_p_pk = p_pk;
 }
 
 AttestationClient::~AttestationClient() { }
@@ -21,9 +27,281 @@ int AttestationClient::init() {
 }
 
 
-void AttestationClient::start() {
-    this->nm->startService();
+bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
+    ra_samp_response_header_t **pp_msg2;
+    bool func_ret = true;
+    ra_samp_response_header_t* p_msg2_full = NULL;
+    sgx_ra_msg2_t *p_msg2 = NULL;
+    sgx_ecc_state_handle_t ecc_state = NULL;
+    sgx_status_t sgx_ret = SGX_SUCCESS;
+    bool derive_ret = false;
+
+    do {
+
+        //=====================  RETRIEVE SIGRL FROM IAS =======================        
+        uint8_t GID[4];
+
+        for (int i=0; i<4; i++)
+            GID[i] = msg1.gid(i);
+
+        reverse(begin(GID), end(GID));
+
+        string sigRl;   
+
+        if (!this->ws->getSigRL(ByteArrayToString(GID, 4), &sigRl)){
+            Log("sp_ra_proc_msg1_req - getSigRL failed");
+            func_ret = false;
+            break;
+        }            
+
+        uint8_t *sig_rl;
+        uint32_t sig_rl_size = StringToByteArray(sigRl, &sig_rl);        
+        //=====================================================================
+
+        uint8_t gaXLittleEndian[32];
+        uint8_t gaYLittleEndian[32];
+
+        for (int i=0; i<32; i++) {
+            gaXLittleEndian[i] = msg1.gax(i);
+            gaYLittleEndian[i] = msg1.gay(i);
+        }
+
+        sgx_ec256_public_t client_pub_key = {{0},{0}};
+
+        for (int x=0; x<DH_SHARED_KEY_LEN; x++) {
+            client_pub_key.gx[x] = gaXLittleEndian[x];
+            client_pub_key.gy[x] = gaYLittleEndian[x];
+        }
+
+
+        sgx_ret = m_pEnclave->deriveSmk(&client_pub_key, sizeof(sgx_ec256_public_t),
+                                        &m_smk_key, sizeof(sgx_ec_key_128bit_t));
+
+        
+
+        uint32_t msg2_size = sizeof(sgx_ra_msg2_t) + sig_rl_size;
+        p_msg2_full = (ra_samp_response_header_t*)malloc(msg2_size + sizeof(ra_samp_response_header_t));
+
+        if (!p_msg2_full) {
+            Log("Error, Error, out of memory", log::error);
+            func_ret = false;
+            break;
+        }
+
+        memset(p_msg2_full, 0, msg2_size + sizeof(ra_samp_response_header_t));
+        p_msg2_full->type = RA_MSG2;
+        p_msg2_full->size = msg2_size;
+
+        p_msg2_full->status[0] = 0;
+        p_msg2_full->status[1] = 0;
+        p_msg2 = (sgx_ra_msg2_t *) p_msg2_full->body;
+
+
+        uint8_t *spidBa;
+        HexStringToByteArray(Settings::spid, &spidBa);
+
+        for (int i=0; i<16; i++)
+            p_msg2->spid.id[i] = spidBa[i];
+
+
+        // Assemble MSG2
+        if(memcpy(&p_msg2->g_b, m_p_pk, sizeof(sgx_ec256_public_t))) {
+            Log("Error, memcpy failed", log::error);
+            func_ret = false;
+            break;
+        }
+
+        p_msg2->quote_type = SAMPLE_QUOTE_UNLINKABLE_SIGNATURE;
+        p_msg2->kdf_id = AES_CMAC_KDF_ID;
+
+        // Create gb_ga
+        sgx_ec256_public_t gb_ga[2];
+        if (memcpy(&gb_ga[0], m_p_pk, sizeof(sgx_ec256_public_t)) ||
+                memcpy(&gb_ga[1], &client_pub_key, sizeof(client_pub_key))) {
+            Log("Error, memcpy failed", log::error);
+            func_ret = false;
+            break;
+        }
+
+        
+
+        // Sign gb_ga
+        sgx_ret = sgx_ecdsa_sign((uint8_t *)&gb_ga, sizeof(gb_ga),
+                                       (sgx_ec256_private_t *)&Settings::sp_priv_key,
+                                       (sgx_ec256_signature_t *)&p_msg2->sign_gb_ga,
+                                       ecc_state);
+
+        if (SGX_SUCCESS != sgx_ret) {
+            Log("Error, sign ga_gb fail", log::error);
+            func_ret = false;
+            break;
+        }
+
+        // Generate the CMACsmk for gb||SPID||TYPE||KDF_ID||Sigsp(gb,ga)
+        uint8_t mac[EC_MAC_SIZE] = {0};
+        uint32_t cmac_size = offsetof(sgx_ra_msg2_t, mac);
+        sgx_ret = sgx_rijndael128_cmac_msg(&m_smk_key, 
+                                          (uint8_t *)&p_msg2->g_b, 
+                                          cmac_size, &mac);
+
+        if (SGX_SUCCESS != sgx_ret) {
+            Log("Error, cmac fail", log::error);
+            func_ret = false;
+            break;
+        }
+
+        if (memcpy(&p_msg2->mac, mac, sizeof(mac))) {
+            Log("Error, memcpy failed", log::error);
+            func_ret = false;
+            break;
+        }
+       
+        if (memcpy(&p_msg2->sig_rl[0], sig_rl, sig_rl_size)) {
+            Log("Error, memcpy failed", log::error);
+            func_ret = false;
+            break;
+        }
+        
+        p_msg2->sig_rl_size = sig_rl_size;
+        
+    } while(0);
+
+    if (!func_ret) {
+        *pp_msg2 = NULL;
+        SafeFree(p_msg2_full);
+    } else {
+
+        //=================   SET MSG2 Fields   ================
+        msg2->set_type(RA_MSG2);
+
+        msg2->set_size(p_msg2_full->size);
+
+        for (auto x : p_msg2->g_b.gx)
+            msg2->add_public_key_gx(x);
+
+        for (auto x : p_msg2->g_b.gy)
+            msg2->add_public_key_gy(x);
+
+        for (auto x : p_msg2->spid.id)
+            msg2->add_spid(x);
+
+        msg2->set_quote_type(SAMPLE_QUOTE_UNLINKABLE_SIGNATURE);
+        msg2->set_cmac_kdf_id(AES_CMAC_KDF_ID);
+
+        for (auto x : p_msg2->sign_gb_ga.x) {
+            msg2->add_signature_x(x);
+        }
+
+        for (auto x : p_msg2->sign_gb_ga.y)
+            msg2->add_signature_y(x);
+
+        for (auto x : p_msg2->mac)
+            msg2->add_smac(x);
+
+        msg2->set_size_sigrl(p_msg2->sig_rl_size);
+
+        for (int i=0; i<p_msg2->sig_rl_size; i++)
+            msg2->add_sigrl(p_msg2->sig_rl[i]);
+        //=====================================================
+    }
+
+    if (ecc_state) {
+        sgx_ecc256_close_context(ecc_state);
+    }
+
+    return func_ret;
 }
+
+
+sgx_ra_msg3_t* AttestationClient::assembleMSG3(Messages::MessageMSG3 msg){
+    sgx_ra_msg3_t *p_msg3 = (sgx_ra_msg3_t*) malloc(msg.size());
+
+    for (int i=0; i<SGX_MAC_SIZE; i++)
+        p_msg3->mac[i] = msg.sgx_mac(i);
+
+    for (int i=0; i<SGX_ECP256_KEY_SIZE; i++) {
+        p_msg3->g_a.gx[i] = msg.gax_msg3(i);
+        p_msg3->g_a.gy[i] = msg.gay_msg3(i);
+    }
+
+    for (int i=0; i<256; i++)
+        p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc[i] = msg.sec_property(i);
+    for (int i=0; i<1116; i++)
+        p_msg3->quote[i] = msg.quote(i);
+
+    return p_msg3;
+}
+
+bool AttestationClient::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg){
+
+    bool func_ret = true;
+    sgx_ra_msg3_t *p_msg3 = NULL;
+
+    p_msg3 = assembleMSG3(msg);
+
+    if (memcpy(&m_ps_sec_prop, &p_msg3->ps_sec_prop, sizeof(p_msg3->ps_sec_prop))) {
+        Log("Error, memcpy fail", log::error);
+        return false;
+    }
+
+    vector<pair<string, string>> result;
+    if(!this->ws->verifyQuote(p_msg3->quote, 
+                                p_msg3->ps_sec_prop.sgx_ps_sec_prop_desc, 
+                                NULL, 
+                                &result)) 
+    {
+        Log("Error, verifyQuote failed", log::error);
+        return false;      
+    }
+
+    m_report.fromResult(result);
+    bool pkvalid = m_report.verifyPublicKey(&p_msg3->g_a, m_p_pk);
+    Log("pkvalid %s", pkvalid ? "TRUE" : "FALSE");
+    assert(!pkvalid);
+
+    return false;
+}
+
+void AttestationClient::start() {
+    
+    /*MSG0 client-->server*/
+    int ret = getExtendedEPID_GID(&m_extended_epid_group_id);
+
+    /*MSG1 client-->server*/
+    string msg1_str = generateMSG1();
+    Messages::MessageMSG1 msg1;
+    ret = msg1.ParseFromString(msg1_str);
+
+    if (!ret || (msg1.type() != RA_MSG1)) {
+        Log("failed to generate MSG1");
+        return;
+    }
+
+    /*MSG2 server-->client*/
+    Messages::MessageMSG2 msg2;
+    if(!sp_ra_proc_msg1_req(msg1, &msg2)){
+        Log("failed to generate MSG2");
+        return;
+    }
+
+    /*MSG3 client-->server*/
+    Messages::MessageMSG3 msg3;
+    string msg3_str = handleMSG2(msg2);
+
+    ret = msg2.ParseFromString(msg3_str);
+
+    if (!ret || (msg1.type() != RA_MSG3)) {
+        Log("failed to generate MSG3");
+        return;
+    }
+
+    if(!sp_ra_proc_msg3_req(msg3)){
+        Log("failed to process MSG3");
+        return;
+    }
+
+    //this->nm->startService();
+}   
 
 sgx_status_t AttestationClient::getEnclaveStatus() {
     return this->m_pEnclave->getStatus();
@@ -230,127 +508,6 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
 
     return "";
 }
-
-
-#if 0
-void AttestationClient::assembleAttestationMSG(Messages::MessageMSG4 msg, ra_samp_response_header_t **pp_att_msg) {
-    sample_ra_att_result_msg_t *p_att_result_msg = NULL;
-    ra_samp_response_header_t* p_att_result_msg_full = NULL;
-
-    int total_size = msg.size() + sizeof(ra_samp_response_header_t) + msg.result_size();
-    p_att_result_msg_full = (ra_samp_response_header_t*) malloc(total_size);
-
-    memset(p_att_result_msg_full, 0, total_size);
-    p_att_result_msg_full->type = RA_ATT_RESULT;
-    p_att_result_msg_full->size = msg.size();
-
-    p_att_result_msg = (sample_ra_att_result_msg_t *) p_att_result_msg_full->body;
-
-    p_att_result_msg->platform_info_blob.sample_epid_group_status = msg.epid_group_status();
-    p_att_result_msg->platform_info_blob.sample_tcb_evaluation_status = msg.tcb_evaluation_status();
-    p_att_result_msg->platform_info_blob.pse_evaluation_status = msg.pse_evaluation_status();
-
-    for (int i=0; i<PSVN_SIZE; i++)
-        p_att_result_msg->platform_info_blob.latest_equivalent_tcb_psvn[i] = msg.latest_equivalent_tcb_psvn(i);
-
-    for (int i=0; i<ISVSVN_SIZE; i++)
-        p_att_result_msg->platform_info_blob.latest_pse_isvsvn[i] = msg.latest_pse_isvsvn(i);
-
-    for (int i=0; i<PSDA_SVN_SIZE; i++)
-        p_att_result_msg->platform_info_blob.latest_psda_svn[i] = msg.latest_psda_svn(i);
-
-    for (int i=0; i<GID_SIZE; i++)
-        p_att_result_msg->platform_info_blob.performance_rekey_gid[i] = msg.performance_rekey_gid(i);
-
-    for (int i=0; i<SAMPLE_NISTP256_KEY_SIZE; i++) {
-        p_att_result_msg->platform_info_blob.signature.x[i] = msg.ec_sign256_x(i);
-        p_att_result_msg->platform_info_blob.signature.y[i] = msg.ec_sign256_y(i);
-    }
-
-    for (int i=0; i<SAMPLE_MAC_SIZE; i++)
-        p_att_result_msg->mac[i] = msg.mac_smk(i);
-
-
-    p_att_result_msg->secret.payload_size = msg.result_size();
-
-    for (int i=0; i<12; i++)
-        p_att_result_msg->secret.reserved[i] = msg.reserved(i);
-
-    for (int i=0; i<SAMPLE_SP_TAG_SIZE; i++)
-        p_att_result_msg->secret.payload_tag[i] = msg.payload_tag(i);
-
-    for (int i=0; i<SAMPLE_SP_TAG_SIZE; i++)
-        p_att_result_msg->secret.payload_tag[i] = msg.payload_tag(i);
-
-    for (int i=0; i<msg.result_size(); i++) {
-        p_att_result_msg->secret.payload[i] = (uint8_t)msg.payload(i);
-    }
-
-    *pp_att_msg = p_att_result_msg_full;
-}
-
-string AttestationClient::handleAttestationResult(Messages::MessageMSG4 msg) {
-    Log("Received Attestation result");
-
-    ra_samp_response_header_t *p_att_result_msg_full = NULL;
-    //this->assembleAttestationMSG(msg, &p_att_result_msg_full);
-    sample_ra_att_result_msg_t *p_att_result_msg_body = (sample_ra_att_result_msg_t *) ((uint8_t*) p_att_result_msg_full + sizeof(ra_samp_response_header_t));
-
-    sgx_status_t status;
-    sgx_status_t ret;
-
-    ret = verify_att_result_mac(this->m_pEnclave->getID(),
-                                &status,
-                                this->m_pEnclave->getContext(),
-                                (uint8_t*)&p_att_result_msg_body->platform_info_blob,
-                                sizeof(ias_platform_info_blob_t),
-                                (uint8_t*)&p_att_result_msg_body->mac,
-                                sizeof(sgx_mac_t));
-
-
-    if ((SGX_SUCCESS != ret) || (SGX_SUCCESS != status)) {
-        Log("Error: INTEGRITY FAILED - attestation result message MK based cmac failed", log::error);
-        return "";
-    }
-
-    if (0 != p_att_result_msg_full->status[0] || 0 != p_att_result_msg_full->status[1]) {
-        Log("Error, attestation mac result message MK based cmac failed", log::error);
-    } else {
-        ret = verify_secret_data(this->m_pEnclave->getID(),
-                                 &status,
-                                 this->m_pEnclave->getContext(),
-                                 p_att_result_msg_body->secret.payload,
-                                 p_att_result_msg_body->secret.payload_size,
-                                 p_att_result_msg_body->secret.payload_tag,
-                                 MAX_VERIFICATION_RESULT,
-                                 NULL);
-
-        SafeFree(p_att_result_msg_full);
-
-        if (SGX_SUCCESS != ret) {
-            Log("Error, attestation result message secret using SK based AESGCM failed", log::error);
-            print_error_message(ret);
-        } else if (SGX_SUCCESS != status) {
-            Log("Error, attestation result message secret using SK based AESGCM failed", log::error);
-            print_error_message(status);
-        } else {
-            Log("Send attestation okay");
-
-            Messages::InitialMessage msg;
-            msg.set_type(RA_APP_ATT_OK);
-            msg.set_size(0);
-
-            return nm->serialize(msg);
-        }
-    }
-
-    //TODO: call m_report.deserialize(...) with the parameters recieved from AttestationServer
-
-    SafeFree(p_att_result_msg_full);
-
-    return "";
-}
-#endif
 
 string AttestationClient::handleMSG4(Messages::MessageMSG4 msg){
 

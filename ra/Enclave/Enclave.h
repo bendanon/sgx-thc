@@ -48,6 +48,10 @@ public:
                         uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
                         size_t B_out_size);
 
+    sgx_status_t deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
+                           sgx_ec_key_128bit_t* p_smk, size_t smk_size);
+
+
 private:
     Enclave();
     static Enclave *instance;

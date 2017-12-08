@@ -3,31 +3,21 @@
 
 string BbClient::secret_file_name = "secret.bb";
 
-BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
-    
-    m_pClient = new AttestationClient(m_pEnclave, m_report);
-}
+BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
 
 BbClient::~BbClient(){
     delete m_pClient;
     SafeFree(this->p_sealed_s); 
 }
 
-bool BbClient::Init() {
+bool BbClient::hasSecret() {
 
-    if(readSecret())
-    {
-        Log("BbClient already has secret, no need for attestation");
-        return true;
+    if(!readSecret()) {
+        Log("BbClient::hasSecret - no secret, need for attestation");
+        return false;
     }
 
-    if(!obtainCertificate())
-    {
-        Log("BbClient Failed to obtain a valid certificate");
-        return false;
-    }       
-
-    Log("BbClient::Init succeeded");
+    Log("BbClient::hasSecret succeeded");
     return true; 
 }
 
@@ -71,6 +61,13 @@ bool BbClient::obtainCertificate(){
          Log("BbClient::obtainCertificate - already has a valid certificate");
          return true;
     }
+    
+    if(this->p_bb_pk == NULL){
+        Log("BbClient::obtainCertificate - called before bbInit1");
+        return false;
+    }
+
+    m_pClient = new AttestationClient(m_pEnclave, m_report, this->p_bb_pk);
     m_pClient->init();
     m_pClient->start();
     return m_report.isValid();
@@ -109,11 +106,15 @@ bool BbClient::processPkResponse(Messages::PkResponse& pkResponse,
     status = m_pEnclave->bbInit1(this->p_sealed_k, SECRET_KEY_SEALED_SIZE_BYTES, 
                                  this->p_bb_pk, &skg_pk, pk_size);
 
-    if(status) 
-    {
+    if(status) {
         Log("bb_init_1 failed with status %d", status);
         return false;
     }
+
+    if(!obtainCertificate()){
+        Log("BbClient Failed to obtain a valid certificate");
+        return false;
+    }       
 
     getSecretRequest.set_type(THC_SEC_REQ);
 

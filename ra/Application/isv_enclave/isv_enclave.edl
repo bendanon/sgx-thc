@@ -26,6 +26,11 @@ enclave {
             [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
             [out, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size);
 
+         public sgx_status_t derive_smk(             
+            [in, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size,
+            [out, size=smk_size]sgx_ec_key_128bit_t* smk,size_t smk_size);
+
+
         public sgx_status_t bb_init_1(
             [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
             [out, size=pk_size]sgx_ec256_public_t* bb_pk,

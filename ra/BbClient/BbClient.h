@@ -43,7 +43,7 @@ public:
     BbClient(Enclave* pEnclave);
     virtual ~BbClient();
     
-    bool Init();
+    bool hasSecret();
 
     bool generatePkRequest(Messages::PkRequest& pkRequest);
 

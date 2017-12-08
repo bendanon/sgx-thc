@@ -16,14 +16,24 @@
 #include "LogBase.h"
 #include "../GeneralSettings.h"
 #include "VerificationReport.h"
+#include "Network_def.h"
+#include "WebService.h"
+
 
 using namespace std;
 using namespace util;
 
+#define DH_SHARED_KEY_LEN 32
+#define AES_CMAC_KDF_ID 0x0001
+#define EC_MAC_SIZE 16
+
 class AttestationClient {
 
 public:
-    AttestationClient(Enclave *enclave, VerificationReport& report);
+    AttestationClient(Enclave *enclave, 
+                      VerificationReport& report, 
+                      sgx_ec256_public_t* p_pk);
+
     virtual ~AttestationClient();
 
     sgx_ra_msg3_t* getMSG3();
@@ -35,13 +45,16 @@ private:
     uint32_t getExtendedEPID_GID(uint32_t *extended_epid_group_id);
     sgx_status_t getEnclaveStatus();
 
-    //void assembleAttestationMSG(Messages::MessageMSG4 msg, ra_samp_response_header_t **pp_att_msg);
-    //string handleAttestationResult(Messages::MessageMSG4 msg);
     string handleMSG4(Messages::MessageMSG4 msg);
     void assembleMSG2(Messages::MessageMSG2 msg, sgx_ra_msg2_t **pp_msg2);
     string handleMSG2(Messages::MessageMSG2 msg);
     string handleMSG0Response(Messages::MessageMsg0 msg);
     string generateMSG1();
+    bool sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2);
+    bool sp_ra_proc_msg3_req(Messages::MessageMSG3 msg);
+    sgx_ra_msg3_t* assembleMSG3(Messages::MessageMSG3 msg);
+
+
     string generateMSG0();
     //string createInitMsg(int type, string msg);
     void restart();
@@ -54,6 +67,12 @@ private:
     NetworkManagerClient *nm = NULL;
     VerificationReport& m_report;
     sgx_report_body_t m_sent_report_body;
+    uint32_t m_extended_epid_group_id;
+    WebService *ws = NULL;
+    sgx_ec_key_128bit_t m_smk_key;
+    sgx_ec256_public_t* m_p_pk = NULL;
+    sgx_ps_sec_prop_desc_t m_ps_sec_prop;
+
 
 };
 

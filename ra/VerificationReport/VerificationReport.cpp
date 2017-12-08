@@ -8,7 +8,8 @@ VerificationReport::~VerificationReport() {
     X509_free(m_cert);
 }
 
-bool VerificationReport::verifyPublicKey(sgx_ec256_public_t& ga, sgx_ec256_public_t& gb){
+bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga, 
+                                         sgx_ec256_public_t* p_gb){
 
     if(!m_isValid){
         Log("VerificationReport::verifyPublicKey - report is not valid");
@@ -27,13 +28,13 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t& ga, sgx_ec256_publi
         return false;
     }
 
-    sgx_ret = sgx_sha256_update((uint8_t *)&(ga), sizeof(ga), sha_handle);
+    sgx_ret = sgx_sha256_update((uint8_t *)p_ga, sizeof(sgx_ec256_public_t), sha_handle);
     if (sgx_ret != SGX_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;
     }
 
-    sgx_ret = sgx_sha256_update((uint8_t *)&(gb), sizeof(gb), sha_handle);
+    sgx_ret = sgx_sha256_update((uint8_t *)p_gb, sizeof(sgx_ec256_public_t), sha_handle);
     if (sgx_ret != SGX_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;

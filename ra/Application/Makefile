@@ -49,10 +49,10 @@ endif
 App_Cpp_Files := isv_app/isv_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
 ../Networking/Client.cpp ../Networking/NetworkManagerClient.cpp ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp \
 ../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
-../BbClient/BbClient.cpp ../SkgServer/SkgServer.cpp
+../BbClient/BbClient.cpp ../SkgServer/SkgServer.cpp ../WebService/WebService.cpp
 
 App_Include_Paths := -I../Util -Iservice_provider -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
--I../AttestationClient -I../VerificationReport -I../BbClient -I../SkgServer
+-I../AttestationClient -I../VerificationReport -I../BbClient -I../SkgServer -I../Networking -I../WebService
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -180,6 +180,10 @@ isv_app/%.o: isv_app/%.cpp
 	@echo "CXX  <=  $<"
 
 ../VerificationReport/%.o: ../VerificationReport/%.cpp
+	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+../WebService/%.o: ../WebService/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 

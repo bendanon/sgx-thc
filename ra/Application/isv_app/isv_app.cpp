@@ -41,27 +41,27 @@ int Main(int argc, char* argv[]) {
         Log("SkgServer Failed to Init");
 
     BbClient bbClient(enclave);
-    if(!bbClient.Init())    
-        Log("BbClient Failed to Init");
     
+    if(!bbClient.hasSecret())
+    {
+        bbClient.generatePkRequest(pkRequest);
 
-    bbClient.generatePkRequest(pkRequest);
+        /*** PROTOCOL(bb--->skg): get_pk_request ***/
+        
+        skgServer.processPkRequest(pkRequest, pkResponse);
 
-    /*** PROTOCOL(bb--->skg): get_pk_request ***/
-    
-    skgServer.processPkRequest(pkRequest, pkResponse);
+        /*** PROTOCOL(skg--->bb): get_pk_response ***/
 
-    /*** PROTOCOL(skg--->bb): get_pk_response ***/
+        bbClient.processPkResponse(pkResponse, getSecretRequest);
 
-    bbClient.processPkResponse(pkResponse, getSecretRequest);
+        /*** PROTOCOL(bb--->skg): get_secret_request ***/
 
-    /*** PROTOCOL(bb--->skg): get_secret_request ***/
+        skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
 
-    skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
+        /*** PROTOCOL(skg--->bb): get_secret_response ***/
 
-    /*** PROTOCOL(skg--->bb): get_secret_response ***/
-
-    bbClient.processGetSecretResponse(getSecretResponse);
+        bbClient.processGetSecretResponse(getSecretResponse);
+    }
 
     uint8_t B_out[B_OUT_SIZE_BYTES];
     memset(B_out, 0, B_OUT_SIZE_BYTES);   
@@ -69,7 +69,7 @@ int Main(int argc, char* argv[]) {
     uint8_t B_in[B_IN_SIZE_BYTES];          //TODO: Recieve this as input from neighbor
     memset(B_in, 0, B_IN_SIZE_BYTES);
 
-    bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);
+    bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);  
 
     delete enclave;
     return ret;

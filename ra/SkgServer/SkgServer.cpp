@@ -5,10 +5,7 @@ string SkgServer::public_file_name = "public.skg";
 string SkgServer::secrets_file_name = "secrets.skg";
 string SkgServer::report_file_name = "report.skg";
 
-SkgServer::SkgServer(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) {
-    
-    m_pClient = new AttestationClient(m_pEnclave, m_report);
-}
+SkgServer::SkgServer(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
 
 SkgServer::~SkgServer(){
     delete m_pClient;
@@ -137,6 +134,7 @@ bool SkgServer::obtainAssets(){
         return false;
     }
 
+    m_pClient = new AttestationClient(m_pEnclave, m_report, this->p_skg_pk);
     m_pClient->init();
     m_pClient->start(); 
 
