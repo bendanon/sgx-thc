@@ -80,16 +80,24 @@ bool BbClient::generatePkRequest(Messages::PkRequest& pkRequest){
 }
 
 
-bool BbClient::processPkResponse(Messages::PkResponse& pkResponse, 
-                                 Messages::GetSecretRequest& getSecretRequest){                    
+bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg, 
+                                 Messages::CertificateMSG& bbCertMsg) {                    
 
-    //TODO: Extract attestation report (from pkResponse) and Verify 
+    //Extract attestation report, verify its signature and verify skg pk with it
+    VerificationReport skgReport;
+    if(!skgReport.fromCertMsg(skgCertMsg)){
+        Log("BbClient::processPkResponse - failed to verify skg verification report");
+        return false;
+    }
     
+    /*Here we know skg_pk is authentic :)*/
+
+    //Extract skg pk
     sgx_ec256_public_t skg_pk;
 
     for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
-        skg_pk.gx[i] = pkResponse.gx(i);
-        skg_pk.gy[i] = pkResponse.gy(i);
+        skg_pk.gx[i] = skgCertMsg.gx(i);
+        skg_pk.gy[i] = skgCertMsg.gy(i);
     }
 
     //Sealed data structs
@@ -116,15 +124,16 @@ bool BbClient::processPkResponse(Messages::PkResponse& pkResponse,
         return false;
     }       
 
-    getSecretRequest.set_type(THC_SEC_REQ);
 
-    for (auto x : this->p_bb_pk->gx)
-        getSecretRequest.add_gx(x);
+    /*prepare getSecretRequest*/
+    bbCertMsg.set_type(THC_SEC_REQ);
 
-    for (auto x : this->p_bb_pk->gy)
-        getSecretRequest.add_gy(x);
+    sgx_ec256_public_t ga = m_pClient->getGa();
 
-    //TODO: add attestation report
+    if(!m_report.toCertMsg(&ga, this->p_bb_pk, bbCertMsg)){
+        Log("BbClient::processPkResponse - toCertMsg falied");
+        return false;    
+    }
 
     Log("BbClient::processPkResponse succeeded");
     return true;

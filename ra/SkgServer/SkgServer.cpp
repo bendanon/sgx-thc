@@ -173,35 +173,44 @@ bool SkgServer::Init() {
 }
 
 bool SkgServer::processPkRequest(Messages::PkRequest& pkRequest, 
-                                 Messages::PkResponse& pkResponse){
+                                 Messages::CertificateMSG& certMsg){
+    
+
     //TODO: process pk request
-    
-    pkResponse.set_type(THC_PK_RES);
 
-    for (auto x : p_skg_pk->gx)
-        pkResponse.add_gx(x);
-
-    for (auto x : p_skg_pk->gy)
-        pkResponse.add_gy(x);
+    sgx_ec256_public_t ga = m_pClient->getGa();
     
-    //TODO: add attestation report
+    certMsg.set_type(THC_PK_RES);
+
+    if(!m_report.toCertMsg(&ga, p_skg_pk, certMsg)){
+        Log("SkgServer::processPkRequest - m_report.toCertMsg failed", log::error);
+        return false;
+    }
 
     Log("SkgServer::processPkRequest - success");
     return true;
 } 
 
 
-bool SkgServer::processGetSecretRequest(Messages::GetSecretRequest& getSecretRequest, 
+bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg, 
                                         Messages::GetSecretResponse& getSecretResponse){
 
-    //TODO: Extract attestation report (from getSecretRequest) and Verify
+
+    //Extract attestation report, verify its signature and verify skg pk with it
+    VerificationReport bbReport;
+    if(!bbReport.fromCertMsg(certMsg)){
+        Log("BbClient::processPkResponse - failed to verify bb verification report");
+        return false;
+    }
+
+    /*Here we know bb_pk is authentic :)*/
 
     sgx_status_t status;
     sgx_ec256_public_t bb_pk;
 
     for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
-        bb_pk.gx[i] = getSecretRequest.gx(i);
-        bb_pk.gy[i] = getSecretRequest.gy(i);
+        bb_pk.gx[i] = certMsg.gx(i);
+        bb_pk.gy[i] = certMsg.gy(i);
     }
 
     uint8_t s_encrypted[SECRET_KEY_ENCRYPTED_SIZE_BYTES];

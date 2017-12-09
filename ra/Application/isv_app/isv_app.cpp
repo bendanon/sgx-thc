@@ -32,8 +32,8 @@ int Main(int argc, char* argv[]) {
     }
 
     Messages::PkRequest pkRequest;
-    Messages::PkResponse pkResponse;
-    Messages::GetSecretRequest getSecretRequest;
+    Messages::CertificateMSG skgCertMsg;
+    Messages::CertificateMSG bbCertMsg;
     Messages::GetSecretResponse getSecretResponse;
 
     //TODO: For now, both skg and bb are on the same machine and use the same enclave
@@ -50,15 +50,15 @@ int Main(int argc, char* argv[]) {
 
         /*** PROTOCOL(bb--->skg): get_pk_request ***/
         
-        skgServer.processPkRequest(pkRequest, pkResponse);
+        skgServer.processPkRequest(pkRequest, skgCertMsg);
 
         /*** PROTOCOL(skg--->bb): get_pk_response ***/
 
-        bbClient.processPkResponse(pkResponse, getSecretRequest);
+        bbClient.processPkResponse(skgCertMsg, bbCertMsg);
 
         /*** PROTOCOL(bb--->skg): get_secret_request ***/
 
-        skgServer.processGetSecretRequest(getSecretRequest, getSecretResponse);
+        skgServer.processGetSecretRequest(bbCertMsg, getSecretResponse);
 
         /*** PROTOCOL(skg--->bb): get_secret_response ***/
 

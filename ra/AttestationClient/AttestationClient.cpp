@@ -30,6 +30,14 @@ int AttestationClient::init() {
 }
 
 
+sgx_ec256_public_t AttestationClient::getGa() {
+    if(!m_report.isValid()) {
+        Log("AttestationClient::get_ga - m_report is invalid ", log::error);
+    }
+    return m_ga;
+}
+
+
 bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
     ra_samp_response_header_t **pp_msg2;
     bool func_ret = true;
@@ -69,16 +77,14 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
             gaYLittleEndian[i] = msg1.gay(i);
         }
 
-        sgx_ec256_public_t client_pub_key = {{0},{0}};
-
         for (int x=0; x<DH_SHARED_KEY_LEN; x++) {
-            client_pub_key.gx[x] = gaXLittleEndian[x];
-            client_pub_key.gy[x] = gaYLittleEndian[x];
+            m_ga.gx[x] = gaXLittleEndian[x];
+            m_ga.gy[x] = gaYLittleEndian[x];
         }
 
 
         sgx_status_t sgx_ret;
-        sgx_ret = m_pEnclave->deriveSmk(&client_pub_key, sizeof(sgx_ec256_public_t),
+        sgx_ret = m_pEnclave->deriveSmk(&m_ga, sizeof(sgx_ec256_public_t),
                                         &m_smk_key, sizeof(sgx_ec_key_128bit_t));
         
         if(sgx_ret != SGX_SUCCESS){
@@ -122,7 +128,7 @@ bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages
         // Create gb_ga
         sgx_ec256_public_t gb_ga[2];
         memcpy(&gb_ga[0], m_p_pk, sizeof(sgx_ec256_public_t));
-        memcpy(&gb_ga[1], &client_pub_key, sizeof(client_pub_key));
+        memcpy(&gb_ga[1], &m_ga, sizeof(m_ga));
         
          // Generate the Service providers ECCDH key pair.
         sample_ret = sample_ecc256_open_context(&ecc_state);
@@ -513,21 +519,6 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
     return "";
 }
 
-string AttestationClient::handleMSG4(Messages::MessageMSG4 msg){
-
-    if(!m_report.fromMsg4(msg))
-    {
-        Log("failed to parse report from msg4", log::error);
-         return "";
-    }   
-
-    Messages::InitialMessage response;
-    response.set_type(RA_APP_ATT_OK);
-    response.set_size(0);
-    Log("AttestationClient::handleMSG4 - success");
-    return nm->serialize(response);   
-}
-
 string AttestationClient::handleMSG0Response(Messages::MessageMsg0 msg) {
     Log("MSG0 response received");
 
@@ -606,7 +597,7 @@ vector<string> AttestationClient::incomingHandler(string v, int type) {
             ret = att_msg.ParseFromString(v);
             if (ret && att_msg.type() == RA_ATT_RESULT) {
                 //s = this->handleAttestationResult(att_msg);
-                s = this->handleMSG4(att_msg);
+                //s = this->handleMSG4(att_msg);
                 res.push_back(to_string(RA_APP_ATT_OK));
             }
         }

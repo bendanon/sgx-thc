@@ -35,17 +35,15 @@ public:
                       sgx_ec256_public_t* p_pk);
 
     virtual ~AttestationClient();
-
-    sgx_ra_msg3_t* getMSG3();
     int init();
     void start();
+    sgx_ec256_public_t getGa();
     vector<string> incomingHandler(string v, int type);
 
 private:
     uint32_t getExtendedEPID_GID(uint32_t *extended_epid_group_id);
     sgx_status_t getEnclaveStatus();
 
-    string handleMSG4(Messages::MessageMSG4 msg);
     void assembleMSG2(Messages::MessageMSG2 msg, sgx_ra_msg2_t **pp_msg2);
     string handleMSG2(Messages::MessageMSG2 msg);
     string handleMSG0Response(Messages::MessageMsg0 msg);
@@ -72,6 +70,7 @@ private:
     sgx_ec_key_128bit_t m_smk_key;
     sgx_ec256_public_t* m_p_pk = NULL;
     sgx_ps_sec_prop_desc_t m_ps_sec_prop;
+    sgx_ec256_public_t m_ga = {{0},{0}};
 
 
 };

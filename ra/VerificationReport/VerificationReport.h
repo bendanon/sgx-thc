@@ -28,6 +28,7 @@
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <curl/curl.h>
+#include <jsoncpp/json/json.h>
 
 using namespace std;
 using namespace util;
@@ -42,23 +43,33 @@ public:
     virtual ~VerificationReport();
 
     bool isValid();    
-    bool fromMsg4(Messages::MessageMSG4& msg);
+    bool fromCertMsg(Messages::CertificateMSG& certMsg);
+    bool toCertMsg(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg);
     bool fromResult(vector<pair<string, string>> result);
 
-    bool verifyPublicKey(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb);
-   
     bool read(std::string file);
     bool write(std::string file);
+
+  
 
 private:
     bool verifySignature(); 
     bool verifyCertificateChain();
+    bool verifyPublicKey(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb);
+    bool insertIASCertificate(Messages::CertificateMSG& certMsg);
+    bool insertIASSignature(Messages::CertificateMSG& certMsg);
+    bool insertIASFullResponse(Messages::CertificateMSG& certMsg);
+    bool extractIASCertificate(Messages::CertificateMSG& certMsg);
+    bool extractIASSignature(Messages::CertificateMSG& certMsg);
+    bool extractIASFullResponse(Messages::CertificateMSG& certMsg);
+
     string uriDecode(string encoded);
 
 
 private:
     
     bool m_isValid;
+    bool m_certificateValid;
     X509* m_cert = NULL;
 
     sgx_report_body_t m_report_body;  //TODO - remove

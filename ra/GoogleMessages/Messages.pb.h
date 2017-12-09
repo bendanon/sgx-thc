@@ -37,8 +37,7 @@ class InitialMessage;
 class MessageMsg0;
 class MessageMSG1;
 class PkRequest;
-class PkResponse;
-class GetSecretRequest;
+class CertificateMSG;
 class GetSecretResponse;
 class MessageMSG2;
 class MessageMSG3;
@@ -436,14 +435,14 @@ class PkRequest : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class PkResponse : public ::google::protobuf::Message {
+class CertificateMSG : public ::google::protobuf::Message {
  public:
-  PkResponse();
-  virtual ~PkResponse();
+  CertificateMSG();
+  virtual ~CertificateMSG();
 
-  PkResponse(const PkResponse& from);
+  CertificateMSG(const CertificateMSG& from);
 
-  inline PkResponse& operator=(const PkResponse& from) {
+  inline CertificateMSG& operator=(const CertificateMSG& from) {
     CopyFrom(from);
     return *this;
   }
@@ -457,17 +456,17 @@ class PkResponse : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const PkResponse& default_instance();
+  static const CertificateMSG& default_instance();
 
-  void Swap(PkResponse* other);
+  void Swap(CertificateMSG* other);
 
   // implements Message ----------------------------------------------
 
-  PkResponse* New() const;
+  CertificateMSG* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const PkResponse& from);
-  void MergeFrom(const PkResponse& from);
+  void CopyFrom(const CertificateMSG& from);
+  void MergeFrom(const CertificateMSG& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -520,22 +519,97 @@ class PkResponse : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
       mutable_gy();
 
-  // repeated uint32 verification_report = 4 [packed = true];
-  inline int verification_report_size() const;
-  inline void clear_verification_report();
-  static const int kVerificationReportFieldNumber = 4;
-  inline ::google::protobuf::uint32 verification_report(int index) const;
-  inline void set_verification_report(int index, ::google::protobuf::uint32 value);
-  inline void add_verification_report(::google::protobuf::uint32 value);
+  // repeated uint32 gax = 4 [packed = true];
+  inline int gax_size() const;
+  inline void clear_gax();
+  static const int kGaxFieldNumber = 4;
+  inline ::google::protobuf::uint32 gax(int index) const;
+  inline void set_gax(int index, ::google::protobuf::uint32 value);
+  inline void add_gax(::google::protobuf::uint32 value);
   inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      verification_report() const;
+      gax() const;
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_verification_report();
+      mutable_gax();
 
-  // @@protoc_insertion_point(class_scope:Messages.PkResponse)
+  // repeated uint32 gay = 5 [packed = true];
+  inline int gay_size() const;
+  inline void clear_gay();
+  static const int kGayFieldNumber = 5;
+  inline ::google::protobuf::uint32 gay(int index) const;
+  inline void set_gay(int index, ::google::protobuf::uint32 value);
+  inline void add_gay(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      gay() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_gay();
+
+  // required uint32 sig_size = 6;
+  inline bool has_sig_size() const;
+  inline void clear_sig_size();
+  static const int kSigSizeFieldNumber = 6;
+  inline ::google::protobuf::uint32 sig_size() const;
+  inline void set_sig_size(::google::protobuf::uint32 value);
+
+  // repeated uint32 x_iasreport_signature = 7 [packed = true];
+  inline int x_iasreport_signature_size() const;
+  inline void clear_x_iasreport_signature();
+  static const int kXIasreportSignatureFieldNumber = 7;
+  inline ::google::protobuf::uint32 x_iasreport_signature(int index) const;
+  inline void set_x_iasreport_signature(int index, ::google::protobuf::uint32 value);
+  inline void add_x_iasreport_signature(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      x_iasreport_signature() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_x_iasreport_signature();
+
+  // required uint32 cert_size = 8;
+  inline bool has_cert_size() const;
+  inline void clear_cert_size();
+  static const int kCertSizeFieldNumber = 8;
+  inline ::google::protobuf::uint32 cert_size() const;
+  inline void set_cert_size(::google::protobuf::uint32 value);
+
+  // repeated uint32 x_iasreport_signing_certificate = 9 [packed = true];
+  inline int x_iasreport_signing_certificate_size() const;
+  inline void clear_x_iasreport_signing_certificate();
+  static const int kXIasreportSigningCertificateFieldNumber = 9;
+  inline ::google::protobuf::uint32 x_iasreport_signing_certificate(int index) const;
+  inline void set_x_iasreport_signing_certificate(int index, ::google::protobuf::uint32 value);
+  inline void add_x_iasreport_signing_certificate(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      x_iasreport_signing_certificate() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_x_iasreport_signing_certificate();
+
+  // required uint32 response_size = 10;
+  inline bool has_response_size() const;
+  inline void clear_response_size();
+  static const int kResponseSizeFieldNumber = 10;
+  inline ::google::protobuf::uint32 response_size() const;
+  inline void set_response_size(::google::protobuf::uint32 value);
+
+  // repeated uint32 full_response = 11 [packed = true];
+  inline int full_response_size() const;
+  inline void clear_full_response();
+  static const int kFullResponseFieldNumber = 11;
+  inline ::google::protobuf::uint32 full_response(int index) const;
+  inline void set_full_response(int index, ::google::protobuf::uint32 value);
+  inline void add_full_response(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      full_response() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_full_response();
+
+  // @@protoc_insertion_point(class_scope:Messages.CertificateMSG)
  private:
   inline void set_has_type();
   inline void clear_has_type();
+  inline void set_has_sig_size();
+  inline void clear_has_sig_size();
+  inline void set_has_cert_size();
+  inline void clear_has_cert_size();
+  inline void set_has_response_size();
+  inline void clear_has_response_size();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -545,136 +619,26 @@ class PkResponse : public ::google::protobuf::Message {
   mutable int _gx_cached_byte_size_;
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gy_;
   mutable int _gy_cached_byte_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > verification_report_;
-  mutable int _verification_report_cached_byte_size_;
   ::google::protobuf::uint32 type_;
+  ::google::protobuf::uint32 sig_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gax_;
+  mutable int _gax_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gay_;
+  mutable int _gay_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > x_iasreport_signature_;
+  mutable int _x_iasreport_signature_cached_byte_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > x_iasreport_signing_certificate_;
+  mutable int _x_iasreport_signing_certificate_cached_byte_size_;
+  ::google::protobuf::uint32 cert_size_;
+  ::google::protobuf::uint32 response_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > full_response_;
+  mutable int _full_response_cached_byte_size_;
   friend void  protobuf_AddDesc_Messages_2eproto();
   friend void protobuf_AssignDesc_Messages_2eproto();
   friend void protobuf_ShutdownFile_Messages_2eproto();
 
   void InitAsDefaultInstance();
-  static PkResponse* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class GetSecretRequest : public ::google::protobuf::Message {
- public:
-  GetSecretRequest();
-  virtual ~GetSecretRequest();
-
-  GetSecretRequest(const GetSecretRequest& from);
-
-  inline GetSecretRequest& operator=(const GetSecretRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const GetSecretRequest& default_instance();
-
-  void Swap(GetSecretRequest* other);
-
-  // implements Message ----------------------------------------------
-
-  GetSecretRequest* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GetSecretRequest& from);
-  void MergeFrom(const GetSecretRequest& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // required uint32 type = 1;
-  inline bool has_type() const;
-  inline void clear_type();
-  static const int kTypeFieldNumber = 1;
-  inline ::google::protobuf::uint32 type() const;
-  inline void set_type(::google::protobuf::uint32 value);
-
-  // repeated uint32 gx = 2 [packed = true];
-  inline int gx_size() const;
-  inline void clear_gx();
-  static const int kGxFieldNumber = 2;
-  inline ::google::protobuf::uint32 gx(int index) const;
-  inline void set_gx(int index, ::google::protobuf::uint32 value);
-  inline void add_gx(::google::protobuf::uint32 value);
-  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      gx() const;
-  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_gx();
-
-  // repeated uint32 gy = 3 [packed = true];
-  inline int gy_size() const;
-  inline void clear_gy();
-  static const int kGyFieldNumber = 3;
-  inline ::google::protobuf::uint32 gy(int index) const;
-  inline void set_gy(int index, ::google::protobuf::uint32 value);
-  inline void add_gy(::google::protobuf::uint32 value);
-  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      gy() const;
-  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_gy();
-
-  // repeated uint32 verification_report = 4 [packed = true];
-  inline int verification_report_size() const;
-  inline void clear_verification_report();
-  static const int kVerificationReportFieldNumber = 4;
-  inline ::google::protobuf::uint32 verification_report(int index) const;
-  inline void set_verification_report(int index, ::google::protobuf::uint32 value);
-  inline void add_verification_report(::google::protobuf::uint32 value);
-  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-      verification_report() const;
-  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-      mutable_verification_report();
-
-  // @@protoc_insertion_point(class_scope:Messages.GetSecretRequest)
- private:
-  inline void set_has_type();
-  inline void clear_has_type();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint32 _has_bits_[1];
-  mutable int _cached_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gx_;
-  mutable int _gx_cached_byte_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > gy_;
-  mutable int _gy_cached_byte_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > verification_report_;
-  mutable int _verification_report_cached_byte_size_;
-  ::google::protobuf::uint32 type_;
-  friend void  protobuf_AddDesc_Messages_2eproto();
-  friend void protobuf_AssignDesc_Messages_2eproto();
-  friend void protobuf_ShutdownFile_Messages_2eproto();
-
-  void InitAsDefaultInstance();
-  static GetSecretRequest* default_instance_;
+  static CertificateMSG* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1889,238 +1853,312 @@ inline void PkRequest::set_type(::google::protobuf::uint32 value) {
 
 // -------------------------------------------------------------------
 
-// PkResponse
+// CertificateMSG
 
 // required uint32 type = 1;
-inline bool PkResponse::has_type() const {
+inline bool CertificateMSG::has_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void PkResponse::set_has_type() {
+inline void CertificateMSG::set_has_type() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void PkResponse::clear_has_type() {
+inline void CertificateMSG::clear_has_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void PkResponse::clear_type() {
+inline void CertificateMSG::clear_type() {
   type_ = 0u;
   clear_has_type();
 }
-inline ::google::protobuf::uint32 PkResponse::type() const {
-  // @@protoc_insertion_point(field_get:Messages.PkResponse.type)
+inline ::google::protobuf::uint32 CertificateMSG::type() const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.type)
   return type_;
 }
-inline void PkResponse::set_type(::google::protobuf::uint32 value) {
+inline void CertificateMSG::set_type(::google::protobuf::uint32 value) {
   set_has_type();
   type_ = value;
-  // @@protoc_insertion_point(field_set:Messages.PkResponse.type)
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.type)
 }
 
 // repeated uint32 gx = 2 [packed = true];
-inline int PkResponse::gx_size() const {
+inline int CertificateMSG::gx_size() const {
   return gx_.size();
 }
-inline void PkResponse::clear_gx() {
+inline void CertificateMSG::clear_gx() {
   gx_.Clear();
 }
-inline ::google::protobuf::uint32 PkResponse::gx(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.PkResponse.gx)
+inline ::google::protobuf::uint32 CertificateMSG::gx(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.gx)
   return gx_.Get(index);
 }
-inline void PkResponse::set_gx(int index, ::google::protobuf::uint32 value) {
+inline void CertificateMSG::set_gx(int index, ::google::protobuf::uint32 value) {
   gx_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.PkResponse.gx)
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.gx)
 }
-inline void PkResponse::add_gx(::google::protobuf::uint32 value) {
+inline void CertificateMSG::add_gx(::google::protobuf::uint32 value) {
   gx_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.PkResponse.gx)
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.gx)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-PkResponse::gx() const {
-  // @@protoc_insertion_point(field_list:Messages.PkResponse.gx)
+CertificateMSG::gx() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.gx)
   return gx_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-PkResponse::mutable_gx() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.gx)
+CertificateMSG::mutable_gx() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.gx)
   return &gx_;
 }
 
 // repeated uint32 gy = 3 [packed = true];
-inline int PkResponse::gy_size() const {
+inline int CertificateMSG::gy_size() const {
   return gy_.size();
 }
-inline void PkResponse::clear_gy() {
+inline void CertificateMSG::clear_gy() {
   gy_.Clear();
 }
-inline ::google::protobuf::uint32 PkResponse::gy(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.PkResponse.gy)
+inline ::google::protobuf::uint32 CertificateMSG::gy(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.gy)
   return gy_.Get(index);
 }
-inline void PkResponse::set_gy(int index, ::google::protobuf::uint32 value) {
+inline void CertificateMSG::set_gy(int index, ::google::protobuf::uint32 value) {
   gy_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.PkResponse.gy)
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.gy)
 }
-inline void PkResponse::add_gy(::google::protobuf::uint32 value) {
+inline void CertificateMSG::add_gy(::google::protobuf::uint32 value) {
   gy_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.PkResponse.gy)
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.gy)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-PkResponse::gy() const {
-  // @@protoc_insertion_point(field_list:Messages.PkResponse.gy)
+CertificateMSG::gy() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.gy)
   return gy_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-PkResponse::mutable_gy() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.gy)
+CertificateMSG::mutable_gy() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.gy)
   return &gy_;
 }
 
-// repeated uint32 verification_report = 4 [packed = true];
-inline int PkResponse::verification_report_size() const {
-  return verification_report_.size();
+// repeated uint32 gax = 4 [packed = true];
+inline int CertificateMSG::gax_size() const {
+  return gax_.size();
 }
-inline void PkResponse::clear_verification_report() {
-  verification_report_.Clear();
+inline void CertificateMSG::clear_gax() {
+  gax_.Clear();
 }
-inline ::google::protobuf::uint32 PkResponse::verification_report(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.PkResponse.verification_report)
-  return verification_report_.Get(index);
+inline ::google::protobuf::uint32 CertificateMSG::gax(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.gax)
+  return gax_.Get(index);
 }
-inline void PkResponse::set_verification_report(int index, ::google::protobuf::uint32 value) {
-  verification_report_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.PkResponse.verification_report)
+inline void CertificateMSG::set_gax(int index, ::google::protobuf::uint32 value) {
+  gax_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.gax)
 }
-inline void PkResponse::add_verification_report(::google::protobuf::uint32 value) {
-  verification_report_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.PkResponse.verification_report)
-}
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-PkResponse::verification_report() const {
-  // @@protoc_insertion_point(field_list:Messages.PkResponse.verification_report)
-  return verification_report_;
-}
-inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-PkResponse::mutable_verification_report() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.PkResponse.verification_report)
-  return &verification_report_;
-}
-
-// -------------------------------------------------------------------
-
-// GetSecretRequest
-
-// required uint32 type = 1;
-inline bool GetSecretRequest::has_type() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void GetSecretRequest::set_has_type() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void GetSecretRequest::clear_has_type() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void GetSecretRequest::clear_type() {
-  type_ = 0u;
-  clear_has_type();
-}
-inline ::google::protobuf::uint32 GetSecretRequest::type() const {
-  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.type)
-  return type_;
-}
-inline void GetSecretRequest::set_type(::google::protobuf::uint32 value) {
-  set_has_type();
-  type_ = value;
-  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.type)
-}
-
-// repeated uint32 gx = 2 [packed = true];
-inline int GetSecretRequest::gx_size() const {
-  return gx_.size();
-}
-inline void GetSecretRequest::clear_gx() {
-  gx_.Clear();
-}
-inline ::google::protobuf::uint32 GetSecretRequest::gx(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.gx)
-  return gx_.Get(index);
-}
-inline void GetSecretRequest::set_gx(int index, ::google::protobuf::uint32 value) {
-  gx_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.gx)
-}
-inline void GetSecretRequest::add_gx(::google::protobuf::uint32 value) {
-  gx_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.gx)
+inline void CertificateMSG::add_gax(::google::protobuf::uint32 value) {
+  gax_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.gax)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-GetSecretRequest::gx() const {
-  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.gx)
-  return gx_;
+CertificateMSG::gax() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.gax)
+  return gax_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-GetSecretRequest::mutable_gx() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.gx)
-  return &gx_;
+CertificateMSG::mutable_gax() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.gax)
+  return &gax_;
 }
 
-// repeated uint32 gy = 3 [packed = true];
-inline int GetSecretRequest::gy_size() const {
-  return gy_.size();
+// repeated uint32 gay = 5 [packed = true];
+inline int CertificateMSG::gay_size() const {
+  return gay_.size();
 }
-inline void GetSecretRequest::clear_gy() {
-  gy_.Clear();
+inline void CertificateMSG::clear_gay() {
+  gay_.Clear();
 }
-inline ::google::protobuf::uint32 GetSecretRequest::gy(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.gy)
-  return gy_.Get(index);
+inline ::google::protobuf::uint32 CertificateMSG::gay(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.gay)
+  return gay_.Get(index);
 }
-inline void GetSecretRequest::set_gy(int index, ::google::protobuf::uint32 value) {
-  gy_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.gy)
+inline void CertificateMSG::set_gay(int index, ::google::protobuf::uint32 value) {
+  gay_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.gay)
 }
-inline void GetSecretRequest::add_gy(::google::protobuf::uint32 value) {
-  gy_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.gy)
+inline void CertificateMSG::add_gay(::google::protobuf::uint32 value) {
+  gay_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.gay)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-GetSecretRequest::gy() const {
-  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.gy)
-  return gy_;
+CertificateMSG::gay() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.gay)
+  return gay_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-GetSecretRequest::mutable_gy() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.gy)
-  return &gy_;
+CertificateMSG::mutable_gay() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.gay)
+  return &gay_;
 }
 
-// repeated uint32 verification_report = 4 [packed = true];
-inline int GetSecretRequest::verification_report_size() const {
-  return verification_report_.size();
+// required uint32 sig_size = 6;
+inline bool CertificateMSG::has_sig_size() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
-inline void GetSecretRequest::clear_verification_report() {
-  verification_report_.Clear();
+inline void CertificateMSG::set_has_sig_size() {
+  _has_bits_[0] |= 0x00000020u;
 }
-inline ::google::protobuf::uint32 GetSecretRequest::verification_report(int index) const {
-  // @@protoc_insertion_point(field_get:Messages.GetSecretRequest.verification_report)
-  return verification_report_.Get(index);
+inline void CertificateMSG::clear_has_sig_size() {
+  _has_bits_[0] &= ~0x00000020u;
 }
-inline void GetSecretRequest::set_verification_report(int index, ::google::protobuf::uint32 value) {
-  verification_report_.Set(index, value);
-  // @@protoc_insertion_point(field_set:Messages.GetSecretRequest.verification_report)
+inline void CertificateMSG::clear_sig_size() {
+  sig_size_ = 0u;
+  clear_has_sig_size();
 }
-inline void GetSecretRequest::add_verification_report(::google::protobuf::uint32 value) {
-  verification_report_.Add(value);
-  // @@protoc_insertion_point(field_add:Messages.GetSecretRequest.verification_report)
+inline ::google::protobuf::uint32 CertificateMSG::sig_size() const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.sig_size)
+  return sig_size_;
+}
+inline void CertificateMSG::set_sig_size(::google::protobuf::uint32 value) {
+  set_has_sig_size();
+  sig_size_ = value;
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.sig_size)
+}
+
+// repeated uint32 x_iasreport_signature = 7 [packed = true];
+inline int CertificateMSG::x_iasreport_signature_size() const {
+  return x_iasreport_signature_.size();
+}
+inline void CertificateMSG::clear_x_iasreport_signature() {
+  x_iasreport_signature_.Clear();
+}
+inline ::google::protobuf::uint32 CertificateMSG::x_iasreport_signature(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.x_iasreport_signature)
+  return x_iasreport_signature_.Get(index);
+}
+inline void CertificateMSG::set_x_iasreport_signature(int index, ::google::protobuf::uint32 value) {
+  x_iasreport_signature_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.x_iasreport_signature)
+}
+inline void CertificateMSG::add_x_iasreport_signature(::google::protobuf::uint32 value) {
+  x_iasreport_signature_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.x_iasreport_signature)
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
-GetSecretRequest::verification_report() const {
-  // @@protoc_insertion_point(field_list:Messages.GetSecretRequest.verification_report)
-  return verification_report_;
+CertificateMSG::x_iasreport_signature() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.x_iasreport_signature)
+  return x_iasreport_signature_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
-GetSecretRequest::mutable_verification_report() {
-  // @@protoc_insertion_point(field_mutable_list:Messages.GetSecretRequest.verification_report)
-  return &verification_report_;
+CertificateMSG::mutable_x_iasreport_signature() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.x_iasreport_signature)
+  return &x_iasreport_signature_;
+}
+
+// required uint32 cert_size = 8;
+inline bool CertificateMSG::has_cert_size() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void CertificateMSG::set_has_cert_size() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void CertificateMSG::clear_has_cert_size() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void CertificateMSG::clear_cert_size() {
+  cert_size_ = 0u;
+  clear_has_cert_size();
+}
+inline ::google::protobuf::uint32 CertificateMSG::cert_size() const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.cert_size)
+  return cert_size_;
+}
+inline void CertificateMSG::set_cert_size(::google::protobuf::uint32 value) {
+  set_has_cert_size();
+  cert_size_ = value;
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.cert_size)
+}
+
+// repeated uint32 x_iasreport_signing_certificate = 9 [packed = true];
+inline int CertificateMSG::x_iasreport_signing_certificate_size() const {
+  return x_iasreport_signing_certificate_.size();
+}
+inline void CertificateMSG::clear_x_iasreport_signing_certificate() {
+  x_iasreport_signing_certificate_.Clear();
+}
+inline ::google::protobuf::uint32 CertificateMSG::x_iasreport_signing_certificate(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.x_iasreport_signing_certificate)
+  return x_iasreport_signing_certificate_.Get(index);
+}
+inline void CertificateMSG::set_x_iasreport_signing_certificate(int index, ::google::protobuf::uint32 value) {
+  x_iasreport_signing_certificate_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.x_iasreport_signing_certificate)
+}
+inline void CertificateMSG::add_x_iasreport_signing_certificate(::google::protobuf::uint32 value) {
+  x_iasreport_signing_certificate_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.x_iasreport_signing_certificate)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+CertificateMSG::x_iasreport_signing_certificate() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.x_iasreport_signing_certificate)
+  return x_iasreport_signing_certificate_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+CertificateMSG::mutable_x_iasreport_signing_certificate() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.x_iasreport_signing_certificate)
+  return &x_iasreport_signing_certificate_;
+}
+
+// required uint32 response_size = 10;
+inline bool CertificateMSG::has_response_size() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void CertificateMSG::set_has_response_size() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void CertificateMSG::clear_has_response_size() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void CertificateMSG::clear_response_size() {
+  response_size_ = 0u;
+  clear_has_response_size();
+}
+inline ::google::protobuf::uint32 CertificateMSG::response_size() const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.response_size)
+  return response_size_;
+}
+inline void CertificateMSG::set_response_size(::google::protobuf::uint32 value) {
+  set_has_response_size();
+  response_size_ = value;
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.response_size)
+}
+
+// repeated uint32 full_response = 11 [packed = true];
+inline int CertificateMSG::full_response_size() const {
+  return full_response_.size();
+}
+inline void CertificateMSG::clear_full_response() {
+  full_response_.Clear();
+}
+inline ::google::protobuf::uint32 CertificateMSG::full_response(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.CertificateMSG.full_response)
+  return full_response_.Get(index);
+}
+inline void CertificateMSG::set_full_response(int index, ::google::protobuf::uint32 value) {
+  full_response_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.CertificateMSG.full_response)
+}
+inline void CertificateMSG::add_full_response(::google::protobuf::uint32 value) {
+  full_response_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.CertificateMSG.full_response)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+CertificateMSG::full_response() const {
+  // @@protoc_insertion_point(field_list:Messages.CertificateMSG.full_response)
+  return full_response_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+CertificateMSG::mutable_full_response() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.full_response)
+  return &full_response_;
 }
 
 // -------------------------------------------------------------------

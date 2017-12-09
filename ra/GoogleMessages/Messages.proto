@@ -23,18 +23,18 @@ message PkRequest {
 	required uint32 type = 1;
 }
 
-message PkResponse {
+message CertificateMSG {
 	required uint32 type = 1;
 	repeated uint32 gx = 2 [packed=true];
 	repeated uint32 gy = 3 [packed=true];
-	repeated uint32 verification_report = 4 [packed=true];
-}
-
-message GetSecretRequest {
-	required uint32 type = 1;
-	repeated uint32 gx = 2 [packed=true];
-	repeated uint32 gy = 3 [packed=true];
-	repeated uint32 verification_report = 4 [packed=true];
+	repeated uint32 gax = 4 [packed=true];
+	repeated uint32 gay = 5 [packed=true];
+	required uint32 sig_size = 6;
+	repeated uint32 x_iasreport_signature = 7 [packed=true];
+	required uint32 cert_size = 8;
+    repeated uint32 x_iasreport_signing_certificate = 9 [packed=true];
+	required uint32 response_size = 10;
+    repeated uint32 full_response = 11 [packed=true];
 }
 
 message GetSecretResponse {

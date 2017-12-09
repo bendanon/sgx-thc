@@ -230,7 +230,8 @@ bool WebService::getSigRL(string gid, string *sigrl) {
     for (auto x : retrieved_sigrl) {
         if (x.first == gid) {
             *sigrl = x.second;
-            return false;
+            Log("sigrl for the gid has already been retrieved once");
+            return true;
         }
     }
 

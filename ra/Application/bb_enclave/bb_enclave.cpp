@@ -631,7 +631,7 @@ sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size,
    
     //Compute the shared key with with c was encrypted
     sgx_ec256_dh_shared_t shared_key;
-    status = sgx_ecc256_compute_shared_dhkey(&skg_priv_key, p_pk, &shared_key, handle);
+    status = sgx_ecc256_compute_shared_dhkey(&bb_priv_key, p_pk, &shared_key, handle);
     ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
     if(status) return status;
 

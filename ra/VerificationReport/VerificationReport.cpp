@@ -1,7 +1,7 @@
 #include "VerificationReport.h"
 #include "sample_libcrypto.h"
 
-VerificationReport::VerificationReport() : m_isValid(false) 
+VerificationReport::VerificationReport() : m_isValid(false), m_certificateValid(false) 
 { 
     memset(&m_quote_body, 0, sizeof(m_quote_body));
 }
@@ -64,19 +64,112 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga,
     return true;
 }
 
-bool VerificationReport::fromMsg4(Messages::MessageMSG4& msg) {
 
-    //TODO - this should extract the whole response body and signature, 
-    //not just report body
+bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg){ 
 
-    uint32_t* response_body_buf = reinterpret_cast<uint32_t*>(&this->m_report_body);
+    if(!m_isValid) {
+        Log("VerificationReport::fromCertMsg - invalid", log::error);
+        return false;
+    }
 
-    for (int i=0; i<sizeof(sgx_report_body_t)/sizeof(uint32_t); i++)
-        response_body_buf[i] = msg.response_body(i);
+    for (auto x : p_gb->gx)
+        certMsg.add_gx(x);
 
-    m_isValid=true; //TODO - this should not be the only condition for a valid report
+    for (auto x : p_gb->gy)
+        certMsg.add_gy(x);
 
-    Log("VerificationReport::fromMsg4 - success");
+    for (auto x : p_ga->gx)
+        certMsg.add_gax(x);
+
+    for (auto x : p_ga->gy)
+        certMsg.add_gay(x);
+
+    if(!insertIASCertificate(certMsg)){
+        Log("VerificationReport::toCertMsg - m_report.insertIASCertificate failed", log::error);
+        return false;
+    }
+    
+    if(!insertIASSignature(certMsg)){
+        Log("VerificationReport::toCertMsg - m_report.insertIASSignature failed", log::error);
+        return false;
+    }
+
+    if(!insertIASFullResponse(certMsg)){
+        Log("VerificationReport::toCertMsg- m_report.insertIASFullResponse failed", log::error);
+        return false;
+    }
+
+    Log("VerificationReport::toCertMsg - success");
+    return true;
+}
+
+
+
+
+bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
+
+
+    if(m_isValid) {
+        Log("VerificationReport::fromCertMsg - already valid", log::error);
+        return false;
+    }
+
+    /*Extract fields for certificate chain and signature verification*/
+
+    if(!extractIASCertificate(certMsg)){
+        Log("VerificationReport::fromCertMsg - extractIASCertificate failed", log::error);
+        return false;
+    }
+    if(!extractIASSignature(certMsg)){
+        Log("VerificationReport::fromCertMsg - extractIASSignature failed", log::error);
+        return false;
+    }
+    if(!extractIASFullResponse(certMsg)){
+        Log("VerificationReport::fromCertMsg - extractIASFullResponse failed", log::error);
+        return false;
+    }
+
+    /*Verify the IAS response*/    
+    if(!verifyCertificateChain()){
+        Log("VerificationReport::fromResult - verifyCertificateChain failed");
+        return false;
+    }
+
+    if(!verifySignature()) {
+        Log("VerificationReport::fromResult - verifySignature failed");
+        return false;
+    }
+
+    /*Extract isvEnclaveQuoteBody from the report*/
+    Json::Value root;
+    Json::Reader reader;
+
+    if (!reader.parse(m_full_response.c_str(), root)) {
+        Log("Failed to parse JSON string from IAS", log::error);
+        return false;
+    }
+
+    string isvEnclaveQuoteBody = root.get("isvEnclaveQuoteBody", "UTF-8" ).asString();
+    memcpy(&m_quote_body, Base64decode(isvEnclaveQuoteBody).c_str(), sizeof(m_quote_body));
+
+
+    /*Extract skg pk and ga to verify skg pk against quote body*/
+    sgx_ec256_public_t ga;
+    sgx_ec256_public_t skg_pk;
+
+    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
+        skg_pk.gx[i] = certMsg.gx(i);
+        skg_pk.gy[i] = certMsg.gy(i);
+        ga.gx[i] = certMsg.gax(i);
+        ga.gy[i] = certMsg.gay(i);
+    }
+
+    if(!verifyPublicKey(&ga, &skg_pk)){
+        Log("VerificationReport::fromCertMsg - failed to verify skg pk");
+        return false;
+    }
+
+    Log("VerificationReport::fromCertMsg - success");
     return true;
  }
 
@@ -176,8 +269,6 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
         Log("VerificationReport::fromResult - verifySignature failed");
         return false;
     }
-
-    m_isValid = true;
 
     Log("VerificationReport::fromResult - success");
     return true;
@@ -281,11 +372,20 @@ bool VerificationReport::verifyCertificateChain(){
     BIO_free_all(certbio);
     BIO_free_all(outbio);
 
+    if(!func_ret) return false;
+    
+    m_certificateValid = true;        
+    
     Log("VerificationReport::verifyCertificateChain - success");
-    return func_ret;
+    return true;
 }
 
 bool VerificationReport::verifySignature() {
+
+    if(!m_certificateValid){
+        Log("VerificationReport::verifySignature - certificate invalid", log::error);
+        return false;
+    }
 
     EVP_PKEY* pkey = NULL;
 
@@ -355,6 +455,139 @@ bool VerificationReport::verifySignature() {
         EVP_MD_CTX_destroy(ctx);
         ctx = NULL;
     }
+
+    if(!func_ret) return false;
+
+    //Once the signature is valid, the verification report is valid
+    m_isValid = true;
     
+    Log("VerificationReport::verifySignature - success");
     return func_ret;
+}
+
+
+bool VerificationReport::insertIASCertificate(Messages::CertificateMSG& certMsg){
+    if(!m_isValid){
+        Log("VerificationReport::insertIASCertificate - report invalid", log::error);
+        return false;
+    }
+    
+    certMsg.set_cert_size(m_x_iasreport_signing_certificate.length());
+
+    for (int i=0; i< m_x_iasreport_signing_certificate.length(); i++)
+        certMsg.add_x_iasreport_signing_certificate(m_x_iasreport_signing_certificate.c_str()[i]);
+
+    Log("VerificationReport::insertIASCertificate - success");
+    return true;
+}
+
+bool VerificationReport::insertIASSignature(Messages::CertificateMSG& certMsg){
+    if(!m_isValid){
+        Log("VerificationReport::insertIASCertificate - report invalid", log::error);
+        return false;
+    }
+
+    certMsg.set_sig_size(m_x_iasreport_signature.length());
+
+    for (int i=0; i< m_x_iasreport_signature.length(); i++)
+        certMsg.add_x_iasreport_signature(m_x_iasreport_signature.c_str()[i]);
+
+    Log("VerificationReport::insertIASSignature - success");
+    return true;
+}
+
+bool VerificationReport::insertIASFullResponse(Messages::CertificateMSG& certMsg){
+    if(!m_isValid){
+        Log("VerificationReport::insertIASCertificate - report invalid", log::error);
+        return false;
+    }
+
+    certMsg.set_response_size(m_full_response.length());
+
+    for (int i=0; i< m_full_response.length(); i++)
+        certMsg.add_full_response(m_full_response.c_str()[i]);
+
+    Log("VerificationReport::insertIASFullResponse - success");
+    return true;
+}
+
+bool VerificationReport::extractIASCertificate(Messages::CertificateMSG& msg){
+    if(m_isValid){
+        Log("VerificationReport::extractIASCertificate - already valid", log::error);
+        return false;
+    }
+
+    int certSize = msg.cert_size();
+    char* certBuf = (char*)malloc(certSize);
+
+    if(NULL == certBuf){
+        Log("VerificationReport::extractIASSignature - failed to allocate mem for cert", log::error);
+        return false;
+    }
+
+    for (int i = 0; i < certSize; i++){
+        certBuf[i] = msg.x_iasreport_signing_certificate(i);
+    }
+
+    string certString(certBuf);
+    m_x_iasreport_signing_certificate = certString;
+
+    free(certBuf);
+
+    Log("VerificationReport::extractIASCertificate - success");
+    return true;
+}
+
+bool VerificationReport::extractIASSignature(Messages::CertificateMSG& msg){
+    if(m_isValid){
+        Log("VerificationReport::extractIASSignature - already valid", log::error);
+        return false;
+    }
+
+    int signatureSize = msg.sig_size();
+    char* signatureBuf = (char*)malloc(signatureSize);
+
+    if(NULL == signatureBuf){
+        Log("VerificationReport::extractIASSignature - failed to allocate mem for signature", log::error);
+        return false;
+    }
+
+    for (int i = 0; i < signatureSize; i++){
+        signatureBuf[i] = msg.x_iasreport_signature(i);
+    }
+
+    string signatureString(signatureBuf);
+    m_x_iasreport_signature = signatureString;
+
+    free(signatureBuf);
+
+    Log("VerificationReport::extractIASSignature - success");
+    return true;
+}
+
+bool VerificationReport::extractIASFullResponse(Messages::CertificateMSG& msg){
+    if(m_isValid){
+        Log("VerificationReport::extractIASFullResponse - already valid", log::error);
+        return false;
+    }
+
+    int fullResponseSize = msg.response_size();
+    char* fullResponseBuf = (char*)malloc(fullResponseSize);
+
+    if(NULL == fullResponseBuf){
+        Log("VerificationReport::extractIASFullResponse - failed to allocate mem for full response", log::error);
+        return false;
+    }
+
+    for (int i = 0; i < fullResponseSize; i++){
+        fullResponseBuf[i] = msg.full_response(i);
+    }
+
+    string fullResponseString(fullResponseBuf);
+    m_full_response = fullResponseString;
+
+    free(fullResponseBuf);
+
+    Log("VerificationReport::extractIASFullResponse - success");
+    return true;
 }

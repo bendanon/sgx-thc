@@ -59,10 +59,10 @@ public:
     4. Compute and output c'=E_k(s) --- the (symmetric) encryption of s under k
     */
     bool processPkRequest(Messages::PkRequest& pkRequest, 
-                          Messages::PkResponse& pkResponse);
+                          Messages::CertificateMSG& certMsg);
 
 
-    bool processGetSecretRequest(Messages::GetSecretRequest& getSecretRequest, 
+    bool processGetSecretRequest(Messages::CertificateMSG& certMsg, 
                                  Messages::GetSecretResponse& getSecretResponse);
 
 private:
