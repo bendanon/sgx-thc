@@ -5,7 +5,7 @@ string SkgServer::public_file_name = "public.skg";
 string SkgServer::secrets_file_name = "secrets.skg";
 string SkgServer::report_file_name = "report.skg";
 
-SkgServer::SkgServer(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
+SkgServer::SkgServer(SkgEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
 
 SkgServer::~SkgServer(){
     delete m_pClient;

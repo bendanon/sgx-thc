@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include <assert.h>
-#include "isv_enclave_t.h"
+#include "skg_enclave_t.h"
 #include "sgx_tkey_exchange.h"
 #include "sgx_tcrypto.h"
 #include "string.h"
@@ -611,10 +611,10 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
 
         bbx.Init(s_unsealed, SECRET_KEY_SIZE_BYTES);
     }   
-    
-    status = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
-    ocall_print("bbx.Execute status is %d\n", status);
-    if(status) return status;
+    bool ret = false;
+    ret = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
+    ocall_print("bbx.Execute status is %d\n", ret);
+    if(!ret) return SGX_ERROR_UNEXPECTED;
 
     return SGX_SUCCESS;
 }

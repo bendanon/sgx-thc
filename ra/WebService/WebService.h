@@ -21,16 +21,6 @@ enum IAS {
     report
 };
 
-struct attestation_verification_report_t {
-    string report_id;
-    string isv_enclave_quote_status;
-    string timestamp;
-};
-
-struct attestation_evidence_payload_t {
-    string isv_enclave_quote;
-};
-
 struct ias_response_header_t {
     int response_status;
     int content_length;

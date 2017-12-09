@@ -20,7 +20,7 @@
 
 #include "LogBase.h"
 #include "../GeneralSettings.h"
-#include "Enclave.h"
+#include "SkgEnclave.h"
 #include "Messages.pb.h"
 #include "VerificationReport.h"
 #include "AttestationClient.h"
@@ -38,7 +38,7 @@ private:
     static string report_file_name;
 
 public:
-    SkgServer(Enclave* pEnclave);
+    SkgServer(SkgEnclave* pEnclave);
     virtual ~SkgServer();
 
     /***
@@ -72,7 +72,7 @@ private:
 
 private:
     VerificationReport m_report;
-    Enclave* m_pEnclave;
+    SkgEnclave* m_pEnclave;
     AttestationClient* m_pClient;
     sgx_ec256_public_t* p_skg_pk = NULL;
     sgx_sealed_data_t* p_sealed_s_sk = NULL;

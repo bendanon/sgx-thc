@@ -3,7 +3,7 @@
 
 string BbClient::secret_file_name = "secret.bb";
 
-BbClient::BbClient(Enclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
+BbClient::BbClient(BbEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
 
 BbClient::~BbClient(){
     delete m_pClient;

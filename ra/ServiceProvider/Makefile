@@ -156,7 +156,7 @@ libservice_provider.so: $(ServiceProvider_Cpp_Objects)
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/isv_enclave_u.* $(Enclave_Cpp_Objects) isv_enclave/isv_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/skg_enclave_u.* $(Enclave_Cpp_Objects) skg_enclave/skg_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
 
 
 

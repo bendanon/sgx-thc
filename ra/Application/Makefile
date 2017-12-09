@@ -48,7 +48,7 @@ endif
 
 App_Cpp_Files := isv_app/isv_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
 ../Networking/Client.cpp ../Networking/NetworkManagerClient.cpp ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp \
-../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
+../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../Enclave/SkgEnclave.cpp ../Enclave/BbEnclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
 ../BbClient/BbClient.cpp ../SkgServer/SkgServer.cpp ../WebService/WebService.cpp
 
 App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
@@ -93,7 +93,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp isv_enclave/isv_enclave.cpp
+bb_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp
+skg_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp skg_enclave/skg_enclave.cpp
 Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
@@ -106,19 +107,32 @@ Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
-Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+skg_Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tkey_exchange -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 \
-	-Wl,--version-script=isv_enclave/isv_enclave.lds
+	-Wl,--version-script=skg_enclave/skg_enclave.lds
 
-Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
+bb_Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
+	-Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tkey_exchange -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
+	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
+	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
+	-Wl,--defsym,__ImageBase=0 \
+	-Wl,--version-script=bb_enclave/bb_enclave.lds
 
-Enclave_Name := isv_enclave.so
-Signed_Enclave_Name := isv_enclave.signed.so
-Enclave_Config_File := isv_enclave/isv_enclave.config.xml
+skg_Enclave_Cpp_Objects := $(skg_Enclave_Cpp_Files:.cpp=.o)
+bb_Enclave_Cpp_Objects := $(bb_Enclave_Cpp_Files:.cpp=.o)
+
+skg_Enclave_Name := skg_enclave.so
+skg_Signed_Enclave_Name := skg_enclave.signed.so
+skg_Enclave_Config_File := skg_enclave/skg_enclave.config.xml
+
+bb_Enclave_Name := bb_enclave.so
+bb_Signed_Enclave_Name := bb_enclave.signed.so
+bb_Enclave_Config_File := bb_enclave/bb_enclave.config.xml
 
 ifeq ($(SGX_MODE), HW)
 ifneq ($(SGX_DEBUG), 1)
@@ -132,15 +146,16 @@ endif
 .PHONY: all run
 
 ifeq ($(Build_Mode), HW_RELEASE)
-all: $(App_Name) $(Enclave_Name)
+all: $(App_Name) $(skg_Enclave_Name) $(bb_Enclave_Name)
 	@echo "The project has been built in release hardware mode."
-	@echo "Please sign the $(Enclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
+	@echo "Please sign the $(skg_Enclave_Name) $(bb_Enclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
 	@echo "To sign the enclave use the command:"
-	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(Enclave_Name) -out <$(Signed_Enclave_Name)> -config $(Enclave_Config_File)"
+	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(skg_Enclave_Name) -out <$(skg_Signed_Enclave_Name)> -config $(skg_Enclave_Config_File)"
+	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(bb_Enclave_Name) -out <$(bb_Signed_Enclave_Name)> -config $(bb_Enclave_Config_File)"
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-all: $(App_Name) $(Signed_Enclave_Name)
+all: $(App_Name) $(skg_Signed_Enclave_Name) $(bb_Signed_Enclave_Name)
 endif
 
 run: all
@@ -152,11 +167,19 @@ endif
 
 ######## App Objects ########
 
-isv_app/isv_enclave_u.c: $(SGX_EDGER8R) isv_enclave/isv_enclave.edl
-	@cd isv_app && $(SGX_EDGER8R) --untrusted ../isv_enclave/isv_enclave.edl --search-path ../isv_enclave --search-path $(SGX_SDK)/include
+isv_app/bb_enclave_u.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
+	@cd isv_app && $(SGX_EDGER8R) --use-prefix --untrusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
-isv_app/isv_enclave_u.o: isv_app/isv_enclave_u.c
+isv_app/skg_enclave_u.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
+	@cd isv_app && $(SGX_EDGER8R) --use-prefix --untrusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include
+	@echo "GEN  =>  $@"
+
+isv_app/skg_enclave_u.o: isv_app/skg_enclave_u.c
+	@$(CC) $(App_C_Flags) -c $< -o $@
+	@echo "CC   <=  $<"
+
+isv_app/bb_enclave_u.o: isv_app/bb_enclave_u.c
 	@$(CC) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
@@ -200,34 +223,57 @@ isv_app/%.o: isv_app/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(App_Name): isv_app/isv_enclave_u.o $(App_Cpp_Objects)
+
+$(App_Name): isv_app/bb_enclave_u.o isv_app/skg_enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
 
-######## Enclave Objects ########
+######## SKG Enclave Objects ########
 
-isv_enclave/isv_enclave_t.c: $(SGX_EDGER8R) isv_enclave/isv_enclave.edl
-	@cd isv_enclave && $(SGX_EDGER8R) --trusted ../isv_enclave/isv_enclave.edl --search-path ../isv_enclave --search-path $(SGX_SDK)/include
+skg_enclave/skg_enclave_t.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
+	@cd skg_enclave && $(SGX_EDGER8R) --use-prefix --trusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
-isv_enclave/isv_enclave_t.o: isv_enclave/isv_enclave_t.c
+skg_enclave/skg_enclave_t.o: skg_enclave/skg_enclave_t.c
 	@$(CC) $(Enclave_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
-
-isv_enclave/%.o: isv_enclave/%.cpp
+skg_enclave/%.o: skg_enclave/%.cpp
 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(Enclave_Name): isv_enclave/isv_enclave_t.o $(Enclave_Cpp_Objects)
-	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
+$(skg_Enclave_Name): skg_enclave/skg_enclave_t.o $(skg_Enclave_Cpp_Objects)
+	@$(CXX) $^ -o $@ $(skg_Enclave_Link_Flags)
 	@echo "LINK =>  $@"
 
-$(Signed_Enclave_Name): $(Enclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key isv_enclave/isv_enclave_private.pem -enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
+$(skg_Signed_Enclave_Name): $(skg_Enclave_Name)
+	@$(SGX_ENCLAVE_SIGNER) sign -key skg_enclave/skg_enclave_private.pem -enclave $(skg_Enclave_Name) -out $@ -config $(skg_Enclave_Config_File)
 	@echo "SIGN =>  $@"
 
+
+######## BB Enclave Objects ########
+
+bb_enclave/bb_enclave_t.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
+	@cd bb_enclave && $(SGX_EDGER8R) --use-prefix --trusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include
+	@echo "GEN  =>  $@"
+
+bb_enclave/bb_enclave_t.o: bb_enclave/bb_enclave_t.c
+	@$(CC) $(Enclave_C_Flags) -c $< -o $@
+	@echo "CC   <=  $<"
+
+bb_enclave/%.o: bb_enclave/%.cpp
+	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+$(bb_Enclave_Name): bb_enclave/bb_enclave_t.o $(bb_Enclave_Cpp_Objects)
+	@$(CXX) $^ -o $@ $(bb_Enclave_Link_Flags)
+	@echo "LINK =>  $@"
+
+$(bb_Signed_Enclave_Name): $(bb_Enclave_Name)
+	@$(SGX_ENCLAVE_SIGNER) sign -key bb_enclave/bb_enclave_private.pem -enclave $(bb_Enclave_Name) -out $@ -config $(bb_Enclave_Config_File)
+	@echo "SIGN =>  $@"
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/isv_enclave_u.* $(Enclave_Cpp_Objects) isv_enclave/isv_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
+	@rm -f $(App_Name) $(skg_Enclave_Name) $(skg_Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/skg_enclave_u.* $(skg_Enclave_Cpp_Objects) skg_enclave/skg_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
+	@rm -f $(App_Name) $(bb_Enclave_Name) $(bb_Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/bb_enclave_u.* $(bb_Enclave_Cpp_Objects) bb_enclave/bb_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)

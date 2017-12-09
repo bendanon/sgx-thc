@@ -8,7 +8,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include "Enclave.h"
 #include "NetworkManagerClient.h"
 #include "Messages.pb.h"
 #include "UtilityFunctions.h"
@@ -18,6 +17,7 @@
 #include "VerificationReport.h"
 #include "Network_def.h"
 #include "WebService.h"
+#include "Enclave.h"
 
 
 using namespace std;

@@ -17,6 +17,9 @@ namespace Settings {
 
 	static string assets_path = "../";
 
+	static const char *skg_enclave_path = "skg_enclave.signed.so";
+	static const char *bb_enclave_path = "bb_enclave.signed.so";
+
 	static string spid = "AC7FDD06E124C564BE1E6C666F7BF04B"; //SPID provided by Intel after registration for the IAS service
 	static const char *ias_crt = "../../keys/thc.p12"; //location of the certificate send to Intel when registring for the IAS
 	static const char *ias_ca = "../../keys/AttestationReportSigningCACert.pem";
