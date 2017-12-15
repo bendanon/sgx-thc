@@ -3,7 +3,7 @@
 
 string SkgServer::public_file_name = "public.skg";
 string SkgServer::secrets_file_name = "secrets.skg";
-string SkgServer::report_file_name = "report.skg";
+string SkgServer::report_file_name = "report_";
 
 SkgServer::SkgServer(SkgEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
 
@@ -15,51 +15,21 @@ SkgServer::~SkgServer(){
 
 bool SkgServer::writeAssets()
 {
-    if(!writeEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
+    if(!writeToFile(Settings::assets_path + SkgServer::secrets_file_name, 
                    (uint8_t*)this->p_sealed_s_sk, 
-                   SKG_DATA_SEALED_SIZE_BYTES, 
-                   SKG_DATA_SEALED_BASE64_SIZE_BYTES))
+                   SKG_DATA_SEALED_SIZE_BYTES))
     {
-        Log("SkgServer::writeAssets writeAssets failed");
+        Log("SkgServer::writeAssets writeToFile failed");
         return false;
     }
 
-    sgx_sealed_data_t* sealed = (sgx_sealed_data_t*)malloc(SKG_DATA_SEALED_SIZE_BYTES);
-
-    if(!readEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
-                  (uint8_t*)sealed, 
-                  SKG_DATA_SEALED_SIZE_BYTES, 
-                  SKG_DATA_SEALED_BASE64_SIZE_BYTES)) 
-    {
-    
-        Log("SkgServer::readAssets sealed_s_sk failed");
-        return false;
-    }
-
-    assert(0==memcmp(p_sealed_s_sk, sealed, SKG_DATA_SEALED_SIZE_BYTES));
-
-    if(!writeEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
+    if(!writeToFile(Settings::assets_path + SkgServer::public_file_name,
                    (uint8_t*)this->p_skg_pk, 
-                   sizeof(sgx_ec256_public_t), 
-                   PK_BASE64_SIZE_BYTES))
+                   sizeof(sgx_ec256_public_t)))
     {
-        Log("SkgServer::writeAssets writeAssets failed");
+        Log("SkgServer::writeAssets writeToFile failed");
         return false;
     }
-
-    sgx_ec256_public_t pk;
-
-    if(!readEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
-                  (uint8_t*)&pk, 
-                  sizeof(sgx_ec256_public_t), 
-                  PK_BASE64_SIZE_BYTES)) 
-    {
-    
-        Log("SkgServer::readAssets sealed_s_sk failed");
-        return false;
-    }
-
-    assert(0==memcmp(&pk, this->p_skg_pk, sizeof(sgx_ec256_public_t)));
 
     if(!m_report.write(Settings::assets_path + SkgServer::report_file_name)) {
         Log("SkgServer::writeAssets report failed");
@@ -78,20 +48,18 @@ bool SkgServer::readAssets() {
     SafeFree(this->p_skg_pk);
     this->p_skg_pk = (sgx_ec256_public_t*)malloc(sizeof(sgx_ec256_public_t));    
 
-    if(!readEncodedAssets(Settings::assets_path + SkgServer::secrets_file_name, 
+    if(!readFromFile(Settings::assets_path + SkgServer::secrets_file_name, 
                   (uint8_t*)this->p_sealed_s_sk, 
-                  SKG_DATA_SEALED_SIZE_BYTES, 
-                  SKG_DATA_SEALED_BASE64_SIZE_BYTES)) 
+                  SKG_DATA_SEALED_SIZE_BYTES)) 
     {
     
         Log("SkgServer::readAssets sealed_s_sk failed");
         return false;
     }
 
-    if(!readEncodedAssets(Settings::assets_path + SkgServer::public_file_name, 
+    if(!readFromFile(Settings::assets_path + SkgServer::public_file_name, 
                   (uint8_t*)this->p_skg_pk, 
-                  sizeof(sgx_ec256_public_t), 
-                  PK_BASE64_SIZE_BYTES)) 
+                  sizeof(sgx_ec256_public_t))) 
     {
     
         Log("SkgServer::readAssets p_skg_pk failed");
@@ -176,13 +144,10 @@ bool SkgServer::processPkRequest(Messages::PkRequest& pkRequest,
                                  Messages::CertificateMSG& certMsg){
     
 
-    //TODO: process pk request
-
-    sgx_ec256_public_t ga = m_pClient->getGa();
-    
+    //TODO: process pk request    
     certMsg.set_type(THC_PK_RES);
 
-    if(!m_report.toCertMsg(&ga, p_skg_pk, certMsg)){
+    if(!m_report.toCertMsg(p_skg_pk, certMsg)){
         Log("SkgServer::processPkRequest - m_report.toCertMsg failed", log::error);
         return false;
     }

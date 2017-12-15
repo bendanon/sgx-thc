@@ -60,8 +60,8 @@ string Base64encode(const string val);
 string Base64decode(const string val);
 string Base64encodeUint8(uint8_t *val, uint32_t len);
 
-bool readEncodedAssets(string file, uint8_t* o_buf, size_t decoded_size, size_t encoded_size);
-bool writeEncodedAssets(string file, uint8_t* i_buf, size_t decoded_size, size_t encoded_size);
+bool readFromFile(string file, uint8_t* o_buf, size_t bufsize);
+bool writeToFile(string file, uint8_t* i_buf, size_t bufsize);
 
 #endif
 

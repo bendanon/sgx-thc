@@ -23,12 +23,11 @@ bool BbClient::hasSecret() {
 
 bool BbClient::writeSecret()
 {
-    if(!writeEncodedAssets(Settings::assets_path + BbClient::secret_file_name, 
+    if(!writeToFile(Settings::assets_path + BbClient::secret_file_name, 
                    (uint8_t*)this->p_sealed_s, 
-                   SECRET_KEY_SEALED_SIZE_BYTES, 
-                   SECRET_KEY_SEALED_BASE64_SIZE_BYTES))
+                   SECRET_KEY_SEALED_SIZE_BYTES))
     {
-        Log("BbClient::writeSecret writeAssets failed");
+        Log("BbClient::writeSecret writeToFile failed");
         return false;
     }
 
@@ -41,13 +40,12 @@ bool BbClient::readSecret() {
     SafeFree(this->p_sealed_s);
     this->p_sealed_s = (sgx_sealed_data_t*)malloc(SECRET_KEY_SEALED_SIZE_BYTES);
 
-    if(!readEncodedAssets(Settings::assets_path + BbClient::secret_file_name, 
+    if(!readFromFile(Settings::assets_path + BbClient::secret_file_name, 
                   (uint8_t*)this->p_sealed_s, 
-                  SECRET_KEY_SEALED_SIZE_BYTES, 
-                  SECRET_KEY_SEALED_BASE64_SIZE_BYTES)) 
+                  SECRET_KEY_SEALED_SIZE_BYTES)) 
     {
     
-        Log("BbClient::readSecret readAssets failed");
+        Log("BbClient::readSecret readFromFile failed");
         return false;
     }    
 
@@ -128,9 +126,7 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
     /*prepare getSecretRequest*/
     bbCertMsg.set_type(THC_SEC_REQ);
 
-    sgx_ec256_public_t ga = m_pClient->getGa();
-
-    if(!m_report.toCertMsg(&ga, this->p_bb_pk, bbCertMsg)){
+    if(!m_report.toCertMsg(this->p_bb_pk, bbCertMsg)){
         Log("BbClient::processPkResponse - toCertMsg falied");
         return false;    
     }

@@ -37,7 +37,6 @@ public:
     virtual ~AttestationClient();
     int init();
     void start();
-    sgx_ec256_public_t getGa();
     vector<string> incomingHandler(string v, int type);
 
 private:

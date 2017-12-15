@@ -29,15 +29,6 @@ int AttestationClient::init() {
     });
 }
 
-
-sgx_ec256_public_t AttestationClient::getGa() {
-    if(!m_report.isValid()) {
-        Log("AttestationClient::get_ga - m_report is invalid ", log::error);
-    }
-    return m_ga;
-}
-
-
 bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
     ra_samp_response_header_t **pp_msg2;
     bool func_ret = true;
@@ -395,6 +386,11 @@ string AttestationClient::generateMSG1() {
 
         for (auto x : sgxMsg1Obj.gid) {
             msg.add_gid(x);
+        }
+
+        if(!m_report.setGa(&sgxMsg1Obj.g_a)){
+            Log("AttestationClient::generateMSG1 - failed to setGa");
+            return "";
         }
 
         return nm->serialize(msg);

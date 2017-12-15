@@ -9,8 +9,19 @@ VerificationReport::~VerificationReport() {
     X509_free(m_cert);
 }
 
-bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga, 
-                                         sgx_ec256_public_t* p_gb){
+
+bool VerificationReport::setGa(sgx_ec256_public_t* p_ga){
+     if(m_isValid){
+        Log("VerificationReport::setGa - already valid");
+        return false;
+    }
+
+    memcpy(&m_ga, p_ga, sizeof(sgx_ec256_public_t));
+
+    return true;
+}
+
+bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_gb){
 
     if(!m_isValid){
         Log("VerificationReport::verifyPublicKey - report is not valid");
@@ -29,7 +40,7 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga,
         return false;
     }
 
-    sample_ret = sample_sha256_update((uint8_t *)p_ga, sizeof(sgx_ec256_public_t), sha_handle);
+    sample_ret = sample_sha256_update((uint8_t *)&m_ga, sizeof(sgx_ec256_public_t), sha_handle);
     if (sample_ret != SAMPLE_SUCCESS) {
         Log("Error, udpate hash failed", log::error);
         return false;
@@ -65,7 +76,7 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_ga,
 }
 
 
-bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_ga, sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg){ 
+bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg){ 
 
     if(!m_isValid) {
         Log("VerificationReport::fromCertMsg - invalid", log::error);
@@ -77,12 +88,6 @@ bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_ga, sgx_ec256_public_t*
 
     for (auto x : p_gb->gy)
         certMsg.add_gy(x);
-
-    for (auto x : p_ga->gx)
-        certMsg.add_gax(x);
-
-    for (auto x : p_ga->gy)
-        certMsg.add_gay(x);
 
     if(!insertIASCertificate(certMsg)){
         Log("VerificationReport::toCertMsg - m_report.insertIASCertificate failed", log::error);
@@ -96,6 +101,11 @@ bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_ga, sgx_ec256_public_t*
 
     if(!insertIASFullResponse(certMsg)){
         Log("VerificationReport::toCertMsg- m_report.insertIASFullResponse failed", log::error);
+        return false;
+    }
+
+    if(!insertGa(certMsg)){
+        Log("VerificationReport::toCertMsg- m_report.insertGa failed", log::error);
         return false;
     }
 
@@ -129,6 +139,11 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
         return false;
     }
 
+    if(!extractGa(certMsg)){
+        Log("VerificationReport::fromCertMsg - extractGa failed", log::error);
+        return false;
+    }
+
     /*Verify the IAS response*/    
     if(!verifyCertificateChain()){
         Log("VerificationReport::fromResult - verifyCertificateChain failed");
@@ -154,17 +169,14 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
 
 
     /*Extract skg pk and ga to verify skg pk against quote body*/
-    sgx_ec256_public_t ga;
     sgx_ec256_public_t skg_pk;
 
     for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
         skg_pk.gx[i] = certMsg.gx(i);
         skg_pk.gy[i] = certMsg.gy(i);
-        ga.gx[i] = certMsg.gax(i);
-        ga.gy[i] = certMsg.gay(i);
     }
 
-    if(!verifyPublicKey(&ga, &skg_pk)){
+    if(!verifyPublicKey(&skg_pk)){
         Log("VerificationReport::fromCertMsg - failed to verify skg pk");
         return false;
     }
@@ -174,23 +186,70 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
  }
 
  bool VerificationReport::read(std::string file){
-    if(!readEncodedAssets(file, (uint8_t*)&this->m_report_body, 
-                           sizeof(sgx_report_body_t), REPORT_BASE64_SIZE_BYTES))
-    {
-        Log("VerificationReport::read report failed");
+    
+ 
+    char* buf;
+    if(0 == ReadFileToBuffer(file + "sig.skg", &buf)){
+        Log("VerificationReport::read m_x_iasreport_signature failed");
+        return false;
+    }
+    m_x_iasreport_signature = buf;
+    free(buf);
+
+    if(0 == ReadFileToBuffer(file + "cert.skg", &buf)){
+        Log("VerificationReport::read m_x_iasreport_signing_certificate failed");
+        return false;
+    }
+    m_x_iasreport_signing_certificate = buf;
+    free(buf);
+
+    if(0 == ReadFileToBuffer(file + "full.skg", &buf)){
+        Log("VerificationReport::read m_full_response failed");
+        return false;
+    }
+    m_full_response = buf;
+    free(buf);
+
+
+    if(!readFromFile(file + "quote.skg", (uint8_t*)&this->m_quote_body, sizeof(sgx_quote_t))) {    
+        Log("VerificationReport::read quote failed");
         return false;
     }
 
-    Log("VerificationReport::read - succeeded");
+    if(!readFromFile(file + "ga.skg", (uint8_t*)&this->m_ga, sizeof(sgx_ec256_public_t))) {    
+        Log("VerificationReport::read ga failed");
+        return false;
+    }
+
+    if(!verifyCertificateChain()){
+        Log("VerificationReport::read - verifyCertificateChain failed");
+        return false;
+    }
+
+    if(!verifySignature()) {
+        Log("VerificationReport::read - verifySignature failed");
+        return false;
+    }
+
+    Log("VerificationReport::read - success");
     return true;
  }
 
  bool VerificationReport::write(std::string file){
 
-    if(!writeEncodedAssets(file, (uint8_t*)&this->m_report_body, 
-                           sizeof(sgx_report_body_t), REPORT_BASE64_SIZE_BYTES))
-    {
-        Log("VerificationReport::write report failed");
+    SaveBufferToFile(file + "sig.skg", m_x_iasreport_signature);
+
+    SaveBufferToFile(file + "cert.skg", m_x_iasreport_signing_certificate);
+
+    SaveBufferToFile(file + "full.skg", m_full_response);
+
+    if(!writeToFile(file + "quote.skg", (uint8_t*)&this->m_quote_body, sizeof(sgx_quote_t))) {
+        Log("VerificationReport::write quote failed");
+        return false;
+    }
+
+    if(!writeToFile(file + "ga.skg", (uint8_t*)&this->m_ga, sizeof(sgx_ec256_public_t))) {
+        Log("VerificationReport::write ga failed");
         return false;
     }
 
@@ -206,7 +265,10 @@ bool VerificationReport::isValid()
 bool VerificationReport::fromResult(vector<pair<string, string>> result)
 {
 
-    string isvEnclaveQuoteBody,
+    ias_quote_status_t quoteStatus; //TODO - remove
+
+    string location, id,
+           isvEnclaveQuoteBody,
            platformInfoBlob, 
            revocationReason,
            pseManifestStatus,
@@ -217,23 +279,23 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
 
     for (auto x : result) {
         if (x.first == "id") {
-            m_id = x.second;
+            id = x.second;
         } else if (x.first == "isvEnclaveQuoteStatus") {
 
             if (x.second == "OK")
-                m_quoteStatus = IAS_QUOTE_OK;
+                quoteStatus = IAS_QUOTE_OK;
             else if (x.second == "SIGNATURE_INVALID")
-                m_quoteStatus = IAS_QUOTE_SIGNATURE_INVALID;
+                quoteStatus = IAS_QUOTE_SIGNATURE_INVALID;
             else if (x.second == "GROUP_REVOKED")
-                m_quoteStatus = IAS_QUOTE_GROUP_REVOKED;
+                quoteStatus = IAS_QUOTE_GROUP_REVOKED;
             else if (x.second == "SIGNATURE_REVOKED")
-                m_quoteStatus = IAS_QUOTE_SIGNATURE_REVOKED;
+                quoteStatus = IAS_QUOTE_SIGNATURE_REVOKED;
             else if (x.second == "KEY_REVOKED")
-                m_quoteStatus = IAS_QUOTE_KEY_REVOKED;
+                quoteStatus = IAS_QUOTE_KEY_REVOKED;
             else if (x.second == "SIGRL_VERSION_MISMATCH")
-                m_quoteStatus = IAS_QUOTE_SIGRL_VERSION_MISMATCH;
+                quoteStatus = IAS_QUOTE_SIGRL_VERSION_MISMATCH;
             else if (x.second == "GROUP_OUT_OF_DATE")
-                m_quoteStatus = IAS_QUOTE_GROUP_OUT_OF_DATE;
+                quoteStatus = IAS_QUOTE_GROUP_OUT_OF_DATE;
 
         } else if (x.first == "isvEnclaveQuoteBody") {
             memcpy(&m_quote_body, Base64decode(x.second).c_str(), sizeof(m_quote_body));            
@@ -246,7 +308,7 @@ bool VerificationReport::fromResult(vector<pair<string, string>> result)
         } else if (x.first == "x-iasreport-signing-certificate") {
             m_x_iasreport_signing_certificate = uriDecode(x.second);
         } else if (x.first == "location") {
-            m_location = x.second;
+            location = x.second;
         } else if (x.first == "revocationReason") {
             revocationReason = x.second;
         } else if (x.first == "pseManifestStatus") {
@@ -513,6 +575,23 @@ bool VerificationReport::insertIASFullResponse(Messages::CertificateMSG& certMsg
     return true;
 }
 
+bool VerificationReport::insertGa(Messages::CertificateMSG& certMsg){
+
+    if(!m_isValid){
+        Log("VerificationReport::insertGa - report invalid", log::error);
+        return false;
+    }
+
+    for (auto x : m_ga.gx)
+        certMsg.add_gax(x);
+
+    for (auto x : m_ga.gy)
+        certMsg.add_gay(x);
+
+    Log("VerificationReport::insertGa - success");
+    return true;
+}
+
 bool VerificationReport::extractIASCertificate(Messages::CertificateMSG& msg){
     if(m_isValid){
         Log("VerificationReport::extractIASCertificate - already valid", log::error);
@@ -591,5 +670,21 @@ bool VerificationReport::extractIASFullResponse(Messages::CertificateMSG& msg){
     free(fullResponseBuf);
 
     Log("VerificationReport::extractIASFullResponse - success");
+    return true;
+}
+
+bool VerificationReport::extractGa(Messages::CertificateMSG& certMsg){
+  
+    if(m_isValid){
+        Log("VerificationReport::extractGa - already valid", log::error);
+        return false;
+    }
+
+    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
+        m_ga.gx[i] = certMsg.gax(i);
+        m_ga.gy[i] = certMsg.gay(i);
+    }
+
+    Log("VerificationReport::extractGa - success");
     return true;
 }
