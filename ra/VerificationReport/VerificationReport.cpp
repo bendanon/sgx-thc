@@ -442,6 +442,8 @@ bool VerificationReport::verifySignature() {
         rc = EVP_DigestVerifyFinal(ctx, 
                         (const byte*)base64_decode(m_x_iasreport_signature).c_str(), 
                         SIGNATURE_LENGTH_BYTES);
+        
+        Log("signature is %s", m_x_iasreport_signature);
         if(rc != 1) {
             Log("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
@@ -529,7 +531,7 @@ bool VerificationReport::extractIASCertificate(Messages::CertificateMSG& msg){
         certBuf[i] = msg.x_iasreport_signing_certificate(i);
     }
 
-    string certString(certBuf);
+    string certString(certBuf, certSize);
     m_x_iasreport_signing_certificate = certString;
 
     free(certBuf);
@@ -556,7 +558,7 @@ bool VerificationReport::extractIASSignature(Messages::CertificateMSG& msg){
         signatureBuf[i] = msg.x_iasreport_signature(i);
     }
 
-    string signatureString(signatureBuf);
+    string signatureString(signatureBuf, signatureSize);
     m_x_iasreport_signature = signatureString;
 
     free(signatureBuf);
@@ -583,7 +585,7 @@ bool VerificationReport::extractIASFullResponse(Messages::CertificateMSG& msg){
         fullResponseBuf[i] = msg.full_response(i);
     }
 
-    string fullResponseString(fullResponseBuf);
+    string fullResponseString(fullResponseBuf, fullResponseSize);
     m_full_response = fullResponseString;
 
     free(fullResponseBuf);

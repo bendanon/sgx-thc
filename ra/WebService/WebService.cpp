@@ -27,7 +27,7 @@ void WebService::init() {
 
     if (curl) {
         Log("Curl initialized successfully");
-		curl_easy_setopt( curl, CURLOPT_VERBOSE, 1L );
+		//curl_easy_setopt( curl, CURLOPT_VERBOSE, 1L );
         curl_easy_setopt( curl, CURLOPT_SSLCERTTYPE, "P12");
         curl_easy_setopt( curl, CURLOPT_SSLCERTPASSWD, "123");
         curl_easy_setopt( curl, CURLOPT_SSLCERT, Settings::ias_crt);
