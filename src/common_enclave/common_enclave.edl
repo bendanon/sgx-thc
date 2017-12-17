@@ -1,0 +1,36 @@
+enclave {
+    from "sgx_tkey_exchange.edl" import *;
+    include "sgx_tseal.h"
+    include "sgx_key_exchange.h"
+    include "sgx_trts.h"
+
+    trusted {
+        public sgx_status_t enclave_init_ra(int b_pse, [out] sgx_ra_context_t *p_context);
+
+        public sgx_status_t enclave_ra_close(sgx_ra_context_t context);
+
+
+         public sgx_status_t derive_smk(             
+            [in, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size,
+            [out, size=smk_size]sgx_ec_key_128bit_t* smk,size_t smk_size);
+        
+    };
+
+    untrusted {
+        /* define OCALLs here. */
+        void ocall_print([in, string]const char* str);
+    };
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
