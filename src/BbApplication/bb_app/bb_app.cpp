@@ -29,8 +29,11 @@ int Main(int argc, char* argv[]) {
 
     BbClient bbClient(bb_enclave);
 
-    bbClient.init();
-    bbClient.start();
+    if(!bbClient.hasSecret())
+    {
+        bbClient.init();
+        bbClient.start();
+    }
     
     uint8_t B_out[B_OUT_SIZE_BYTES];
     memset(B_out, 0, B_OUT_SIZE_BYTES);   
