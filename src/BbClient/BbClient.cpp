@@ -3,8 +3,10 @@
 
 string BbClient::secret_file_name = "secret.bb";
 
-BbClient::BbClient(BbEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { 
-    this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
+BbClient::BbClient(BbEnclave* pEnclave, int port) : m_pEnclave(pEnclave), m_pClient(NULL) { 
+    m_nmc = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
+    m_nms = NetworkManagerServer::getInstance(port);
+
 }
 
 BbClient::~BbClient(){
@@ -14,14 +16,21 @@ BbClient::~BbClient(){
 
 
 void BbClient::init() {
-    this->nm->Init();
-    this->nm->connectCallbackHandler([this](string v, int type) {
+    m_nmc->Init();
+    m_nmc->connectCallbackHandler([this](string v, int type) {
         return this->incomingHandler(v, type);
     });
+    m_nmc->startService();
 }
 
 void BbClient::start(){
-    this->nm->startService();
+
+    m_nms->Init();
+    m_nms->connectCallbackHandler([this](string v, int type) {
+        return this->incomingHandler(v, type);
+    });
+    m_nms->startService();
+
 }
 
 bool BbClient::hasSecret() {

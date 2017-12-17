@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include "UtilityFunctions.h"
 #include "NetworkManagerClient.h"
+#include "NetworkManagerServer.h"
 
 
 using namespace std;
@@ -41,7 +42,7 @@ private:
     static string secret_file_name;
 
 public:
-    BbClient(BbEnclave* pEnclave);
+    BbClient(BbEnclave* pEnclave, int port);
     virtual ~BbClient();
     
     void init();
@@ -90,7 +91,8 @@ private:
 
 
 private:
-    NetworkManagerClient *nm = NULL;
+    NetworkManagerClient *m_nmc = NULL;
+    NetworkManagerServer *m_nms = NULL;
     VerificationReport m_report;
     BbEnclave* m_pEnclave;
     AttestationClient* m_pClient;

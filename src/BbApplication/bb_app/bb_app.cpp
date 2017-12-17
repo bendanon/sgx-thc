@@ -27,12 +27,11 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    BbClient bbClient(bb_enclave);
+    BbClient bbClient(bb_enclave, 44444);
 
-    if(!bbClient.hasSecret())
+    while(!bbClient.hasSecret())
     {
-        bbClient.init();
-        bbClient.start();
+        bbClient.init();        
     }
     
     uint8_t B_out[B_OUT_SIZE_BYTES];
@@ -44,6 +43,7 @@ int Main(int argc, char* argv[]) {
     bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);
     Log("B_out is %s", Base64encodeUint8((uint8_t*)B_out, sizeof(B_out)));
 
+    bbClient.start();
 
     delete bb_enclave;
     return ret;
