@@ -42,7 +42,7 @@ int Main(int argc, char* argv[]) {
     //TODO: For now, both skg and bb are on the same machine and use the same enclave
     //for testing purposes. In the future, both will encapsulate their own enclaves
     SkgServer skgServer(skg_enclave);
-    if(!skgServer.Init())
+    if(!skgServer.init())
         Log("SkgServer Failed to Init");
 
     BbClient bbClient(bb_enclave);

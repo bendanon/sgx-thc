@@ -1,3 +1,6 @@
+#ifndef NETWORK_MANAGER_H
+#define NETWORK_MANAGER_H
+
 #include "NetworkManager.h"
 
 class NetworkManagerClient : public NetworkManager {
@@ -18,5 +21,6 @@ private:
     Client *client = NULL;
 };
 
+#endif //NETWORK_MANAGER_H
 
 

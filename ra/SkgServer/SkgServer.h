@@ -26,6 +26,8 @@
 #include "AttestationClient.h"
 #include "Network_def.h"
 #include "UtilityFunctions.h"
+#include "NetworkManagerServer.h"
+
 
 using namespace std;
 using namespace util;
@@ -49,7 +51,9 @@ public:
     4. Seal the data (s,sk) [sealing to MRENCLAVE] and output sealed data. output.
     5. Obtain a certificate using the attestation service
     ***/
-    bool Init();
+    bool init();
+    
+    void start();
 
     /*
     [Execution: input pk, sealed data (s,sk), bb-public bbpk , an attestation quote Q]
@@ -65,12 +69,16 @@ public:
     bool processGetSecretRequest(Messages::CertificateMSG& certMsg, 
                                  Messages::GetSecretResponse& getSecretResponse);
 
+    //TODO - this should be private and called by NetworkManagerServer
+    vector<string> incomingHandler(string v, int type);
+
 private:
     bool readAssets();
     bool writeAssets();
     bool obtainAssets();
 
 private:
+    NetworkManagerServer *nm = NULL;
     VerificationReport m_report;
     SkgEnclave* m_pEnclave;
     AttestationClient* m_pClient;

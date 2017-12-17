@@ -116,7 +116,7 @@ bool SkgServer::obtainAssets(){
     return true;
 }
 
-bool SkgServer::Init() {
+bool SkgServer::init() {
 
     if(readAssets())
     {
@@ -136,8 +136,19 @@ bool SkgServer::Init() {
         return false;
     }
 
+    /*this->nm->Init();
+    this->nm->connectCallbackHandler([this](string v, int type) {
+        return this->incomingHandler(v, type);
+    });*/
+
     Log("SkgServer::Init succeeded");
     return true;
+}
+
+void SkgServer::start() {
+    this->nm->startService();
+    Log("SkgServer done");
+    //TODO - handle more than a single session 
 }
 
 bool SkgServer::processPkRequest(Messages::PkRequest& pkRequest, 
@@ -199,4 +210,57 @@ bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg,
 
     Log("SkgServer::processGetSecretRequest - success");
     return false;
+}
+
+vector<string> SkgServer::incomingHandler(string v, int type) {
+    vector<string> res;
+    bool ret;
+    string s;
+
+    if(type == RA_FAILED_READ)
+    {
+        Log("SkgServer::incomingHandler - Failed read, restarting");
+        //restart();
+        return res;
+    }
+
+    switch (type) {
+        case THC_PK_REQ: {            
+            Messages::PkRequest pkRequest;
+            Messages::CertificateMSG pkResponse;
+            ret = pkRequest.ParseFromString(v);
+            if (ret && (pkRequest.type() == THC_PK_REQ)){
+                if(this->processPkRequest(pkRequest, pkResponse) && pkResponse.SerializeToString(&s)){
+                    res.push_back(to_string(THC_PK_RES));
+                    //res.push_back(nm->serialize(pkResponse));
+                }
+                else {
+                    Log("SkgServer::incomingHandler - processPkRequest failed");
+                }                
+            }
+        }
+        break;
+        case THC_SEC_REQ: {
+            Messages::CertificateMSG getSecretRequest;
+            Messages::GetSecretResponse getSecretResponse;
+            ret = getSecretRequest.ParseFromString(v);
+            if (ret && (getSecretRequest.type() == THC_SEC_REQ)){
+                if(this->processGetSecretRequest(getSecretRequest, getSecretResponse) && getSecretResponse.SerializeToString(&s)){
+                    res.push_back(to_string(THC_SEC_RES));
+                    //res.push_back(nm->serialize(getSecretResponse));
+                }
+                else {
+                    Log("SkgServer::incomingHandler - processGetSecretRequest failed");
+                }                
+            }
+        }
+        break;
+        default:
+            Log("Unknown type: %d", type, log::error);
+            break;
+    }
+
+    res.push_back(s);
+
+    return res;
 }

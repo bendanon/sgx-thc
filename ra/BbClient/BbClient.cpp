@@ -10,6 +10,18 @@ BbClient::~BbClient(){
     SafeFree(this->p_sealed_s); 
 }
 
+
+void BbClient::init() {
+    /*this->nm->Init();
+    this->nm->connectCallbackHandler([this](string v, int type) {
+        return this->incomingHandler(v, type);
+    });*/
+}
+
+void BbClient::start(){
+    this->nm->startService();
+}
+
 bool BbClient::hasSecret() {
 
     if(!readSecret()) {
@@ -191,4 +203,54 @@ bool BbClient::execute(uint8_t* B_in, size_t B_in_size,
 
     Log("BbClient::execute - success");
     return true;
+}
+
+vector<string> BbClient::incomingHandler(string v, int type) {
+    vector<string> res;
+    bool ret;
+    string s;
+
+    if(type == RA_FAILED_READ)
+    {
+        Log("BbClient::incomingHandler - Failed read, restarting");
+        //restart();
+        return res;
+    }
+
+    switch (type) {
+        case THC_PK_RES: {
+            Messages::CertificateMSG pkResponse;
+            Messages::CertificateMSG getSecretRequest;
+            ret = pkResponse.ParseFromString(v);
+            if (ret && (pkResponse.type() == THC_PK_RES)){
+                if(this->processPkResponse(pkResponse, getSecretRequest) && getSecretRequest.SerializeToString(&s)){
+                    res.push_back(to_string(THC_SEC_REQ));
+                    //res.push_back(nm->serialize(getSecretRequest));
+                }
+                else {
+                    Log("BbClient::incomingHandler - processPkRequest failed");
+                }                
+            }
+        }
+        break;
+        case THC_SEC_RES: {
+            Messages::GetSecretResponse getSecretResponse;
+            ret = getSecretResponse.ParseFromString(v);
+            if (ret && (getSecretResponse.type() == THC_SEC_RES)){
+                if(this->processGetSecretResponse(getSecretResponse)){
+                    Log("BbClient::incomingHandler - processGetSecretResponse succeeded");
+                }
+                else {
+                    Log("BbClient::incomingHandler - processGetSecretResponse failed");
+                }                
+            }
+        }
+        break;
+        default:
+            Log("Unknown type: %d", type, log::error);
+            break;
+    }
+
+    res.push_back(s);
+    return res;
 }

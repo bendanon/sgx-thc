@@ -3,8 +3,9 @@
 
 #include "LogBase.h"
 #include "NetworkManager.h"
-#include "AttestationServer.h"
 #include "UtilityFunctions.h"
+#include "SkgServer.h"
+#include "SkgEnclave.h"
 
 using namespace util;
 

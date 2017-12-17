@@ -29,6 +29,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "UtilityFunctions.h"
+#include "NetworkManagerClient.h"
+
 
 using namespace std;
 using namespace util;
@@ -42,6 +44,9 @@ private:
 public:
     BbClient(BbEnclave* pEnclave);
     virtual ~BbClient();
+    
+    void init();
+    void start();
     
     bool hasSecret();
 
@@ -76,6 +81,9 @@ public:
     */
     bool execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 
+    //TODO - this should be private and called by NetworkManagerClient
+    vector<string> incomingHandler(string v, int type);
+
 private:
     bool obtainCertificate();
     bool readSecret();
@@ -83,6 +91,7 @@ private:
 
 
 private:
+    NetworkManagerClient *nm = NULL;
     VerificationReport m_report;
     BbEnclave* m_pEnclave;
     AttestationClient* m_pClient;
