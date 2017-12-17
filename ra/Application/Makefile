@@ -93,8 +93,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-bb_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp
-skg_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp skg_enclave/skg_enclave.cpp
+bb_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp common_enclave/common_enclave.cpp
+skg_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp skg_enclave/skg_enclave.cpp common_enclave/common_enclave.cpp
 Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
@@ -229,6 +229,12 @@ $(App_Name): isv_app/bb_enclave_u.o isv_app/skg_enclave_u.o $(App_Cpp_Objects)
 	@echo "LINK =>  $@"
 
 
+######## common Enclave Objects ########
+
+common_enclave/%.o: common_enclave/%.cpp
+	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
 ######## SKG Enclave Objects ########
 
 skg_enclave/skg_enclave_t.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
@@ -238,6 +244,7 @@ skg_enclave/skg_enclave_t.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
 skg_enclave/skg_enclave_t.o: skg_enclave/skg_enclave_t.c
 	@$(CC) $(Enclave_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
+
 skg_enclave/%.o: skg_enclave/%.cpp
 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
