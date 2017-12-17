@@ -3,7 +3,9 @@
 
 string BbClient::secret_file_name = "secret.bb";
 
-BbClient::BbClient(BbEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
+BbClient::BbClient(BbEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { 
+    this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
+}
 
 BbClient::~BbClient(){
     delete m_pClient;
@@ -12,10 +14,10 @@ BbClient::~BbClient(){
 
 
 void BbClient::init() {
-    /*this->nm->Init();
+    this->nm->Init();
     this->nm->connectCallbackHandler([this](string v, int type) {
         return this->incomingHandler(v, type);
-    });*/
+    });
 }
 
 void BbClient::start(){
@@ -210,45 +212,55 @@ vector<string> BbClient::incomingHandler(string v, int type) {
     bool ret;
     string s;
 
-    if(type == RA_FAILED_READ)
+    if(type == THC_FAILED_READ)
     {
         Log("BbClient::incomingHandler - Failed read, restarting");
         //restart();
         return res;
     }
 
-    switch (type) {
-        case THC_PK_RES: {
-            Messages::CertificateMSG pkResponse;
-            Messages::CertificateMSG getSecretRequest;
-            ret = pkResponse.ParseFromString(v);
-            if (ret && (pkResponse.type() == THC_PK_RES)){
-                if(this->processPkResponse(pkResponse, getSecretRequest) && getSecretRequest.SerializeToString(&s)){
-                    res.push_back(to_string(THC_SEC_REQ));
-                    //res.push_back(nm->serialize(getSecretRequest));
+    if (!v.empty()) {
+
+        switch (type) {
+            case THC_PK_RES: {
+                Messages::CertificateMSG pkResponse;
+                Messages::CertificateMSG getSecretRequest;
+                ret = pkResponse.ParseFromString(v);
+                if (ret && (pkResponse.type() == THC_PK_RES)){
+                    if(this->processPkResponse(pkResponse, getSecretRequest) && getSecretRequest.SerializeToString(&s)){                        
+                        res.push_back(to_string(THC_SEC_REQ));                        
+                    }
+                    else {
+                        Log("BbClient::incomingHandler - processPkRequest failed");
+                    }                
                 }
-                else {
-                    Log("BbClient::incomingHandler - processPkRequest failed");
-                }                
             }
-        }
-        break;
-        case THC_SEC_RES: {
-            Messages::GetSecretResponse getSecretResponse;
-            ret = getSecretResponse.ParseFromString(v);
-            if (ret && (getSecretResponse.type() == THC_SEC_RES)){
-                if(this->processGetSecretResponse(getSecretResponse)){
-                    Log("BbClient::incomingHandler - processGetSecretResponse succeeded");
-                }
-                else {
-                    Log("BbClient::incomingHandler - processGetSecretResponse failed");
-                }                
-            }
-        }
-        break;
-        default:
-            Log("Unknown type: %d", type, log::error);
             break;
+            case THC_SEC_RES: {
+                Messages::GetSecretResponse getSecretResponse;
+                ret = getSecretResponse.ParseFromString(v);
+                if (ret && (getSecretResponse.type() == THC_SEC_RES)){
+                    if(this->processGetSecretResponse(getSecretResponse)){
+                        Log("BbClient::incomingHandler - processGetSecretResponse succeeded");
+                    }
+                    else {
+                        Log("BbClient::incomingHandler - processGetSecretResponse failed");
+                    }                
+                }
+            }
+            break;
+            default:
+                Log("Unknown type: %d", type, log::error);
+                break;
+        }
+
+    } else {
+        Messages::PkRequest pkRequest;
+        if (this->generatePkRequest(pkRequest) && pkRequest.SerializeToString(&s)){
+            res.push_back(to_string(THC_PK_REQ));
+        } else { 
+            Log("BbClient::incomingHandler - generatePkRequest failed");            
+        }
     }
 
     res.push_back(s);

@@ -61,7 +61,6 @@ protected:
 
 private:
     int busy_retry_time = 4;
-    NetworkManagerClient *nm = NULL;
     VerificationReport& m_report;
     sgx_report_body_t m_sent_report_body;
     uint32_t m_extended_epid_group_id;

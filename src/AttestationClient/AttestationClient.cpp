@@ -12,7 +12,6 @@ AttestationClient::AttestationClient(Enclave *enclave,
     if(p_pk == NULL)
         Log("AttestationClient created with NULL p_pk, should crash");
 
-    this->nm = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
     this->ws = WebService::getInstance();
     m_pEnclave = enclave;
     m_p_pk = p_pk;
@@ -22,11 +21,7 @@ AttestationClient::~AttestationClient() { }
 
 
 int AttestationClient::init() {
-    this->nm->Init();
     this->ws->init();
-    this->nm->connectCallbackHandler([this](string v, int type) {
-        return this->incomingHandler(v, type);
-    });
 }
 
 bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
@@ -302,7 +297,6 @@ void AttestationClient::start() {
         return;
     }
 
-    //this->nm->startService();
 }   
 
 sgx_status_t AttestationClient::getEnclaveStatus() {
@@ -327,7 +321,7 @@ uint32_t AttestationClient::getExtendedEPID_GID(uint32_t *extended_epid_group_id
 
 string AttestationClient::generateMSG0() {
     Log("Call MSG0 generate");
-
+    string s;
     uint32_t extended_epid_group_id;
     int ret = this->getExtendedEPID_GID(&extended_epid_group_id);
 
@@ -340,7 +334,7 @@ string AttestationClient::generateMSG0() {
         msg.set_status(TYPE_TERMINATE);
         msg.set_epid(0);
     }
-    return nm->serialize(msg);
+    return msg.SerializeToString(&s) ? s : "";
 }
 
 
@@ -348,6 +342,7 @@ string AttestationClient::generateMSG1() {
     int retGIDStatus = 0;
     int count = 0;
     sgx_ra_msg1_t sgxMsg1Obj;
+    string s;
 
     while (1) {
         retGIDStatus = sgx_ra_get_msg1(this->m_pEnclave->getContext(),
@@ -393,7 +388,7 @@ string AttestationClient::generateMSG1() {
             return "";
         }
 
-        return nm->serialize(msg);
+        return msg.SerializeToString(&s) ? s : "";
     }
 
     return "";
@@ -485,6 +480,7 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
         Log("Call sgx_ra_proc_msg2 success");
 
         Messages::MessageMSG3 msg3;
+        string s;
 
         msg3.set_type(RA_MSG3);
         msg3.set_size(msg3_size);
@@ -507,7 +503,7 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
         }
 
         SafeFree(p_msg3);
-        return nm->serialize(msg3);
+        return msg3.SerializeToString(&s) ? s : "";
     }
 
     SafeFree(p_msg3);
@@ -538,17 +534,6 @@ string AttestationClient::handleMSG0Response(Messages::MessageMsg0 msg) {
 
     return "";
 }
-
-
-/*
-string AttestationClient::createInitMsg(int type, string msg) {
-    Messages::SecretMessage init_msg;
-    init_msg.set_type(type);
-    init_msg.set_size(msg.size());
-
-    return nm->serialize(init_msg);
-}
-*/
 
 
 void AttestationClient::restart(){

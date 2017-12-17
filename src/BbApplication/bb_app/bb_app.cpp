@@ -22,43 +22,27 @@ int Main(int argc, char* argv[]) {
 
     sgx_status_t sgx_ret;
     BbEnclave* bb_enclave = new BbEnclave();
-    BbEnclave* bb2_enclave = new BbEnclave();
-    if (SGX_SUCCESS != bb_enclave->createEnclave() ||
-        SGX_SUCCESS != bb2_enclave->createEnclave()){
+    if (SGX_SUCCESS != bb_enclave->createEnclave()) {
         Log("createEnclave failed");
         return -1;
     }
 
-    Messages::PkRequest pkRequest;
-    Messages::CertificateMSG skgCertMsg1, skgCertMsg2;
-    Messages::CertificateMSG bbCertMsg1, bbCertMsg2;
-    Messages::GetSecretResponse getSecretResponse1, getSecretResponse2;
-
-
     BbClient bbClient(bb_enclave);
-    BbClient bbClient2(bb2_enclave);
+
+    bbClient.init();
+    bbClient.start();
     
     uint8_t B_out[B_OUT_SIZE_BYTES];
     memset(B_out, 0, B_OUT_SIZE_BYTES);   
-
-    uint8_t B_out2[B_OUT_SIZE_BYTES];
-    memset(B_out2, 0, B_OUT_SIZE_BYTES); 
     
     uint8_t B_in[B_IN_SIZE_BYTES];          //TODO: Recieve this as input from neighbor
     memset(B_in, 0, B_IN_SIZE_BYTES);
 
     bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);
-    bbClient2.execute(B_out, B_IN_SIZE_BYTES, B_out2, B_OUT_SIZE_BYTES);
+    Log("B_out is %s", Base64encodeUint8((uint8_t*)B_out, sizeof(B_out)));
 
-    if(0==memcmp(B_in,B_out2,B_OUT_SIZE_BYTES)){
-        Log("Comparison success");
-    }
-    else {
-        Log("Comparison failed");        
-    }
 
     delete bb_enclave;
-    delete bb2_enclave;
     return ret;
 }
 

@@ -5,7 +5,9 @@ string SkgServer::public_file_name = "public.skg";
 string SkgServer::secrets_file_name = "secrets.skg";
 string SkgServer::report_file_name = "report_";
 
-SkgServer::SkgServer(SkgEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { }
+SkgServer::SkgServer(SkgEnclave* pEnclave) : m_pEnclave(pEnclave), m_pClient(NULL) { 
+    this->nm = NetworkManagerServer::getInstance(Settings::rh_port);
+}
 
 SkgServer::~SkgServer(){
     delete m_pClient;
@@ -118,28 +120,28 @@ bool SkgServer::obtainAssets(){
 
 bool SkgServer::init() {
 
-    if(readAssets())
+    if(!readAssets())
     {
+        if(!obtainAssets())
+        {
+            Log("SkgServer::Init - obtainAssets failed");
+            return false;
+        }    
+
+        if(!writeAssets())
+        {
+            Log("SkgServer::Init failed to write assets"); 
+            return false;
+        }
+    } else {
         Log("SkgServer::Init - assets read from memory successfully");
-        return true;
     }
 
-    if(!obtainAssets())
-    {
-        Log("SkgServer::Init - obtainAssets failed");
-        return false;
-    }    
 
-    if(!writeAssets())
-    {
-        Log("SkgServer::Init failed to write assets"); 
-        return false;
-    }
-
-    /*this->nm->Init();
+    this->nm->Init();
     this->nm->connectCallbackHandler([this](string v, int type) {
         return this->incomingHandler(v, type);
-    });*/
+    });
 
     Log("SkgServer::Init succeeded");
     return true;
@@ -209,7 +211,7 @@ bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg,
         getSecretResponse.add_encrypted_secret(x);    
 
     Log("SkgServer::processGetSecretRequest - success");
-    return false;
+    return true;
 }
 
 vector<string> SkgServer::incomingHandler(string v, int type) {
@@ -217,7 +219,7 @@ vector<string> SkgServer::incomingHandler(string v, int type) {
     bool ret;
     string s;
 
-    if(type == RA_FAILED_READ)
+    if(type == THC_FAILED_READ)
     {
         Log("SkgServer::incomingHandler - Failed read, restarting");
         //restart();

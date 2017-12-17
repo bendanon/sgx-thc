@@ -15,6 +15,7 @@ typedef enum _ra_msg_types {
 } ra_msg_types;
 
 typedef enum _thc_msg_types {    
+    THC_FAILED_READ,
     THC_PK_REQ,
     THC_PK_RES,
     THC_SEC_REQ,

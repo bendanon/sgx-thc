@@ -6,7 +6,9 @@ using namespace util;
 
 AbstractNetworkOps::AbstractNetworkOps(boost::asio::io_service& io_service, boost::asio::ssl::context& context) : socket_(io_service, context) {}
 
-AbstractNetworkOps::~AbstractNetworkOps() {}
+AbstractNetworkOps::~AbstractNetworkOps() {
+    Log("AbstractNetworkOps::~AbstractNetworkOps()", log::error);
+}
 
 
 AbstractNetworkOps::ssl_socket::lowest_layer_type& AbstractNetworkOps::socket() {
