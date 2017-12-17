@@ -46,12 +46,12 @@ else
 endif
 
 
-App_Cpp_Files := isv_app/bb_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
+App_Cpp_Files := bb_app/bb_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
 ../Networking/Client.cpp ../Networking/NetworkManagerClient.cpp ../Networking/NetworkManagerServer.cpp ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp \
 ../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../Enclave/BbEnclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
 ../BbClient/BbClient.cpp ../WebService/WebService.cpp
 
-App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
+App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Ibb_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
 -I../AttestationClient -I../VerificationReport -I../BbClient -I../Networking -I../WebService -Isample_libcrypto
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths) -lsample_libcrypto -Lsample_libcrypto
@@ -152,15 +152,15 @@ endif
 
 ######## App Objects ########
 
-isv_app/bb_enclave_u.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
-	@cd isv_app && $(SGX_EDGER8R) --use-prefix --untrusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
+bb_app/bb_enclave_u.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
+	@cd bb_app && $(SGX_EDGER8R) --use-prefix --untrusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
 	@echo "GEN  =>  $@"
 
-isv_app/bb_enclave_u.o: isv_app/bb_enclave_u.c
+bb_app/bb_enclave_u.o: bb_app/bb_enclave_u.c
 	@$(CC) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
-isv_app/%.o: isv_app/%.cpp
+bb_app/%.o: bb_app/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
@@ -197,7 +197,7 @@ isv_app/%.o: isv_app/%.cpp
 	@echo "CXX  <=  $<"
 
 
-$(App_Name): isv_app/bb_enclave_u.o $(App_Cpp_Objects)
+$(App_Name): bb_app/bb_enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
@@ -232,4 +232,4 @@ $(bb_Signed_Enclave_Name): $(bb_Enclave_Name)
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(bb_Enclave_Name) $(bb_Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/bb_enclave_u.* $(bb_Enclave_Cpp_Objects) bb_enclave/bb_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
+	@rm -f $(App_Name) $(bb_Enclave_Name) $(bb_Signed_Enclave_Name) $(App_Cpp_Objects) bb_app/bb_enclave_u.* $(bb_Enclave_Cpp_Objects) bb_enclave/bb_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)

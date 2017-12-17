@@ -46,12 +46,12 @@ else
 endif
 
 
-App_Cpp_Files := isv_app/skg_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
+App_Cpp_Files := skg_app/skg_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
 ../Networking/Client.cpp ../Networking/NetworkManagerClient.cpp ../Networking/NetworkManagerServer.cpp ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp \
 ../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../Enclave/SkgEnclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
 ../SkgServer/SkgServer.cpp ../WebService/WebService.cpp
 
-App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iisv_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
+App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Iskg_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
 -I../AttestationClient -I../VerificationReport -I../SkgServer -I../Networking -I../WebService -Isample_libcrypto
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths) -lsample_libcrypto -Lsample_libcrypto
@@ -152,15 +152,15 @@ endif
 
 ######## App Objects ########
 
-isv_app/skg_enclave_u.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
-	@cd isv_app && $(SGX_EDGER8R) --use-prefix --untrusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
+skg_app/skg_enclave_u.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
+	@cd skg_app && $(SGX_EDGER8R) --use-prefix --untrusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
 	@echo "GEN  =>  $@"
 
-isv_app/skg_enclave_u.o: isv_app/skg_enclave_u.c
+skg_app/skg_enclave_u.o: skg_app/skg_enclave_u.c
 	@$(CC) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
-isv_app/%.o: isv_app/%.cpp
+skg_app/%.o: skg_app/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
@@ -197,7 +197,7 @@ isv_app/%.o: isv_app/%.cpp
 	@echo "CXX  <=  $<"
 
 
-$(App_Name): isv_app/skg_enclave_u.o $(App_Cpp_Objects)
+$(App_Name): skg_app/skg_enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
@@ -233,4 +233,4 @@ $(skg_Signed_Enclave_Name): $(skg_Enclave_Name)
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(skg_Enclave_Name) $(skg_Signed_Enclave_Name) $(App_Cpp_Objects) isv_app/skg_enclave_u.* $(skg_Enclave_Cpp_Objects) skg_enclave/skg_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
+	@rm -f $(App_Name) $(skg_Enclave_Name) $(skg_Signed_Enclave_Name) $(App_Cpp_Objects) skg_app/skg_enclave_u.* $(skg_Enclave_Cpp_Objects) skg_enclave/skg_enclave_t.* libservice_provider.* $(ServiceProvider_Cpp_Objects)
