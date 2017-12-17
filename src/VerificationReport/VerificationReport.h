@@ -14,7 +14,6 @@
 #include <string.h>
 #include "Messages.pb.h"
 #include "UtilityFunctions.h"
-#include "../../thc/App/th_definitions.h"
 #include "../ServiceProvider/service_provider/ias_ra.h"
 
 #include <openssl/bio.h>

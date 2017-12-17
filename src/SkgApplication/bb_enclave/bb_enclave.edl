@@ -1,0 +1,35 @@
+enclave {
+    from "../common_enclave/common_enclave.edl" import *;
+
+    trusted {
+
+        public sgx_status_t bb_init_1(
+            [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
+            [out, size=pk_size]sgx_ec256_public_t* bb_pk,
+            [in, size=pk_size]sgx_ec256_public_t* skg_pk, size_t pk_size);
+        
+        public sgx_status_t bb_init_2(
+            [in, size=sealed_size]sgx_sealed_data_t* p_sealed_k,
+            [in, size=s_encrypted_size] uint8_t* s_encrypted, size_t s_encrypted_size, 
+            [out, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
+        
+        
+        public sgx_status_t bb_exec(
+            [in, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size,
+            [in, size=B_in_size]uint8_t* B_in, size_t B_in_size,
+            [out, size=B_out_size] uint8_t* B_out, size_t B_out_size);
+    };
+
+};
+
+
+
+
+
+
+
+
+
+
+
+

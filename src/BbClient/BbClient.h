@@ -16,7 +16,6 @@
 #include "sgx_tseal.h"
 #include <stdlib.h>
 #include "sgx_utils.h"
-#include "../../thc/App/th_definitions.h"
 
 #include "LogBase.h"
 #include "../GeneralSettings.h"
