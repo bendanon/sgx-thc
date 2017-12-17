@@ -30,15 +30,15 @@ int SGX_UBRIDGE(SGX_CDECL, sgx_thread_set_untrusted_event_ocall, (const void* wa
 int SGX_UBRIDGE(SGX_CDECL, sgx_thread_setwait_untrusted_events_ocall, (const void* waiter, const void* self));
 int SGX_UBRIDGE(SGX_CDECL, sgx_thread_set_multiple_untrusted_events_ocall, (const void** waiters, size_t total));
 
-sgx_status_t bb_enclave_bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size);
-sgx_status_t bb_enclave_bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
-sgx_status_t bb_enclave_bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
-sgx_status_t bb_enclave_enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retval, int b_pse, sgx_ra_context_t* p_context);
-sgx_status_t bb_enclave_enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context);
-sgx_status_t bb_enclave_derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size);
-sgx_status_t bb_enclave_sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, sgx_ec256_public_t* g_a);
-sgx_status_t bb_enclave_sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, const sgx_ra_msg2_t* p_msg2, const sgx_target_info_t* p_qe_target, sgx_report_t* p_report, sgx_quote_nonce_t* p_nonce);
-sgx_status_t bb_enclave_sgx_ra_get_msg3_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, uint32_t quote_size, sgx_report_t* qe_report, sgx_ra_msg3_t* p_msg3, uint32_t msg3_size);
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size);
+sgx_status_t bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
+sgx_status_t bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
+sgx_status_t enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retval, int b_pse, sgx_ra_context_t* p_context);
+sgx_status_t enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context);
+sgx_status_t derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size);
+sgx_status_t sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, sgx_ec256_public_t* g_a);
+sgx_status_t sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, const sgx_ra_msg2_t* p_msg2, const sgx_target_info_t* p_qe_target, sgx_report_t* p_report, sgx_quote_nonce_t* p_nonce);
+sgx_status_t sgx_ra_get_msg3_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, uint32_t quote_size, sgx_report_t* qe_report, sgx_ra_msg3_t* p_msg3, uint32_t msg3_size);
 
 #ifdef __cplusplus
 }

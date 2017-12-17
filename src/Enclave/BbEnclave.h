@@ -24,9 +24,9 @@ public:
     //friend class Enclave;
     BbEnclave() : Enclave(ENCLAVE_TYPE_BB, 
                           Settings::bb_enclave_path,
-                          bb_enclave_sgx_ra_get_ga, 
-                          bb_enclave_sgx_ra_proc_msg2_trusted, 
-                          bb_enclave_sgx_ra_get_msg3_trusted) { }
+                          sgx_ra_get_ga, 
+                          sgx_ra_proc_msg2_trusted, 
+                          sgx_ra_get_msg3_trusted) { }
     virtual ~BbEnclave();
     virtual sgx_status_t initRa();
     virtual sgx_status_t closeRa();

@@ -240,7 +240,6 @@ bool WebService::getSigRL(string gid, string *sigrl) {
 
     string url = Settings::ias_url + "sigrl/" + gid;
 
-    Log("WebService::getSigRL - Sending to IAS, url is %s", url);
     bool ret = this->sendToIAS(url, IAS::sigrl, "", NULL, &ias_response_container, &response_header);
 
     if(!ret){

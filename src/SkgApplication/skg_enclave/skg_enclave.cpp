@@ -28,30 +28,43 @@ sgx_status_t skg_init(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
                       sgx_ec256_public_t* p_pk,size_t pk_size) {
     
         memset(s_sk, 0, sizeof(s_sk));        
-        sgx_status_t status;
+        sgx_status_t status = SGX_ERROR_UNEXPECTED;
 
         //Use SGX hardware randomness to generate shared secret key s
         status = sgx_read_rand((unsigned char*)s_sk, SECRET_KEY_SIZE_BYTES);        
-        ocall_print("sgx_read_rand status is %d\n", status);
-        if(status) return status;
+        
+        if(status) {
+            ocall_print("sgx_read_rand status is %d\n", status);
+            return status;
+        } 
         
         //Generate an encryption key pair (pk,sk), output pk
         sgx_ecc_state_handle_t handle;
     
         status = sgx_ecc256_open_context(&handle);
-        ocall_print("sgx_ecc256_open_context status is %d\n", status);
-        if(status) return status;
+        
+        if(status) {
+            ocall_print("sgx_ecc256_open_context status is %d\n", status);
+            return status;
+        } 
         
         status = sgx_ecc256_create_key_pair(&skg_priv_key, p_pk, handle);
 
-        ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
-        if(status) return status;        
+        
+        if(status) {
+            return status;
+            ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
+        } 
+        
         memcpy(s_sk + SECRET_KEY_SIZE_BYTES, &skg_priv_key, sizeof(sgx_ec256_private_t));
 
         //Seal the data (s,sk) [sealing to MRENCLAVE] and output sealed data.        
         status = sgx_seal_data(0, NULL, sizeof(s_sk), s_sk, sealed_size, p_sealed_data);
-        ocall_print("sgx_seal_data status is %d\n", status);
-        if(status) return status;
+        
+        if(status){
+            ocall_print("sgx_seal_data status is %d\n", status);
+            return status;
+        } 
 
         return SGX_SUCCESS;
     }
@@ -70,7 +83,7 @@ sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk,
                       uint8_t* s_encrypted, size_t s_encrypted_size)         //out (c')
 {
 
-    sgx_status_t status;
+    sgx_status_t status = SGX_ERROR_UNEXPECTED;
     
     //Unseal s,sk
     uint8_t s_sk_unsealed[SKG_DATA_SIZE_BYTES];
@@ -82,11 +95,11 @@ sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk,
                              s_sk_unsealed, 
                              &unsealed_text_length);
                              
-    ocall_print("sgx_unseal_data status is %d\n", status);
-    if(status) return status;
-
-    //TODO-remove
-    ocall_print("s_sk=s_sk_decrypted? %d\n", memcmp(s_sk_unsealed, s_sk, SKG_DATA_SIZE_BYTES));
+    
+    if(status) {
+        ocall_print("sgx_unseal_data status is %d\n", status);
+        return status;
+    } 
 
     //extract sk 
     sgx_ec256_private_t sk;
@@ -99,18 +112,28 @@ sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk,
     //Initialize the ec256 context
     sgx_ecc_state_handle_t handle;
     status = sgx_ecc256_open_context(&handle);
-    ocall_print("sgx_ecc256_open_context status is %d\n", status);
-    if(status) return status;
+    
+    if(status){
+        ocall_print("sgx_ecc256_open_context status is %d\n", status);
+        return status;
+    } 
    
     //Compute the shared key with with c was encrypted
     sgx_ec256_dh_shared_t shared_key;
     status = sgx_ecc256_compute_shared_dhkey(&sk,p_bb_pk,&shared_key, handle);
-    ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
-    if(status) return status;    
+    
+    
+    if(status) {
+        ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
+        return status;
+    } 
 
     status = encrypt_key(s_sk_unsealed, s_encrypted, (uint8_t*)&shared_key);
-    ocall_print("encrypt_key status is %d\n", status);
-    if(status) return status;
+    
+    if(status) {
+        ocall_print("encrypt_key status is %d\n", status);
+        return status;
+    } 
 
     return SGX_SUCCESS;
 }

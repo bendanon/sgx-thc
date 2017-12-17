@@ -38,7 +38,7 @@ sgx_status_t BbEnclave::initRa() {
         return SGX_SUCCESS;
     }
 
-    ret = bb_enclave_enclave_init_ra(this->enclave_id,
+    ret = enclave_init_ra(this->enclave_id,
                                   &this->status,
                                   false,
                                   &this->context);
@@ -58,7 +58,7 @@ sgx_status_t BbEnclave::closeRa(){
 
     if(!m_enclaveCreated)
     {
-        Log("Called closeRa but enclave not created");
+        Log("Called closeRa but enclave not created", log::error);
         return SGX_ERROR_INVALID_ENCLAVE;
     }
 
@@ -70,11 +70,11 @@ sgx_status_t BbEnclave::closeRa(){
 
     if(context == INT_MAX)
     {
-        Log("Called closeRa but INT_MAX == context, enclave_ra_close NOT called");
+        Log("Called closeRa but INT_MAX == context, enclave_ra_close NOT called", log::error);
         return SGX_ERROR_INVALID_ENCLAVE;
     }
 
-    ret = bb_enclave_enclave_ra_close(enclave_id, &status, context);
+    ret = enclave_ra_close(enclave_id, &status, context);
     if (SGX_SUCCESS != ret || status) {            
         Log("Error, call enclave_ra_close fail", log::error);
         return ret;
@@ -90,7 +90,7 @@ sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_si
                               sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, 
                               size_t pk_size) {
 
-    bb_enclave_bb_init_1(this->enclave_id,
+    bb_init_1(this->enclave_id,
              &this->status, 
              sealed_data, 
              sealed_size, 
@@ -98,7 +98,10 @@ sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_si
              skg_pk, 
              pk_size);
 
-    Log("bb_init_1 retval is %d", this->status);
+    if(SGX_SUCCESS != this->status) {
+        Log("bb_init_1 failed, retval is %d", this->status, log::error);
+    }
+    
 
     return this->status;
 }
@@ -108,7 +111,7 @@ sgx_status_t BbEnclave::bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encryp
                               size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, 
                               size_t sealed_size) {
                                   
-    bb_enclave_bb_init_2(this->enclave_id,
+    bb_init_2(this->enclave_id,
              &this->status, 
              p_sealed_k, 
              s_encrypted, 
@@ -116,7 +119,9 @@ sgx_status_t BbEnclave::bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encryp
              p_sealed_s,
              sealed_size);
 
-    Log("bb_init_2 retval is %d", this->status);
+    if(SGX_SUCCESS != this->status) {
+        Log("bb_init_2 failed, retval is %d", this->status, log::error);
+    }
 
     return this->status;
 }
@@ -125,7 +130,7 @@ sgx_status_t BbEnclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size
                              uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
                              size_t B_out_size){
 
-    bb_enclave_bb_exec(this->enclave_id,
+    bb_exec(this->enclave_id,
              &this->status, 
              p_sealed_s, 
              sealed_size, 
@@ -134,7 +139,9 @@ sgx_status_t BbEnclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size
              B_out,
              B_out_size);
 
-    Log("bb_exec retval is %d", this->status);
+    if(SGX_SUCCESS != this->status) {
+        Log("bb_exec failed, retval is %d", this->status, log::error);
+    }
 
     return this->status;
 }
@@ -143,14 +150,16 @@ sgx_status_t BbEnclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size
 sgx_status_t BbEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
                                 sgx_ec_key_128bit_t* p_smk, size_t smk_size){
     
-    bb_enclave_derive_smk(this->enclave_id,
+    derive_smk(this->enclave_id,
                &this->status,
                p_pk,
                pk_size,
                p_smk,
                smk_size);
     
-    Log("derive_smk retval is %d", this->status);
+    if(SGX_SUCCESS != this->status) {
+        Log("derive_smk failed, retval is %d", this->status, log::error);
+    }
 
     return this->status;
 }

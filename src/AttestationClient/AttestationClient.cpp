@@ -347,7 +347,7 @@ string AttestationClient::generateMSG1() {
     while (1) {
         retGIDStatus = sgx_ra_get_msg1(this->m_pEnclave->getContext(),
                                        this->m_pEnclave->getID(),
-                                       m_pEnclave->sgx_ra_get_ga(),
+                                       m_pEnclave->get_sgx_ra_get_ga(),
                                        &sgxMsg1Obj);
 
         if (retGIDStatus == SGX_SUCCESS) {
@@ -462,8 +462,8 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
     do {
         ret = sgx_ra_proc_msg2(this->m_pEnclave->getContext(),
                                this->m_pEnclave->getID(),
-                               m_pEnclave->sgx_ra_proc_msg2_trusted(),
-                               m_pEnclave->sgx_ra_get_msg3_trusted(),
+                               m_pEnclave->get_sgx_ra_proc_msg2_trusted(),
+                               m_pEnclave->get_sgx_ra_get_msg3_trusted(),
                                p_msg2,
                                size,
                                &p_msg3,

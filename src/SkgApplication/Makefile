@@ -153,7 +153,7 @@ endif
 ######## App Objects ########
 
 skg_app/skg_enclave_u.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
-	@cd skg_app && $(SGX_EDGER8R) --use-prefix --untrusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
+	@cd skg_app && $(SGX_EDGER8R) --untrusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
 	@echo "GEN  =>  $@"
 
 skg_app/skg_enclave_u.o: skg_app/skg_enclave_u.c
@@ -211,7 +211,7 @@ $(App_Name): skg_app/skg_enclave_u.o $(App_Cpp_Objects)
 ######## SKG Enclave Objects ########
 
 skg_enclave/skg_enclave_t.c: $(SGX_EDGER8R) skg_enclave/skg_enclave.edl
-	@cd skg_enclave && $(SGX_EDGER8R) --use-prefix --trusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path  ../../common_enclave --search-path $(SGX_SDK)/include  
+	@cd skg_enclave && $(SGX_EDGER8R) --trusted ../skg_enclave/skg_enclave.edl --search-path ../skg_enclave --search-path  ../../common_enclave --search-path $(SGX_SDK)/include  
 	@echo "GEN  =>  $@"
 
 skg_enclave/skg_enclave_t.o: skg_enclave/skg_enclave_t.c

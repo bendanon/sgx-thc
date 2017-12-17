@@ -34,31 +34,43 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
 
     
     memset(k, 0, sizeof(k));
-    sgx_status_t status;
+    sgx_status_t status = SGX_ERROR_UNEXPECTED;
     
     //Compute k=DH(bbsk, pk) the shared DH key of skg and bb
     sgx_ecc_state_handle_t handle;
 
     status = sgx_ecc256_open_context(&handle);
-    ocall_print("sgx_ecc256_open_context status is %d\n", status);
-    if(status) return status;
+    
+    if(status) {
+        ocall_print("sgx_ecc256_open_context status is %d\n", status);
+        return status;
+    }
     
     status = sgx_ecc256_create_key_pair(&bb_priv_key, p_bb_pk, handle);
-    ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
-    if(status) return status;
+    
+    if(status) {
+        ocall_print("sgx_ecc256_create_key_pair status is %d\n", status);
+        return status;
+    } 
     
     sgx_ec256_dh_shared_t shared_key;
     status = sgx_ecc256_compute_shared_dhkey(&bb_priv_key,p_skg_pk,&shared_key, handle);
-    ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
-    if(status) return status;
+    
+    if(status){
+        ocall_print("sgx_ecc256_compute_shared_dhkey status is %d\n", status);
+        return status;
+    } 
 
     //shared_key is k
     memcpy(k ,&shared_key, SECRET_KEY_SIZE_BYTES);
 
     //Seal (k) [sealing to MRENCLAVE]
     status = sgx_seal_data(0, NULL, sizeof(k), k, sealed_size, p_sealed_data);
-    ocall_print("sgx_seal_data status is %d\n", status);
-    if(status) return status;
+    
+    if(status){
+        ocall_print("sgx_seal_data status is %d\n", status);
+        return status;
+    }
 
     return SGX_SUCCESS;
 
@@ -74,7 +86,7 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
                        uint8_t* s_encrypted, size_t s_encrypted_size,       //in (c')
                        sgx_sealed_data_t* p_sealed_s, size_t sealed_size)  //out (Seal(s))
 {
-    sgx_status_t status;
+    sgx_status_t status = SGX_ERROR_UNEXPECTED;
 
     //Unseal k
     uint8_t k_unsealed[SECRET_KEY_SIZE_BYTES];
@@ -86,24 +98,33 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
                              k_unsealed, 
                              &unsealed_text_length);
                              
-    ocall_print("sgx_unseal_data status is %d\n", status);
-    if(status) return status;
+    
+    if(status){
+        ocall_print("sgx_unseal_data status is %d\n", status);
+        return status;
+    }
 
     //TODO-remove
-    ocall_print("k=k_unsealed? %d\n", memcmp(k_unsealed, k, SECRET_KEY_SIZE_BYTES));
+    //ocall_print("k=k_unsealed? %d\n", memcmp(k_unsealed, k, SECRET_KEY_SIZE_BYTES));
 
     uint8_t s_decrypted[SECRET_KEY_SIZE_BYTES];
     memset(s_decrypted, 0, SECRET_KEY_SIZE_BYTES);
 
     //Decrypt c' with k to get s
     status = decrypt_key(s_decrypted, s_encrypted,k_unsealed);
-    ocall_print("decrypt_key status is %d\n", status);
-    if(status) return status;
+    
+    if(status){
+        ocall_print("decrypt_key status is %d\n", status);
+        return status;
+    }
 
     //Seal (s) [to MRENCLAVE] and output sealed data.
     status = sgx_seal_data(0, NULL, sizeof(s_decrypted), s_decrypted, sealed_size, p_sealed_s);
-    ocall_print("sgx_seal_data status is %d\n", status);
-    if(status) return status;
+    
+    if(status) {
+        ocall_print("sgx_seal_data status is %d\n", status);
+        return status;
+    } 
 
     return SGX_SUCCESS;
 }
@@ -120,7 +141,7 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
                        uint8_t* B_in, size_t B_in_size,                   //in (B_in)
                        uint8_t* B_out, size_t B_out_size)                 //out (B_out)
 {
-    sgx_status_t status;
+    sgx_status_t status = SGX_ERROR_UNEXPECTED;
 
     
     if(!bbx.IsInitialized())
@@ -135,15 +156,23 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
                                 s_unsealed, 
                                 &unsealed_text_length);
                                 
-        ocall_print("sgx_unseal_data status is %d\n", status);
-        if(status) return status;
+        
+        if(status) {
+            ocall_print("sgx_unseal_data status is %d\n", status);
+            return status;
+        } 
 
         bbx.Init(s_unsealed, SECRET_KEY_SIZE_BYTES);
-    }   
+    }
+
     bool ret = false;
+
     ret = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
-    ocall_print("bbx.Execute status is %d\n", ret);
-    if(!ret) return SGX_ERROR_UNEXPECTED;
+
+    if(!ret) {
+        ocall_print("bbx.Execute failed");
+        return status;
+    }
 
     return SGX_SUCCESS;
 }

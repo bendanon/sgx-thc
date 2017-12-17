@@ -153,7 +153,7 @@ endif
 ######## App Objects ########
 
 bb_app/bb_enclave_u.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
-	@cd bb_app && $(SGX_EDGER8R) --use-prefix --untrusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
+	@cd bb_app && $(SGX_EDGER8R) --untrusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
 	@echo "GEN  =>  $@"
 
 bb_app/bb_enclave_u.o: bb_app/bb_enclave_u.c
@@ -211,7 +211,7 @@ $(App_Name): bb_app/bb_enclave_u.o $(App_Cpp_Objects)
 ######## BB Enclave Objects ########
 
 bb_enclave/bb_enclave_t.c: $(SGX_EDGER8R) bb_enclave/bb_enclave.edl
-	@cd bb_enclave && $(SGX_EDGER8R) --use-prefix --trusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
+	@cd bb_enclave && $(SGX_EDGER8R) --trusted ../bb_enclave/bb_enclave.edl --search-path ../bb_enclave --search-path $(SGX_SDK)/include --search-path ../../common_enclave
 	@echo "GEN  =>  $@"
 
 bb_enclave/bb_enclave_t.o: bb_enclave/bb_enclave_t.c

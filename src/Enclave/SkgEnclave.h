@@ -24,9 +24,9 @@ public:
     //friend class Enclave;
     SkgEnclave() : Enclave(ENCLAVE_TYPE_SKG, 
                            Settings::skg_enclave_path,
-                           skg_enclave_sgx_ra_get_ga, 
-                           skg_enclave_sgx_ra_proc_msg2_trusted, 
-                           skg_enclave_sgx_ra_get_msg3_trusted) { }
+                           sgx_ra_get_ga, 
+                           sgx_ra_proc_msg2_trusted, 
+                           sgx_ra_get_msg3_trusted) { }
 
     virtual ~SkgEnclave();
     virtual sgx_status_t initRa();

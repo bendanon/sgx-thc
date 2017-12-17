@@ -38,7 +38,7 @@ sgx_status_t SkgEnclave::initRa() {
         return SGX_SUCCESS;
     }
 
-    ret = skg_enclave_enclave_init_ra(this->enclave_id,
+    ret = enclave_init_ra(this->enclave_id,
                                   &this->status,
                                   false,
                                   &this->context);
@@ -74,7 +74,7 @@ sgx_status_t SkgEnclave::closeRa(){
         return SGX_ERROR_INVALID_ENCLAVE;
     }
 
-    ret = skg_enclave_enclave_ra_close(enclave_id, &status, context);
+    ret = enclave_ra_close(enclave_id, &status, context);
     if (SGX_SUCCESS != ret || status) {            
         Log("Error, call enclave_ra_close fail", log::error);
         return ret;
@@ -88,7 +88,7 @@ sgx_status_t SkgEnclave::closeRa(){
 sgx_status_t SkgEnclave::skgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                               sgx_ec256_public_t* pk, size_t pk_size){
 
-    skg_enclave_skg_init(this->enclave_id,
+    skg_init(this->enclave_id,
              &this->status, 
              sealed_data, 
              sealed_size, 
@@ -105,7 +105,7 @@ sgx_status_t SkgEnclave::skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t
                               size_t sealed_size, uint8_t* s_encrypted, 
                               size_t s_encrypted_size) {
 
-    skg_enclave_skg_exec(this->enclave_id,
+    skg_exec(this->enclave_id,
              &this->status, 
              p_bb_pk, 
              p_skg_pk, 
@@ -123,7 +123,7 @@ sgx_status_t SkgEnclave::skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t
 sgx_status_t SkgEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
                                 sgx_ec_key_128bit_t* p_smk, size_t smk_size){
     
-    skg_enclave_derive_smk(this->enclave_id,
+    derive_smk(this->enclave_id,
                &this->status,
                p_pk,
                pk_size,

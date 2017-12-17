@@ -505,7 +505,6 @@ bool VerificationReport::verifySignature() {
                         (const byte*)base64_decode(m_x_iasreport_signature).c_str(), 
                         SIGNATURE_LENGTH_BYTES);
         
-        Log("signature is %s", m_x_iasreport_signature);
         if(rc != 1) {
             Log("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */

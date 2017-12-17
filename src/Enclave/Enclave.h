@@ -48,9 +48,9 @@ public:
     virtual sgx_status_t deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
                            sgx_ec_key_128bit_t* p_smk, size_t smk_size) = 0;
 
-    sgx_ecall_get_ga_trusted_t sgx_ra_get_ga() { return m_sgx_ra_get_ga; }
-    sgx_ecall_proc_msg2_trusted_t sgx_ra_proc_msg2_trusted() { return m_sgx_ra_proc_msg2_trusted; }
-    sgx_ecall_get_msg3_trusted_t sgx_ra_get_msg3_trusted() { return m_sgx_ra_get_msg3_trusted; }
+    sgx_ecall_get_ga_trusted_t get_sgx_ra_get_ga() { return m_sgx_ra_get_ga; }
+    sgx_ecall_proc_msg2_trusted_t get_sgx_ra_proc_msg2_trusted() { return m_sgx_ra_proc_msg2_trusted; }
+    sgx_ecall_get_msg3_trusted_t get_sgx_ra_get_msg3_trusted() { return m_sgx_ra_get_msg3_trusted; }
 
 
 protected:    

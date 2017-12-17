@@ -235,7 +235,7 @@ static const struct {
 		(void*)bb_enclave_sgx_thread_set_multiple_untrusted_events_ocall,
 	}
 };
-sgx_status_t bb_enclave_bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size)
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size)
 {
 	sgx_status_t status;
 	ms_bb_init_1_t ms;
@@ -249,7 +249,7 @@ sgx_status_t bb_enclave_bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sg
 	return status;
 }
 
-sgx_status_t bb_enclave_bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size)
+sgx_status_t bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size)
 {
 	sgx_status_t status;
 	ms_bb_init_2_t ms;
@@ -263,7 +263,7 @@ sgx_status_t bb_enclave_bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sg
 	return status;
 }
 
-sgx_status_t bb_enclave_bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size)
+sgx_status_t bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size)
 {
 	sgx_status_t status;
 	ms_bb_exec_t ms;
@@ -278,7 +278,7 @@ sgx_status_t bb_enclave_bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_
 	return status;
 }
 
-sgx_status_t bb_enclave_enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retval, int b_pse, sgx_ra_context_t* p_context)
+sgx_status_t enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retval, int b_pse, sgx_ra_context_t* p_context)
 {
 	sgx_status_t status;
 	ms_enclave_init_ra_t ms;
@@ -289,7 +289,7 @@ sgx_status_t bb_enclave_enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retv
 	return status;
 }
 
-sgx_status_t bb_enclave_enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context)
+sgx_status_t enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context)
 {
 	sgx_status_t status;
 	ms_enclave_ra_close_t ms;
@@ -299,7 +299,7 @@ sgx_status_t bb_enclave_enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* ret
 	return status;
 }
 
-sgx_status_t bb_enclave_derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size)
+sgx_status_t derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size)
 {
 	sgx_status_t status;
 	ms_derive_smk_t ms;
@@ -312,7 +312,7 @@ sgx_status_t bb_enclave_derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, s
 	return status;
 }
 
-sgx_status_t bb_enclave_sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, sgx_ec256_public_t* g_a)
+sgx_status_t sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, sgx_ec256_public_t* g_a)
 {
 	sgx_status_t status;
 	ms_sgx_ra_get_ga_t ms;
@@ -323,7 +323,7 @@ sgx_status_t bb_enclave_sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval
 	return status;
 }
 
-sgx_status_t bb_enclave_sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, const sgx_ra_msg2_t* p_msg2, const sgx_target_info_t* p_qe_target, sgx_report_t* p_report, sgx_quote_nonce_t* p_nonce)
+sgx_status_t sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, const sgx_ra_msg2_t* p_msg2, const sgx_target_info_t* p_qe_target, sgx_report_t* p_report, sgx_quote_nonce_t* p_nonce)
 {
 	sgx_status_t status;
 	ms_sgx_ra_proc_msg2_trusted_t ms;
@@ -337,7 +337,7 @@ sgx_status_t bb_enclave_sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_statu
 	return status;
 }
 
-sgx_status_t bb_enclave_sgx_ra_get_msg3_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, uint32_t quote_size, sgx_report_t* qe_report, sgx_ra_msg3_t* p_msg3, uint32_t msg3_size)
+sgx_status_t sgx_ra_get_msg3_trusted(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, uint32_t quote_size, sgx_report_t* qe_report, sgx_ra_msg3_t* p_msg3, uint32_t msg3_size)
 {
 	sgx_status_t status;
 	ms_sgx_ra_get_msg3_trusted_t ms;
