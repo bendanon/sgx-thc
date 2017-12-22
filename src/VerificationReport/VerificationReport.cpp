@@ -113,7 +113,22 @@ bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_gb, Messages::Certifica
     return true;
 }
 
+bool VerificationReport::verifyMrEnclave(){
+    Log("mrenclave is %s", Base64encodeUint8((uint8_t*)&m_quote_body.report_body.mr_enclave, sizeof(m_quote_body.report_body.mr_enclave)));
+    return true; //TODO - compare to either skg mrenclave or bb mrenclave
+}
 
+bool VerificationReport::verifyMrSigner(){
+    if(0!=memcmp(Settings::mrsigner, 
+                 Base64encodeUint8((uint8_t*)&m_quote_body.report_body.mr_signer, sizeof(m_quote_body.report_body.mr_signer)).c_str(),
+                 strlen(Settings::mrsigner)))
+    {
+        return false;
+    }
+
+    Log("VerificationReport::verifyMrSigner - success");
+    return true;
+}
 
 
 bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
@@ -167,17 +182,26 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
     string isvEnclaveQuoteBody = root.get("isvEnclaveQuoteBody", "UTF-8" ).asString();
     memcpy(&m_quote_body, Base64decode(isvEnclaveQuoteBody).c_str(), sizeof(m_quote_body));
 
-
-    /*Extract skg pk and ga to verify skg pk against quote body*/
-    sgx_ec256_public_t skg_pk;
-
-    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
-        skg_pk.gx[i] = certMsg.gx(i);
-        skg_pk.gy[i] = certMsg.gy(i);
+    if(!verifyMrSigner()){
+        Log("VerificationReport::fromCertMsg - failed to mrsigner");
+        return false;
     }
 
-    if(!verifyPublicKey(&skg_pk)){
-        Log("VerificationReport::fromCertMsg - failed to verify skg pk");
+    if(!verifyMrEnclave()){
+        Log("VerificationReport::fromCertMsg - failed to mrenclave");
+        return false;
+    }
+
+    /*Extract pk to verify it against quote body*/
+    sgx_ec256_public_t pkToVerify;
+
+    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
+        pkToVerify.gx[i] = certMsg.gx(i);
+        pkToVerify.gy[i] = certMsg.gy(i);
+    }
+
+    if(!verifyPublicKey(&pkToVerify)){
+        Log("VerificationReport::fromCertMsg - failed to verify pk");
         return false;
     }
 

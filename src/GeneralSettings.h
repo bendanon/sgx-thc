@@ -26,6 +26,7 @@ namespace Settings {
 	static const char *ias_crt = "../../keys/thc.p12"; //location of the certificate send to Intel when registring for the IAS
 	static const char *ias_ca = "../../keys/AttestationReportSigningCACert.pem";
 	static string ias_url = "https://test-as.sgx.trustedservices.intel.com:443/attestation/sgx/v2/";
+	static const char* mrsigner = "YCd60v38V+mA6Hbn+HisGQmIDqU4B5Wn6OqYsVeEH4U=";
 	static const sgx_ec_key_128bit_t const_vk = { 
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00

@@ -174,7 +174,7 @@ bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg,
                                         Messages::GetSecretResponse& getSecretResponse){
 
 
-    //Extract attestation report, verify its signature and verify skg pk with it
+    //Extract attestation report, verify its signature and verify bb pk with it
     VerificationReport bbReport;
     if(!bbReport.fromCertMsg(certMsg)){
         Log("BbClient::processPkResponse - failed to verify bb verification report");

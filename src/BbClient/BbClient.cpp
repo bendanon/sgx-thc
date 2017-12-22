@@ -14,8 +14,7 @@ BbClient::~BbClient(){
     SafeFree(this->p_sealed_s); 
 }
 
-
-void BbClient::init() {
+void BbClient::obtainSecretFromSkg() {
     m_nmc->Init();
     m_nmc->connectCallbackHandler([this](string v, int type) {
         return this->incomingHandler(v, type);
@@ -23,7 +22,7 @@ void BbClient::init() {
     m_nmc->startService();
 }
 
-void BbClient::start(){
+void BbClient::acceptInputFromNeighbors(){
 
     m_nms->Init();
     m_nms->connectCallbackHandler([this](string v, int type) {

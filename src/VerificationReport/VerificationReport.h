@@ -55,6 +55,8 @@ private:
     bool verifySignature(); 
     bool verifyCertificateChain();
     bool verifyPublicKey(sgx_ec256_public_t* p_gb);
+    bool verifyMrEnclave();
+    bool verifyMrSigner();
     bool insertIASCertificate(Messages::CertificateMSG& certMsg);
     bool insertIASSignature(Messages::CertificateMSG& certMsg);
     bool insertIASFullResponse(Messages::CertificateMSG& certMsg);

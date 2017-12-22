@@ -45,8 +45,8 @@ public:
     BbClient(BbEnclave* pEnclave, int port);
     virtual ~BbClient();
     
-    void init();
-    void start();
+    void obtainSecretFromSkg();
+    void acceptInputFromNeighbors();
     
     bool hasSecret();
 
