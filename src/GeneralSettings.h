@@ -14,10 +14,10 @@ namespace Settings {
 	static int rh_port = 22222;
 	static string rh_host = "localhost";
 	
-	static string server_crt = "../server_keys/server.crt"; //certificate for the HTTPS connection between the SP and the App
-	static string server_key = "../server_keys/server.key"; //private key for the HTTPS connection
+	static string server_crt = "../../keys/server.crt"; //certificate for the HTTPS connection between the SP and the App
+	static string server_key = "../../keys/server.key"; //private key for the HTTPS connection
 
-	static string assets_path = "../";
+	static string assets_path = "assets/";
 
 	static const char *skg_enclave_path = "skg_enclave.signed.so";
 	static const char *bb_enclave_path = "bb_enclave.signed.so";
@@ -26,7 +26,7 @@ namespace Settings {
 	static const char *ias_crt = "../../keys/thc.p12"; //location of the certificate send to Intel when registring for the IAS
 	static const char *ias_ca = "../../keys/AttestationReportSigningCACert.pem";
 	static string ias_url = "https://test-as.sgx.trustedservices.intel.com:443/attestation/sgx/v2/";
-	static const char* mrsigner = "YCd60v38V+mA6Hbn+HisGQmIDqU4B5Wn6OqYsVeEH4U=";
+	static const char* mrsigner = "igPgaFDDqko1ft73xiQdIggChjIEeXQuDwYADjP7nZY=";								   
 	static const sgx_ec_key_128bit_t const_vk = { 
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00

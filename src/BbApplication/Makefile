@@ -227,7 +227,7 @@ $(bb_Enclave_Name): bb_enclave/bb_enclave_t.o $(bb_Enclave_Cpp_Objects)
 	@echo "LINK =>  $@"
 
 $(bb_Signed_Enclave_Name): $(bb_Enclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key bb_enclave/bb_enclave_private.pem -enclave $(bb_Enclave_Name) -out $@ -config $(bb_Enclave_Config_File)
+	@$(SGX_ENCLAVE_SIGNER) sign -key ../../keys/enclave_signing_key.pem -enclave $(bb_Enclave_Name) -out $@ -config $(bb_Enclave_Config_File)
 	@echo "SIGN =>  $@"
 .PHONY: clean
 
