@@ -30,7 +30,7 @@
 #include "UtilityFunctions.h"
 #include "NetworkManagerClient.h"
 #include "NetworkManagerServer.h"
-
+#include <jsoncpp/json/json.h>
 
 using namespace std;
 using namespace util;
@@ -42,11 +42,11 @@ private:
     static string secret_file_name;
 
 public:
-    BbClient(BbEnclave* pEnclave, int port);
+    BbClient(BbEnclave* pEnclave, Json::Value& config);
     virtual ~BbClient();
     
     void obtainSecretFromSkg();
-    void acceptInputFromNeighbors();
+    void runThcProtocol();
     
     bool hasSecret();
 
@@ -96,6 +96,7 @@ private:
     VerificationReport m_report;
     BbEnclave* m_pEnclave;
     AttestationClient* m_pClient;
+    Json::Value& m_config;
     sgx_ec256_public_t* p_bb_pk = NULL;
     sgx_sealed_data_t* p_sealed_k = NULL;
     sgx_sealed_data_t* p_sealed_s = NULL;

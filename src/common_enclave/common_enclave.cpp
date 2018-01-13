@@ -154,20 +154,19 @@ sgx_status_t SGXAPI enclave_ra_close(
     return ret;
 }
 
-sgx_status_t encrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES], 
-                         uint8_t ciphertext[SECRET_KEY_ENCRYPTED_SIZE_BYTES],
-                         uint8_t key[SGX_AESGCM_KEY_SIZE]){
+sgx_status_t encrypt_key(uint8_t* plaintext, size_t plaintext_size,  
+                         uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]){
 
     sgx_status_t status;
-    uint8_t* iv = ciphertext + SECRET_KEY_SIZE_BYTES;
-    sgx_aes_gcm_128bit_tag_t* p_mac = (sgx_aes_gcm_128bit_tag_t*)(ciphertext + SECRET_KEY_SIZE_BYTES + NIST_RECOMMANDED_IV_SIZE_BYTES);
+    uint8_t* iv = ciphertext + plaintext_size;
+    sgx_aes_gcm_128bit_tag_t* p_mac = (sgx_aes_gcm_128bit_tag_t*)(ciphertext + plaintext_size + NIST_RECOMMANDED_IV_SIZE_BYTES);
 
     status = sgx_read_rand((unsigned char*)iv, NIST_RECOMMANDED_IV_SIZE_BYTES);        
     if(status) return status;
 
     status = sgx_rijndael128GCM_encrypt((sgx_aes_gcm_128bit_key_t*)key, 
                                         plaintext,
-                                        SECRET_KEY_SIZE_BYTES,
+                                        plaintext_size,
                                         ciphertext,
                                         iv,
                                         NIST_RECOMMANDED_IV_SIZE_BYTES,
@@ -180,18 +179,17 @@ sgx_status_t encrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES],
     return SGX_SUCCESS;
 }
 
-sgx_status_t decrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES], 
-                         uint8_t ciphertext[SECRET_KEY_ENCRYPTED_SIZE_BYTES],
-                         uint8_t key[SGX_AESGCM_KEY_SIZE])
+sgx_status_t decrypt_key(uint8_t* plaintext, size_t plaintext_size,
+                         uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE])
 {
     sgx_status_t status;
 
-    uint8_t* iv = ciphertext + SECRET_KEY_SIZE_BYTES;
-    sgx_aes_gcm_128bit_tag_t* p_mac = (sgx_aes_gcm_128bit_tag_t*)(ciphertext + SECRET_KEY_SIZE_BYTES + NIST_RECOMMANDED_IV_SIZE_BYTES);
+    uint8_t* iv = ciphertext + plaintext_size;
+    sgx_aes_gcm_128bit_tag_t* p_mac = (sgx_aes_gcm_128bit_tag_t*)(ciphertext + plaintext_size + NIST_RECOMMANDED_IV_SIZE_BYTES);
     //Decrypt c
     status = sgx_rijndael128GCM_decrypt((sgx_aes_gcm_128bit_key_t*)key,
                                         ciphertext, 
-                                        SECRET_KEY_SIZE_BYTES,
+                                        plaintext_size,
                                         plaintext,
                                         iv,
                                         NIST_RECOMMANDED_IV_SIZE_BYTES,

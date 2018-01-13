@@ -8,7 +8,7 @@ using namespace std;
 class BlackBoxExecuter 
 {
 public:
-    BlackBoxExecuter();
+    BlackBoxExecuter(uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size, uint32_t vertices_num);
     ~BlackBoxExecuter();
     
     bool IsInitialized();
@@ -21,6 +21,12 @@ public:
 private:
     uint8_t m_s[SECRET_KEY_SIZE_BYTES];
     bool m_IsInitialized;
+
+    uint32_t m_localId;
+    uint32_t m_verticesNum;
+    uint32_t* m_graphIds = NULL;
+    size_t m_graphIdsSize;
+
 };
 
 #endif //BLACK_BOX_EXECUTER_H

@@ -93,8 +93,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-bb_Enclave_Cpp_Files := BlackBoxExecuter/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp ../common_enclave/common_enclave.cpp
-Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
+bb_Enclave_Cpp_Files := AdjacencyMatrix/AdjacencyMatrix.cpp bb_enclave/bb_enclave.cpp ../common_enclave/common_enclave.cpp
+Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++
@@ -188,7 +188,7 @@ bb_app/%.o: bb_app/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-../BlackBoxExecuter/%.o: ../BlackBoxExecuter/%.cpp
+../AdjacencyMatrix/%.o: ../AdjacencyMatrix/%.cpp
 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 

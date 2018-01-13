@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "sgx_tkey_exchange.h"
-#include "sgx_tcrypto.h"
-#include "sgx_trts.h"
+#include "/opt/intel/sgxsdk/include/sgx_tkey_exchange.h" //#include "sgx_tkey_exchange.h"
+#include "/opt/intel/sgxsdk/include/sgx_tcrypto.h" //#include "sgx_tcrypto.h"
+#include "/opt/intel/sgxsdk/include/sgx_trts.h" //#include "sgx_trts.h"
 #include "string.h"
 #include "../GeneralSettings.h"
 
@@ -63,13 +63,11 @@ sgx_status_t SGXAPI enclave_ra_close(sgx_ra_context_t context);
 }
 #endif /* __cplusplus */
 
-sgx_status_t encrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES], 
-                         uint8_t ciphertext[SECRET_KEY_ENCRYPTED_SIZE_BYTES],
-                         uint8_t key[SGX_AESGCM_KEY_SIZE]);
+sgx_status_t encrypt_key(uint8_t* plaintext, size_t plaintext_size,  
+                         uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]);
 
-sgx_status_t decrypt_key(uint8_t plaintext[SECRET_KEY_SIZE_BYTES], 
-                         uint8_t ciphertext[SECRET_KEY_ENCRYPTED_SIZE_BYTES],
-                         uint8_t key[SGX_AESGCM_KEY_SIZE]);
+sgx_status_t decrypt_key(uint8_t* plaintext, size_t plaintext_size,
+                         uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]);
 
 sgx_status_t _derive_smk(sgx_ec256_public_t* p_pk, 
                          size_t pk_size, 

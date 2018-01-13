@@ -7,12 +7,75 @@
 #include "../GeneralSettings.h"
 #include "bb_enclave_t.h"
 
-#include "BlackBoxExecuter.h"
+using namespace std;
+
+class BlackBoxExecuter 
+{
+public:
+    BlackBoxExecuter(uint32_t local_id, 
+                     uint32_t* neighbor_ids, 
+                     size_t neighbor_ids_size, 
+                     uint32_t vertices_num) : m_IsInitialized(false), 
+                                              m_localId(local_id), 
+                                              m_verticesNum(vertices_num) 
+    {
+        memset(m_s, 0, sizeof(m_s));
+        
+        m_graphIds = new uint32_t[m_verticesNum];
+        m_graphIds[0] = m_localId;
+        memcpy(m_graphIds+1, neighbor_ids, neighbor_ids_size);
+        m_graphIdsSize = neighbor_ids_size + 1;
+    }
+
+    ~BlackBoxExecuter()
+    {
+        memset(m_s, 0, sizeof(m_s));
+        delete m_graphIds;
+    }
+    
+    bool IsInitialized()
+    {
+        return m_IsInitialized;    
+    }
+
+    bool Init(uint8_t s[SECRET_KEY_SIZE_BYTES], size_t s_size)
+    {
+        if(s_size != SECRET_KEY_SIZE_BYTES) return false;
+
+        memcpy(m_s, s, SECRET_KEY_SIZE_BYTES);
+        m_IsInitialized = true;
+        return true;
+    }
+
+    bool Execute(uint8_t B_in[B_IN_SIZE_BYTES], size_t B_in_size, uint8_t B_out[B_OUT_SIZE_BYTES], size_t B_out_size)
+    {
+        if(B_in_size != B_IN_SIZE_BYTES) return false;
+        if(B_out_size != B_OUT_SIZE_BYTES) return false;
+
+        for(int i = 0; i < B_IN_SIZE_BYTES; i++)
+        {
+            B_out[i] = B_in[i] ^ m_s[i % SECRET_KEY_SIZE_BYTES];
+        }
+
+        return true;
+    }
+
+private:
+    uint8_t m_s[SECRET_KEY_SIZE_BYTES];
+    bool m_IsInitialized;
+
+    uint32_t m_localId;
+    uint32_t m_verticesNum;
+    uint32_t* m_graphIds = NULL;
+    size_t m_graphIdsSize;
+
+};
 
 /*BB enclave internal data*/
 uint8_t k[SECRET_KEY_SIZE_BYTES];
 sgx_ec256_private_t bb_priv_key;
-BlackBoxExecuter bbx;
+BlackBoxExecuter* bbx;
+uint32_t* graph_ids = NULL;
 
 void ocall_print(const char* format, uint32_t number){
     char output[50];
@@ -30,9 +93,13 @@ void ocall_print(const char* format, uint32_t number){
 5. Seal (k) [sealing to MRENCLAVE] and output the sealed data.
 ***/
 sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size, 
-                       sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size) {
+                       sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,
+                       uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size,
+                       uint32_t vertices_num) {
 
     
+    bbx = new BlackBoxExecuter(local_id, neighbor_ids, neighbor_ids_size, vertices_num);
+
     memset(k, 0, sizeof(k));
     sgx_status_t status = SGX_ERROR_UNEXPECTED;
     
@@ -111,7 +178,7 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
     memset(s_decrypted, 0, SECRET_KEY_SIZE_BYTES);
 
     //Decrypt c' with k to get s
-    status = decrypt_key(s_decrypted, s_encrypted,k_unsealed);
+    status = decrypt_key(s_decrypted, SECRET_KEY_SIZE_BYTES, s_encrypted,k_unsealed);
     
     if(status){
         ocall_print("decrypt_key status is %d\n", status);
@@ -144,7 +211,7 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
     sgx_status_t status = SGX_ERROR_UNEXPECTED;
 
     
-    if(!bbx.IsInitialized())
+    if(!bbx->IsInitialized())
     {
         //Unseal s
         uint8_t s_unsealed[SECRET_KEY_SIZE_BYTES];
@@ -162,15 +229,15 @@ sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s,  size_t sealed_size, //in (S
             return status;
         } 
 
-        bbx.Init(s_unsealed, SECRET_KEY_SIZE_BYTES);
+        bbx->Init(s_unsealed, SECRET_KEY_SIZE_BYTES);
     }
 
     bool ret = false;
 
-    ret = bbx.Execute(B_in, B_in_size, B_out, B_out_size);
+    ret = bbx->Execute(B_in, B_in_size, B_out, B_out_size);
 
     if(!ret) {
-        ocall_print("bbx.Execute failed");
+        ocall_print("bbx->Execute failed");
         return status;
     }
 

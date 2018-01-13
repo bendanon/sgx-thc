@@ -126,7 +126,7 @@ sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk,
         return status;
     } 
 
-    status = encrypt_key(s_sk_unsealed, s_encrypted, (uint8_t*)&shared_key);
+    status = encrypt_key(s_sk_unsealed, SECRET_KEY_SIZE_BYTES, s_encrypted, (uint8_t*)&shared_key);
     
     if(status) {
         ocall_print("encrypt_key status is %d\n", status);

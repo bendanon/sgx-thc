@@ -2,7 +2,7 @@
 #define GENERALSETTINGS_H
 
 #include <string>
-#include "sgx_ecp_types.h"
+#include "/opt/intel/sgxsdk/include/sgx_ecp_types.h"
 #include "th_definitions.h"
 
 #define VERIFY_SIGRL

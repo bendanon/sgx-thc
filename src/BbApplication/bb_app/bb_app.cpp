@@ -11,12 +11,26 @@ using namespace util;
 #include "BbClient.h"
 #include "BbEnclave.h"
 
+#include <fstream>
+#include <jsoncpp/json/json.h> // or jsoncpp/json.h , or json/json.h etc.
+
 void ocall_print(const char* str) {
     printf("%s\n", str);
 }
 
 int Main(int argc, char* argv[]) {
+
     LogBase::Inst();
+
+    if(argc != 2){
+        Log("Usage: ./app <config_file_name>.json", log::error);
+        return -1;
+    }
+    
+    ifstream ifs(argv[1]);
+    Json::Reader reader;
+    Json::Value config;
+    reader.parse(ifs, config); // reader can also read strings    
 
     int ret = 0;
 
@@ -27,7 +41,7 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    BbClient bbClient(bb_enclave, 44444);
+    BbClient bbClient(bb_enclave, config);
 
     while(!bbClient.hasSecret())
     {
@@ -50,7 +64,7 @@ int Main(int argc, char* argv[]) {
     //Setting neighbors and input for black box
     //bbClient.processLocalInput(parsedInput);
 
-    bbClient.acceptInputFromNeighbors();
+    bbClient.runThcProtocol();
 
     delete bb_enclave;
     return ret;

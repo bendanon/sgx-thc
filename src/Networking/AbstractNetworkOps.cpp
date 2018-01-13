@@ -105,6 +105,7 @@ void AbstractNetworkOps::process_read(char* buffer, int msg_size, int type) {
     
     if(buffer == NULL)
     {
+        Log("AbstractNetworkOps::process_read - buffer == NULL");
         std::string str;
         this->callback_handler(str, type);
         return;
