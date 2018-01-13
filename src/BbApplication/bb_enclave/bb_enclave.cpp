@@ -178,10 +178,10 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
     memset(s_decrypted, 0, SECRET_KEY_SIZE_BYTES);
 
     //Decrypt c' with k to get s
-    status = decrypt_key(s_decrypted, SECRET_KEY_SIZE_BYTES, s_encrypted,k_unsealed);
+    status = decrypt(s_decrypted, SECRET_KEY_SIZE_BYTES, s_encrypted,k_unsealed);
     
     if(status){
-        ocall_print("decrypt_key status is %d\n", status);
+        ocall_print("decrypt status is %d\n", status);
         return status;
     }
 
