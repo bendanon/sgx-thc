@@ -24,10 +24,8 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint32_t ms_local_id;
-	uint32_t* ms_neighbor_ids;
-	size_t ms_neighbor_ids_size;
-	uint32_t ms_vertices_num;
+	uint32_t ms_num_of_neighbors;
+	uint32_t ms_num_of_vertices;
 } ms_bb_init_1_t;
 
 typedef struct ms_bb_init_2_t {
@@ -173,15 +171,10 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	sgx_ec256_public_t* _tmp_skg_pk = ms->ms_skg_pk;
 	size_t _len_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_skg_pk = NULL;
-	uint32_t* _tmp_neighbor_ids = ms->ms_neighbor_ids;
-	size_t _tmp_neighbor_ids_size = ms->ms_neighbor_ids_size;
-	size_t _len_neighbor_ids = _tmp_neighbor_ids_size;
-	uint32_t* _in_neighbor_ids = NULL;
 
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
-	CHECK_UNIQUE_POINTER(_tmp_neighbor_ids, _len_neighbor_ids);
 
 	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
 		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
@@ -208,16 +201,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
-	if (_tmp_neighbor_ids != NULL && _len_neighbor_ids != 0) {
-		_in_neighbor_ids = (uint32_t*)malloc(_len_neighbor_ids);
-		if (_in_neighbor_ids == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_neighbor_ids, _tmp_neighbor_ids, _len_neighbor_ids);
-	}
-	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, ms->ms_local_id, _in_neighbor_ids, _tmp_neighbor_ids_size, ms->ms_vertices_num);
+	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, ms->ms_num_of_neighbors, ms->ms_num_of_vertices);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -228,7 +212,6 @@ err:
 		free(_in_bb_pk);
 	}
 	if (_in_skg_pk) free(_in_skg_pk);
-	if (_in_neighbor_ids) free(_in_neighbor_ids);
 
 	return status;
 }

@@ -129,21 +129,12 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
     this->p_bb_pk = (sgx_ec256_public_t*)malloc(sizeof(sgx_ec256_public_t));    
     size_t pk_size = sizeof(sgx_ec256_public_t);
     memset(this->p_bb_pk, 0, pk_size);
-
-    const Json::Value& neighbors = m_config["neighbors"]; // array of neighbors
-    uint32_t* neighbor_ids = new uint32_t[neighbors.size()];
-    for (int i = 0; i < neighbors.size(); i++){
-        neighbor_ids[i] = neighbors[i]["id"].asUInt();
-    }
     
     sgx_status_t status;
     status = m_pEnclave->bbInit1(this->p_sealed_k, SECRET_KEY_SEALED_SIZE_BYTES, 
                                  this->p_bb_pk, &skg_pk, pk_size, 
-                                 m_config["local_id"].asUInt(),
-                                 neighbor_ids, neighbors.size()*sizeof(neighbor_ids[0]),
+                                 m_config["neighbors"].size(),                                 
                                  m_config["num_of_nodes"].asUInt());
-    
-    delete neighbor_ids;
 
     if(status) {
         Log("bb_init_1 failed with status %d", status);

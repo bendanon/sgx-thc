@@ -87,9 +87,8 @@ sgx_status_t BbEnclave::closeRa(){
 
 
 sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
-                              sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, 
-                              size_t pk_size, uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size,
-                              uint32_t vertices_num) {
+                                sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, 
+                                uint32_t num_of_neighbors, uint32_t num_of_vertices) {
 
     bb_init_1(this->enclave_id,
              &this->status, 
@@ -98,15 +97,12 @@ sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_si
              bb_pk,
              skg_pk, 
              pk_size,
-             local_id,
-             neighbor_ids,
-             neighbor_ids_size,
-             vertices_num);
+             num_of_neighbors, 
+             num_of_vertices);
 
     if(SGX_SUCCESS != this->status) {
         Log("bb_init_1 failed, retval is %d", this->status, log::error);
-    }
-    
+    }    
 
     return this->status;
 }

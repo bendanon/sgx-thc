@@ -47,22 +47,6 @@ int Main(int argc, char* argv[]) {
     {
         bbClient.obtainSecretFromSkg();        
     }
-    
-    #if 0
-    uint8_t B_out[B_OUT_SIZE_BYTES];
-    memset(B_out, 0, B_OUT_SIZE_BYTES);   
-    
-    uint8_t B_in[B_IN_SIZE_BYTES];          //TODO: Recieve this as input from neighbor
-    memset(B_in, 0, B_IN_SIZE_BYTES);
-
-    bbClient.execute(B_in, B_IN_SIZE_BYTES, B_out, B_OUT_SIZE_BYTES);
-    Log("B_out is %s", Base64encodeUint8((uint8_t*)B_out, sizeof(B_out)));
-    #endif
-
-    //InputParser parsedInput(argc, argv);
-
-    //Setting neighbors and input for black box
-    //bbClient.processLocalInput(parsedInput);
 
     bbClient.runThcProtocol();
 

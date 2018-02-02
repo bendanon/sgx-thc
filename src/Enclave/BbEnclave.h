@@ -32,9 +32,8 @@ public:
     virtual sgx_status_t closeRa();
 
     sgx_status_t bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
-                         sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, 
-                         size_t pk_size, uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size,
-                         uint32_t vertices_num);
+                         sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, 
+                         uint32_t num_of_neighbors, uint32_t num_of_vertices);
 
     
     sgx_status_t bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, 

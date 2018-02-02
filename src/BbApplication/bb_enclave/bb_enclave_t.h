@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 
-sgx_status_t bb_init_1(sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size, uint32_t vertices_num);
+sgx_status_t bb_init_1(sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
 sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
 sgx_status_t bb_exec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 sgx_status_t enclave_init_ra(int b_pse, sgx_ra_context_t* p_context);

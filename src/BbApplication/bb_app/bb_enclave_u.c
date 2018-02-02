@@ -8,10 +8,8 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint32_t ms_local_id;
-	uint32_t* ms_neighbor_ids;
-	size_t ms_neighbor_ids_size;
-	uint32_t ms_vertices_num;
+	uint32_t ms_num_of_neighbors;
+	uint32_t ms_num_of_vertices;
 } ms_bb_init_1_t;
 
 typedef struct ms_bb_init_2_t {
@@ -239,7 +237,7 @@ static const struct {
 		(void*)bb_enclave_sgx_thread_set_multiple_untrusted_events_ocall,
 	}
 };
-sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t local_id, uint32_t* neighbor_ids, size_t neighbor_ids_size, uint32_t vertices_num)
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t num_of_neighbors, uint32_t num_of_vertices)
 {
 	sgx_status_t status;
 	ms_bb_init_1_t ms;
@@ -248,10 +246,8 @@ sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_da
 	ms.ms_bb_pk = bb_pk;
 	ms.ms_skg_pk = skg_pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_local_id = local_id;
-	ms.ms_neighbor_ids = neighbor_ids;
-	ms.ms_neighbor_ids_size = neighbor_ids_size;
-	ms.ms_vertices_num = vertices_num;
+	ms.ms_num_of_neighbors = num_of_neighbors;
+	ms.ms_num_of_vertices = num_of_vertices;
 	status = sgx_ecall(eid, 0, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;

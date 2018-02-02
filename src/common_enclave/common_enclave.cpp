@@ -154,7 +154,7 @@ sgx_status_t SGXAPI enclave_ra_close(
     return ret;
 }
 
-sgx_status_t encrypt_key(uint8_t* plaintext, size_t plaintext_size,  
+sgx_status_t encrypt(uint8_t* plaintext, size_t plaintext_size,  
                          uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]){
 
     sgx_status_t status;
@@ -179,7 +179,7 @@ sgx_status_t encrypt_key(uint8_t* plaintext, size_t plaintext_size,
     return SGX_SUCCESS;
 }
 
-sgx_status_t decrypt_key(uint8_t* plaintext, size_t plaintext_size,
+sgx_status_t decrypt(uint8_t* plaintext, size_t plaintext_size,
                          uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE])
 {
     sgx_status_t status;
