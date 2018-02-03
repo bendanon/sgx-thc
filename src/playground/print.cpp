@@ -32,9 +32,9 @@ sgx_status_t decrypt(uint8_t* plaintext, size_t plaintext_size,
 
 
 void ocall_print(const char* format, uint32_t number){
-    char output[50];
-    memset(output,0,50);
-    snprintf(output, 50, format, number);
+    char output[500];
+    memset(output,0,500);
+    snprintf(output, 500, format, number);
     printf("%s\n", output);
 }
 void ocall_print(const char* format){
@@ -327,7 +327,9 @@ class BlackBoxExecuter
 
 
 public:
-    BlackBoxExecuter() : m_fIsInitialized(false), 
+    BlackBoxExecuter() : m_fIsInitialized(false),
+                         m_fIsSecretSet(false),
+                         m_fAbort(false), 
                          m_numOfVertices(0),
                          m_numOfNeighbors(0),                         
                          m_ctrRound(0),
@@ -412,7 +414,7 @@ public:
             return false;
         }
 
-        if(!generateCollectionMessage(B_out, PLAINTEXT_SIZE_OF(B_out_size))){
+        if(!generateCollectionMessage(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::GenerateFirstMessage - Failed to generate collection message");
             return false;
         }
@@ -485,11 +487,10 @@ public:
         } else if (THC_MSG_CONSISTENCY == type) {
         //This means we are in the consistency checking phase
 
-            //TODO - extract abort
-            /*if(!updateAbort(msg)){
-                ocall_print("failed to update abort");
+            if(!extractAbort(&decryptedPtr, &decryptedLen)){
+                ocall_print("BlackBoxExecuter::Execute - failed to extract abort");
                 return false;
-            }*/
+            }
 
         } else {
             ocall_print("BlackBoxExecuter::parseMessage - invalid message type");
@@ -517,6 +518,7 @@ public:
         print_buffer(m_s, SECRET_KEY_SIZE_BYTES);
         ocall_print(m_fIsInitialized ? "m_fIsInitialized = true" : "m_fIsInitialized = false");
         ocall_print(m_fIsSecretSet ? "m_fIsSecretSet = true" : "m_fIsSecretSet = false");
+        ocall_print(m_fAbort ? "m_fAbort = true" : "m_fAbort = false");
         ocall_print("local id is:");
         m_localId.Print();
         ocall_print("m_numOfVertices = %d", m_numOfNeighbors);
@@ -551,7 +553,7 @@ private:
                 return false;
             }
 
-        } else if(m_ctrRound <= m_pGraph->GetDiameter()) { 
+        } else if(m_ctrRound < m_pGraph->GetDiameter()) { 
         //This means we are in the graph collection phase
 
             if(!generateCollectionMessage(B_out, B_out_size)){
@@ -602,8 +604,51 @@ private:
             ocall_print("BlackBoxExecuter::calculateResult - not ready");
             return false;
         }
+
+        ocall_print("Calculating result...");
         //TODO - actual value we want to calculate based on the graph
         return false;
+    }
+
+    bool generateThcMessage(uint8_t** buffer, size_t* len, eThcMsgType msgType){
+
+        if(!IsReady()){
+            ocall_print("BlackBoxExecuter::generateThcMessage - not ready");
+            return false;
+        }
+
+        if(THC_PLAIN_MSG_SIZE_BYTES != *len){
+            ocall_print("BlackBoxExecuter::generateThcMessage - wrong buffer size, %d", *len);
+            return false;
+        }
+
+
+        if(*len < sizeof(msgType)){
+            ocall_print("BlackBoxExecuter::generateThcMessage - buffer too small to serialize msg type");
+            return false;
+        }
+        
+        //Serialize msg type (4B)
+        memcpy(*buffer, &msgType, sizeof(msgType));
+        *buffer += sizeof(msgType);
+        *len -= sizeof(msgType);
+
+        if(*len < sizeof(m_ctrRound)){
+            ocall_print("BlackBoxExecuter::generateThcMessage - buffer too small to serialize m_ctrRound");
+            return false;
+        }
+
+        //Serialize the round (4B)        
+        memcpy(*buffer, &m_ctrRound, sizeof(m_ctrRound));
+        *buffer += sizeof(m_ctrRound);
+        *len -= sizeof(m_ctrRound);
+
+        if(!m_localId.ToBuffer(buffer, len)){
+            ocall_print("BlackBoxExecuter::generateThcMessage - failed to serialize m_localId");
+            return false;
+        }
+
+        return true;
     }
 
     bool generateConsistencyMessage (uint8_t* B_out, size_t B_out_size){
@@ -612,7 +657,36 @@ private:
             ocall_print("BlackBoxExecuter::generateConsistencyMessage - not ready");
             return false;
         }
-        //TODO - encrypt a padded true or false
+
+        if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_out_size){
+            ocall_print("BlackBoxExecuter::generateConsistencyMessage - wrong buffer size, %d", B_out_size);
+            return false;
+        }
+
+        uint8_t buffer[THC_PLAIN_MSG_SIZE_BYTES];
+        uint8_t* bufferPtr = buffer;
+        size_t bufferLength = THC_PLAIN_MSG_SIZE_BYTES;
+        memset(buffer, 0, sizeof(buffer));
+
+        if(!generateThcMessage(&bufferPtr, &bufferLength, THC_MSG_CONSISTENCY)){
+            ocall_print("BlackBoxExecuter::generateConsistencyMessage - failed to generate message");
+            return false;
+        }
+
+        if(bufferLength < sizeof(m_fAbort)){
+            ocall_print("BlackBoxExecuter::generateThcMessage - buffer too small to serialize msg type");
+            return false;
+        }
+        
+        //Serialize m_fAbort (4B)
+        memcpy(bufferPtr, &m_fAbort, sizeof(m_fAbort));
+
+        sgx_status_t status;
+        if(SGX_SUCCESS != (status = encrypt(buffer, THC_PLAIN_MSG_SIZE_BYTES,B_out, m_s))){
+            ocall_print("BlackBoxExecuter::generateConsistencyMessage - failed to encrypt collection message, %d", status);
+            return false;
+        }
+
         return true;
     }
 
@@ -621,6 +695,7 @@ private:
     MsgType(4B),RoundNumber(4B),LocalId(16B),Graph{Length(4B), Length*16B}, Padding(N-Length * 16B)
 
     */
+
     bool generateCollectionMessage (uint8_t* B_out, size_t B_out_size){
 
         if(!IsReady()){
@@ -628,55 +703,24 @@ private:
             return false;
         }
 
-        if(THC_PLAIN_MSG_SIZE_BYTES != B_out_size){
-            ocall_print("BlackBoxExecuter::generateCollectionMessage - buffer too small, %d", B_out_size);
+        if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_out_size){
+            ocall_print("BlackBoxExecuter::generateCollectionMessage - wrong buffer size, %d", B_out_size);
             return false;
         }
-
-        eThcMsgType msgType = THC_MSG_COLLECTION;
 
         uint8_t buffer[THC_PLAIN_MSG_SIZE_BYTES];
         uint8_t* bufferPtr = buffer;
         size_t bufferLength = THC_PLAIN_MSG_SIZE_BYTES;
-        memset(B_out, 0, B_out_size);
+        memset(buffer, 0, sizeof(buffer));
 
-        if(bufferLength < sizeof(msgType)){
-            ocall_print("BlackBoxExecuter::generateCollectionMessage - buffer too small to serialize msg type");
-            return false;
-        }
-        
-        //Serialize msg type (4B)
-        memcpy(bufferPtr, &msgType, sizeof(msgType));
-        bufferPtr += sizeof(msgType);
-        bufferLength -= sizeof(msgType);
-
-        if(bufferLength < sizeof(m_ctrRound)){
-            ocall_print("BlackBoxExecuter::generateCollectionMessage - buffer too small to serialize m_ctrRound");
-            return false;
-        }
-
-        //Serialize the round (4B)        
-        memcpy(bufferPtr, &m_ctrRound, sizeof(m_ctrRound));
-        bufferPtr += sizeof(m_ctrRound);
-        bufferLength -= sizeof(m_ctrRound);
-
-        if(!m_localId.ToBuffer(&bufferPtr, &bufferLength)){
-            ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to serialize m_localId");
+        if(!generateThcMessage(&bufferPtr, &bufferLength, THC_MSG_COLLECTION)){
+            ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to generate message");
             return false;
         }
 
         if(!m_pGraph->ToBuffer(&bufferPtr, &bufferLength)){
             ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to serialize graph");
             return false;
-        }
-
-        //Padding to maximum length message
-        PartyId zero;
-        for(int i = 0; i < m_numOfVertices - m_pGraph->GetLength(); i++){
-            if(!zero.ToBuffer(&bufferPtr, &bufferLength)){
-                ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to serialize padding");
-                return false;
-            }
         }
 
         sgx_status_t status;
@@ -691,7 +735,7 @@ private:
     bool extractMsgType(uint8_t** msg, size_t* len, eThcMsgType& type) {
 
         if(*len < sizeof(eThcMsgType)){
-            ocall_print("EnclaveMessage::extractMsgType failed, buffer too short, %d", *len);
+            ocall_print("BlackBoxExecuter::extractMsgType failed, buffer too short, %d", *len);
             return false;
         }
 
@@ -700,7 +744,7 @@ private:
         *len -= sizeof(eThcMsgType);
 
         if(THC_MSG_COLLECTION != type && THC_MSG_CONSISTENCY != type){
-            ocall_print("EnclaveMessage::extractMsgType - invalid message type");
+            ocall_print("BlackBoxExecuter::extractMsgType - invalid message type");
             return false;
         }
 
@@ -711,7 +755,7 @@ private:
     bool extractRoundNumber(uint8_t** msg, size_t* len, uint32_t& roundNumber) {
 
         if(*len < sizeof(uint32_t)){
-            ocall_print("EnclaveMessage::extractRoundNumber failed, buffer too short, %d", *len);
+            ocall_print("BlackBoxExecuter::extractRoundNumber failed, buffer too short, %d", *len);
             return false;
         }
 
@@ -720,7 +764,7 @@ private:
         *len -= sizeof(uint32_t);
 
         if(THC_MAX_NUMBER_OF_ROUNDS < roundNumber){
-            ocall_print("EnclaveMessage::extractRoundNumber failed, invalid round number %d", roundNumber);
+            ocall_print("BlackBoxExecuter::extractRoundNumber failed, invalid round number %d", roundNumber);
             return false;
         }
 
@@ -730,16 +774,30 @@ private:
     bool extractPartyId(uint8_t** msg, size_t* len, PartyId& pid) {
 
         if(!pid.FromBuffer(msg, len)){
-            ocall_print("EnclaveMessage::extractPartyId failed");
+            ocall_print("BlackBoxExecuter::extractPartyId failed");
             return false;
         }
 
         return true;
     }
 
+    bool extractAbort(uint8_t** msg, size_t* len){
+        
+        if(*len < sizeof(m_fAbort)){
+            ocall_print("BlackBoxExecuter::extractAbort failed, buffer too short, %d", *len);
+            return false;
+        }
+
+        memcpy(&m_fAbort, *msg, sizeof(m_fAbort));
+        *msg += sizeof(m_fAbort);
+        *len -= sizeof(m_fAbort);
+
+        return true;
+    }
+
     bool extractGraph(uint8_t** msg, size_t* len, Graph& graph){
         if(!graph.FromBuffer(msg, len)) {
-            ocall_print("EnclaveMessage::extractPartyId failed");
+            ocall_print("BlackBoxExecuter::extractPartyId failed");
             return false;
         }
 
@@ -751,6 +809,7 @@ private:
     uint8_t m_s[SECRET_KEY_SIZE_BYTES];
     bool m_fIsInitialized;
     bool m_fIsSecretSet;
+    bool m_fAbort;
 
     PartyId m_localId;
     uint32_t m_numOfVertices;
@@ -762,7 +821,7 @@ private:
 
 
 #define MSG_SIZE THC_ENCRYPTED_MSG_SIZE_BYTES
-#define MSG(bufPtr, msgNumber) (bufPtr + (msgNumber-1)*MSG_SIZE)
+#define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
 
 
 int main() {
@@ -770,9 +829,9 @@ int main() {
     uint8_t secret[SECRET_KEY_SIZE_BYTES];
     sgx_read_rand(secret, SECRET_KEY_SIZE_BYTES);
 
-   if(!bbx.Initialize(5, MAX_GRAPH_SIZE) ||
-      !bbx2.Initialize(5, MAX_GRAPH_SIZE) ||
-      !bbx3.Initialize(5, MAX_GRAPH_SIZE)){
+   if(!bbx.Initialize(1, 3) ||
+      !bbx2.Initialize(2, 3) ||
+      !bbx3.Initialize(1, 3)){
 
        printf("Failed to initialize bbx\n");
        return 1;
@@ -786,33 +845,36 @@ int main() {
        return 1;
    }
 
-   uint8_t bbxMsg[THC_ENCRYPTED_MSG_SIZE_BYTES*3]; uint8_t* ptr1 = bbxMsg;
-   uint8_t bbx2Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*3]; uint8_t* ptr2 = bbx2Msg;
-   uint8_t bbx3Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*3]; uint8_t* ptr3 = bbx3Msg;
+   uint8_t bbxMsg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr1 = bbxMsg;
+   uint8_t bbx2Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr2 = bbx2Msg;
+   uint8_t bbx3Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr3 = bbx3Msg;
 
-   if(!bbx.GenerateFirstMessage(MSG(ptr1, 1), MSG_SIZE) ||
-      !bbx2.GenerateFirstMessage(MSG(ptr2, 1), MSG_SIZE) ||
-      !bbx3.GenerateFirstMessage(MSG(ptr3, 1), MSG_SIZE)){
+   if(!bbx.GenerateFirstMessage(MSG(ptr1, 0), MSG_SIZE) ||
+      !bbx2.GenerateFirstMessage(MSG(ptr2, 0), MSG_SIZE) ||
+      !bbx3.GenerateFirstMessage(MSG(ptr3, 0), MSG_SIZE)){
 
        printf("Failed to GenerateFirstMessage\n");
        return 1;
    }
 
 
-   if(!bbx.Execute(MSG(ptr2, 1), MSG_SIZE, MSG(ptr1, 2), MSG_SIZE) || 
-      !bbx2.Execute(MSG(ptr1, 1), MSG_SIZE, MSG(ptr2, 2), MSG_SIZE) || //should be no output
-      !bbx2.Execute(MSG(ptr3, 1), MSG_SIZE, MSG(ptr2, 2), MSG_SIZE) ||
-      !bbx3.Execute(MSG(ptr2, 1), MSG_SIZE, MSG(ptr3, 2), MSG_SIZE)){
-       printf("bbx.Execute failed\n");
-       return -1;
-   }
+   for(int i = 0; true; i++){
+         if(!bbx.Execute(MSG(ptr2, i), MSG_SIZE, MSG(ptr1, i+1), MSG_SIZE) || 
+            !bbx2.Execute(MSG(ptr1, i), MSG_SIZE, MSG(ptr2, i+1), MSG_SIZE) || //should be no output
+            !bbx2.Execute(MSG(ptr3, i), MSG_SIZE, MSG(ptr2, i+1), MSG_SIZE) ||
+            !bbx3.Execute(MSG(ptr2, i), MSG_SIZE, MSG(ptr3, i+1), MSG_SIZE)){
+            printf("bbx.Execute failed\n");
+            return -1;
+        }
 
-   ocall_print("======bbx:=========");
-   bbx.Print();
-   ocall_print("======bbx2:=========");
-   bbx2.Print();
-   ocall_print("======bbx3:=========");
-   bbx3.Print();
+        ocall_print("======bbx:=========");
+        bbx.Print();
+        ocall_print("======bbx2:=========");
+        bbx2.Print();
+        ocall_print("======bbx3:=========");
+        bbx3.Print();
+   }
+  
 
    return 0;
 }
