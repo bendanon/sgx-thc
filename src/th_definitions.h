@@ -24,8 +24,12 @@
 #define SECRET_KEY_ENCRYPTED_SIZE_BYTES (CIPHERTEXT_SIZE_OF(SECRET_KEY_SIZE_BYTES))
 
 
-#define PARTY_ID_SIZE_BYTES (128 / 8)
 #define MAX_GRAPH_SIZE 10
+#define EDGE_PRINT_SIZE_BYTES sizeof("[10,10]") /*according to MAX_GRAPH_SIZE*/
+
+#define MAX_UINT32 ((uint32_t) 0-1)
+#define PARTY_ID_SIZE_BYTES (128 / 8)
+#define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)
 #define THC_MAX_NUMBER_OF_ROUNDS (MAX_GRAPH_SIZE + MAX_GRAPH_SIZE*MAX_GRAPH_SIZE)
 #define THC_ROUND_NUMBER_SIZE_BYTES sizeof(uint32_t)
 #define GRAPH_SIZE_SIZE_BYTES sizeof(uint32_t)
@@ -35,7 +39,8 @@
                                   PARTY_ID_SIZE_BYTES + \
                                   GRAPH_SIZE_SIZE_BYTES + \
                                   MAX_GRAPH_SIZE*PARTY_ID_SIZE_BYTES)
-
+#define ABORT_MESSAGE "ABORT"
+#define DEBUG_RESULT_MESSAGE "RESULT"
 #define THC_ENCRYPTED_MSG_SIZE_BYTES (CIPHERTEXT_SIZE_OF(THC_PLAIN_MSG_SIZE_BYTES))
 
 #define SKG_DATA_SIZE_BYTES (SECRET_KEY_SIZE_BYTES + sizeof(sgx_ec256_private_t))
