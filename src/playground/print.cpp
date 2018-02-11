@@ -1215,150 +1215,94 @@ private:
 
 #define MSG_SIZE THC_ENCRYPTED_MSG_SIZE_BYTES
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
-
+#define NUM_OF_BBX (5)
 
 int main() {
     
-    BlackBoxExecuter bbx,bbx2,bbx3,bbx4;
+    BlackBoxExecuter bbx[NUM_OF_BBX];
+    uint32_t source[NUM_OF_BBX][NUM_OF_BBX];
+    uint32_t numTargets[NUM_OF_BBX] = {1,3,2,1,1};
+
+    for (int i = 0; i < NUM_OF_BBX; i++){
+        for (int j = 0; j < NUM_OF_BBX; j++){
+            source[i][j] = MAX_UINT32;
+        }
+    }
+
+    source[0][0] = 1;
+
+    source[1][0] = 0;
+    source[1][1] = 2;
+    source[1][2] = 4;
+
+    source[2][0] = 1;
+    source[2][1] = 3;
+
+    source[3][0] = 2;
+
+    source[4][0] = 1;
+
     uint8_t secret[SECRET_KEY_SIZE_BYTES];
     sgx_read_rand(secret, SECRET_KEY_SIZE_BYTES);
 
-   if(!bbx.Initialize(1, 4) ||
-      !bbx2.Initialize(2, 4) ||
-      !bbx3.Initialize(2, 4) || 
-      !bbx4.Initialize(1, 4)){
-
-       printf("Failed to initialize bbx\n");
-       return 1;
-   }
    
-   if(!bbx.SetSecret(secret, SECRET_KEY_SIZE_BYTES) ||
-      !bbx2.SetSecret(secret, SECRET_KEY_SIZE_BYTES) ||
-      !bbx3.SetSecret(secret, SECRET_KEY_SIZE_BYTES) || 
-      !bbx4.SetSecret(secret, SECRET_KEY_SIZE_BYTES)) {
+   for (int i = 0; i < NUM_OF_BBX; i++){
 
-       printf("Failed to set bbx secret\n");
-       return 1;
+        if(!bbx[i].Initialize(numTargets[i], NUM_OF_BBX)){
+            printf("Failed to initialize bbx[%d]\n", i);
+            return 1;
+        }
+
+       if(!bbx[i].SetSecret(secret, SECRET_KEY_SIZE_BYTES)){
+           printf("Failed to set bbx secret\n");
+           return 1;
+       }
    }
 
-   uint8_t bbxMsg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr1 = bbxMsg;
-   uint8_t bbx2Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr2 = bbx2Msg;
-   uint8_t bbx3Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr3 = bbx3Msg;
-   uint8_t bbx4Msg[THC_ENCRYPTED_MSG_SIZE_BYTES*2]; uint8_t* ptr4 = bbx4Msg;
+   uint8_t bbxMsg[NUM_OF_BBX][THC_ENCRYPTED_MSG_SIZE_BYTES*2];
+   uint8_t* ptr[NUM_OF_BBX];
 
-
-   if(!bbx.GenerateFirstMessage(MSG(ptr1, 0), MSG_SIZE) ||
-      !bbx2.GenerateFirstMessage(MSG(ptr2, 0), MSG_SIZE) ||
-      !bbx3.GenerateFirstMessage(MSG(ptr3, 0), MSG_SIZE) || 
-      !bbx4.GenerateFirstMessage(MSG(ptr4, 0), MSG_SIZE)){
-
-       printf("Failed to GenerateFirstMessage\n");
-       return 1;
-   }
+    for (int i = 0; i < NUM_OF_BBX; i++){
+        ptr[i] = bbxMsg[i];
+        
+        if(!bbx[i].GenerateFirstMessage(MSG(ptr[i], 0), MSG_SIZE)){
+            printf("Failed to GenerateFirstMessage\n");
+            return 1;
+        }
+    }
 
    bool fDone = false;
    for(int i = 0; true; i++){
 
-        ocall_print("======bbx, before message %d:=========", i+1);
-        bbx.Print();
-        if(!bbx.Execute(MSG(ptr2, i), MSG_SIZE, MSG(ptr1, i+1), MSG_SIZE)){
-            printf("bbx.Execute failed\n");
-            return -1;
-        }
-        ocall_print("======bbx, after message %d:=========", i+1);
-        bbx.Print();
-        getchar();
+        for(int j = 0; j < NUM_OF_BBX; j++){
+            for(int k = 0; k < numTargets[j]; k++){
 
-        ocall_print("======bbx2, before message %d:=========", i+1);
-        bbx2.Print();
-        if(!bbx2.Execute(MSG(ptr1, i), MSG_SIZE, MSG(ptr2, i+1), MSG_SIZE)){ //should be no output
-            printf("bbx2.Execute failed\n");
-            return -1;
-        }
-        ocall_print("======bbx2, after message %d:=========", i+1);
-        bbx2.Print();
-        getchar();
-
-        ocall_print("======bbx2, before message %d:=========", i+1);
-        bbx2.Print();
-        if(!bbx2.Execute(MSG(ptr3, i), MSG_SIZE, MSG(ptr2, i+1), MSG_SIZE)){
-            printf("bbx2.Execute failed\n");
-            return -1;
-        }
-        ocall_print("======bbx2, after message %d:=========", i+1);
-        bbx2.Print();
-        getchar();
-
-        ocall_print("======bbx3, before message %d:=========", i+1);
-        bbx3.Print();
-        if(!bbx3.Execute(MSG(ptr2, i), MSG_SIZE, MSG(ptr3, i+1), MSG_SIZE)){ //should be no output
-            printf("bbx3.Execute failed\n");
-            return -1;
-        }   
-        ocall_print("======bbx3, after message %d:=========", i+1);
-        bbx3.Print();
-        getchar();
-
-        ocall_print("======bbx3, before message %d:=========", i+1);
-        bbx3.Print();
-        if(!bbx3.Execute(MSG(ptr4, i), MSG_SIZE, MSG(ptr3, i+1), MSG_SIZE)){
-            printf("bbx3.Execute failed\n");
-            return -1;
-        }   
-        ocall_print("======bbx3, after message %d:=========", i+1);
-        bbx3.Print();
-        getchar();
-
-        ocall_print("======bbx4, before message %d:=========", i+1);
-        bbx4.Print();
-        if(!bbx4.Execute(MSG(ptr3, i), MSG_SIZE, MSG(ptr4, i+1), MSG_SIZE)){
-            printf("bbx.Execute failed\n");
-            return -1;
-        }
-        ocall_print("======bbx4, after message %d:=========", i+1);
-        bbx4.Print();
-        getchar();
-
-        if(0==memcmp(ABORT_MESSAGE, MSG(ptr1, i+1), sizeof(ABORT_MESSAGE))){
-               printf("abort recieved from 1\n");
-               fDone = true;
+                printf("======bbx[%d], before message %d, source is %d:=========\n", j, i+1, source[j][k]);
+                bbx[j].Print();
+                if(!bbx[j].Execute(MSG(ptr[source[j][k]], i), MSG_SIZE, MSG(ptr[j], i+1), MSG_SIZE)){
+                    printf("bbx[0].Execute failed\n");
+                    return -1;
+                }
+                printf("======bbx[%d], after message %d:=========\n", j, i+1);
+                bbx[j].Print();
+                getchar();
+            }
         }
 
-        if(0==memcmp(ABORT_MESSAGE, MSG(ptr2, i+1), sizeof(ABORT_MESSAGE))){
-               printf("abort recieved from 2\n");
-               fDone = true;
-        }
+        for(int j = 0; j < NUM_OF_BBX; j++){
 
-        if(0==memcmp(ABORT_MESSAGE, MSG(ptr3, i+1), sizeof(ABORT_MESSAGE))){
-               printf("abort recieved from 3\n");
-               fDone = true;
-        }
+            if(0==memcmp(ABORT_MESSAGE, MSG(ptr[j], i+1), sizeof(ABORT_MESSAGE))){
+                printf("abort recieved from %d\n", j);
+                fDone = true;
+                break;
+            }
 
-        if(0==memcmp(ABORT_MESSAGE, MSG(ptr4, i+1), sizeof(ABORT_MESSAGE))){
-               printf("abort recieved from 4\n");
-               fDone = true;
-        }
-
-        if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr1, i+1), sizeof(DEBUG_RESULT_MESSAGE))){
+            if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr[j], i+1), sizeof(DEBUG_RESULT_MESSAGE))){
                printf("result recieved from 1\n");
                fDone = true;
+               break;
+            }
         }
-
-        if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr2, i+1), sizeof(DEBUG_RESULT_MESSAGE))){
-               printf("result recieved from 2\n");
-               fDone = true;
-        }
-
-        if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr3, i+1), sizeof(DEBUG_RESULT_MESSAGE))){
-               printf("result recieved from 3\n");
-               fDone = true;
-        }
-
-        if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr4, i+1), sizeof(DEBUG_RESULT_MESSAGE))){
-               printf("result recieved from 4\n");
-               fDone = true;
-        }
-
        
 
         if(fDone){
