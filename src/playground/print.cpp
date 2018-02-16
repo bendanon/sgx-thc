@@ -593,12 +593,50 @@ class BlackBoxExecuter
                 ocall_print("m_edgesLen: %d", m_edgesLen);
                 ocall_print("m_edgesOpenSpot: %d", m_edgesOpenSpot);
                 for(int i = 0; i < m_verticesOpenSpot; i++){
+                    ocall_print("===============VERTEX=======================");
                     m_vertices[i].Print();
+                    ocall_print("===============EDGES========================");
+
+                    for(int j = 0; j < m_edgesOpenSpot; j++){
+                        if(m_edges[j].GetSrc() == i){
+                            m_vertices[m_edges[j].GetSink()].Print();
+                        }
+                        if(m_edges[j].GetSink() == i){
+                            m_vertices[m_edges[j].GetSrc()].Print();
+                        }
+                    }
+                    ocall_print("");
                 }
 
-                for(int i = 0; i < m_edgesOpenSpot; i++){
+                /*for(int i = 0; i < m_edgesOpenSpot; i++){
                     m_edges[i].Print();
+                }*/
+            }
+
+            bool IsEquivalent(Graph* p_other){
+                return this->Contains(p_other) && p_other->Contains(this);
+            }
+            
+            bool Contains(Graph* p_other){
+                VertexIterator vit;
+                EdgeIterator eit;
+                PartyId v;
+                Edge e;
+                if(!p_other->GetVertexIterator(vit) || !p_other->GetEdgeIterator(eit)){
+                    ocall_print("Graph::IsEquivalent - failed to get iterator");
+                    return false;
                 }
+                while(vit.GetNext(v)){
+                    if(!this->Contains(v)){
+                        return false;
+                    }
+                }
+                while(eit.GetNext(e)){
+                    if(!this->Contains(e)){
+                        return false;
+                    }
+                }
+                return true; 
             }
 
             //TODO: Calculate actual diameter
@@ -840,7 +878,10 @@ public:
         ocall_print("m_numOfNeighbors = %d", m_numOfNeighbors);
         ocall_print("m_ctrRound = %d", m_ctrRound);
         ocall_print("m_ctrNeighbor = %d", m_ctrNeighbor);
-        ocall_print("======================");
+    }
+
+    bool CompareGraph(BlackBoxExecuter& other){
+        return m_pGraph->IsEquivalent(other.m_pGraph);
     }
 
 private:
@@ -1215,21 +1256,23 @@ private:
 
 #define MSG_SIZE THC_ENCRYPTED_MSG_SIZE_BYTES
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
-#define NUM_OF_BBX (5)
+#define NUM_OF_BBX (MAX_GRAPH_SIZE)
 
 int main() {
     
     BlackBoxExecuter bbx[NUM_OF_BBX];
-    uint32_t source[NUM_OF_BBX][NUM_OF_BBX];
-    uint32_t numTargets[NUM_OF_BBX] = {1,3,2,1,1};
+    uint32_t source[NUM_OF_BBX][NUM_OF_BBX-1];
+    uint32_t numTargets[NUM_OF_BBX]; //= {1,3,2,1,2,2};
 
     for (int i = 0; i < NUM_OF_BBX; i++){
-        for (int j = 0; j < NUM_OF_BBX; j++){
-            source[i][j] = MAX_UINT32;
+        numTargets[i] = NUM_OF_BBX - 1;
+        for (int j = 0; j < NUM_OF_BBX - 1; j++){
+            if(j < i) source[i][j] = j;
+            else source[i][j] = j+1;            
         }
     }
 
-    source[0][0] = 1;
+    /*source[0][0] = 1;
 
     source[1][0] = 0;
     source[1][1] = 2;
@@ -1241,6 +1284,10 @@ int main() {
     source[3][0] = 2;
 
     source[4][0] = 1;
+    source[4][1] = 5;
+
+    source[5][0] = 4;
+    source[5][1] = 3;*/
 
     uint8_t secret[SECRET_KEY_SIZE_BYTES];
     sgx_read_rand(secret, SECRET_KEY_SIZE_BYTES);
@@ -1277,15 +1324,15 @@ int main() {
         for(int j = 0; j < NUM_OF_BBX; j++){
             for(int k = 0; k < numTargets[j]; k++){
 
-                printf("======bbx[%d], before message %d, source is %d:=========\n", j, i+1, source[j][k]);
-                bbx[j].Print();
+                //printf("======bbx[%d], before message %d, source is %d:=========\n", j, i+1, source[j][k]);
+                //bbx[j].Print();
                 if(!bbx[j].Execute(MSG(ptr[source[j][k]], i), MSG_SIZE, MSG(ptr[j], i+1), MSG_SIZE)){
                     printf("bbx[0].Execute failed\n");
                     return -1;
                 }
-                printf("======bbx[%d], after message %d:=========\n", j, i+1);
-                bbx[j].Print();
-                getchar();
+                //printf("======bbx[%d], after message %d:=========\n", j, i+1);
+                //bbx[j].Print();
+                //getchar();
             }
         }
 
@@ -1293,19 +1340,29 @@ int main() {
 
             if(0==memcmp(ABORT_MESSAGE, MSG(ptr[j], i+1), sizeof(ABORT_MESSAGE))){
                 printf("abort recieved from %d\n", j);
-                fDone = true;
-                break;
+                fDone = true;               
             }
 
             if(0==memcmp(DEBUG_RESULT_MESSAGE, MSG(ptr[j], i+1), sizeof(DEBUG_RESULT_MESSAGE))){
-               printf("result recieved from 1\n");
-               fDone = true;
-               break;
+               printf("result recieved from %d\n", j);
+               fDone = true;               
             }
         }
        
 
         if(fDone){
+
+            for(int j = 1; j < NUM_OF_BBX; j++){
+                if(bbx[j].CompareGraph(bbx[j-1])){
+                    printf("========bbx[%d] and bbx[%d] have equivalent graphs:=========\n", j, j-1);    
+                }
+            }
+
+            for(int j = 0; j < NUM_OF_BBX; j++){
+                printf("========bbx[%d]'s final state is:=========\n", j);
+                bbx[j].Print();
+                getchar();
+            }
             return 0;
         }
    }
