@@ -127,14 +127,11 @@ sgx_status_t BbEnclave::bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encryp
     return this->status;
 }
 
-sgx_status_t BbEnclave::bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, 
-                             uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
-                             size_t B_out_size){
+sgx_status_t BbEnclave::bbExec(uint8_t* B_in, size_t B_in_size, 
+                               uint8_t* B_out, size_t B_out_size){
 
     bb_exec(this->enclave_id,
-             &this->status, 
-             p_sealed_s, 
-             sealed_size, 
+             &this->status,            
              B_in, 
              B_in_size,
              B_out,
@@ -165,6 +162,50 @@ sgx_status_t BbEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size,
     return this->status;
 }
 
+
+sgx_status_t BbEnclave::ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices) {
+
+    bb_re_init(this->enclave_id,
+               &this->status,
+               p_sealed_s,
+               sealed_size,
+               num_of_neighbors,
+               num_of_vertices);
+
+    if(SGX_SUCCESS != this->status) {
+        Log("ReInit failed, retval is %d", this->status, log::error);
+    }
+
+    return this->status;
+}
+
+sgx_status_t BbEnclave::GetResult(uint8_t* result, size_t result_size){
+
+    bb_get_result(this->enclave_id,
+                  &this->status, 
+                  result, 
+                  result_size);
+
+    if(SGX_SUCCESS != this->status){
+        Log("BbEnclave::GetResult failed, retval is %d", this->status, log::error);
+    }
+
+    return this->status;
+}
+
+sgx_status_t BbEnclave::GenerateFirstMessage(uint8_t* B_out, size_t B_out_size){
+
+    bb_generate_first_msg(this->enclave_id,
+                          &this->status, 
+                          B_out, 
+                          B_out_size);
+
+    if(SGX_SUCCESS != this->status){
+        Log("BbEnclave::GenerateFirstMessage failed, retval is %d", this->status, log::error);
+    }
+
+    return this->status;
+}
 
 
 

@@ -37,6 +37,11 @@ message CertificateMSG {
     repeated uint32 full_response = 11 [packed=true];
 }
 
+message BbMSG {
+	required uint32 type = 1;	
+    repeated uint32 bb_msg = 2 [packed=true];
+}
+
 message GetSecretResponse {
 	required uint32 type = 1;
 	repeated uint32 encrypted_secret = 2 [packed=true];

@@ -39,13 +39,31 @@ typedef struct ms_bb_init_2_t {
 
 typedef struct ms_bb_exec_t {
 	sgx_status_t ms_retval;
-	sgx_sealed_data_t* ms_p_sealed_s;
-	size_t ms_sealed_size;
 	uint8_t* ms_B_in;
 	size_t ms_B_in_size;
 	uint8_t* ms_B_out;
 	size_t ms_B_out_size;
 } ms_bb_exec_t;
+
+typedef struct ms_bb_generate_first_msg_t {
+	sgx_status_t ms_retval;
+	uint8_t* ms_B_out;
+	size_t ms_B_out_size;
+} ms_bb_generate_first_msg_t;
+
+typedef struct ms_bb_get_result_t {
+	sgx_status_t ms_retval;
+	uint8_t* ms_B_out;
+	size_t ms_B_out_size;
+} ms_bb_get_result_t;
+
+typedef struct ms_bb_re_init_t {
+	sgx_status_t ms_retval;
+	sgx_sealed_data_t* ms_p_sealed_s;
+	size_t ms_sealed_size;
+	uint32_t ms_num_of_neighbors;
+	uint32_t ms_num_of_vertices;
+} ms_bb_re_init_t;
 
 typedef struct ms_enclave_init_ra_t {
 	sgx_status_t ms_retval;
@@ -280,10 +298,6 @@ static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 	CHECK_REF_POINTER(pms, sizeof(ms_bb_exec_t));
 	ms_bb_exec_t* ms = SGX_CAST(ms_bb_exec_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
-	sgx_sealed_data_t* _tmp_p_sealed_s = ms->ms_p_sealed_s;
-	size_t _tmp_sealed_size = ms->ms_sealed_size;
-	size_t _len_p_sealed_s = _tmp_sealed_size;
-	sgx_sealed_data_t* _in_p_sealed_s = NULL;
 	uint8_t* _tmp_B_in = ms->ms_B_in;
 	size_t _tmp_B_in_size = ms->ms_B_in_size;
 	size_t _len_B_in = _tmp_B_in_size;
@@ -293,19 +307,9 @@ static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 	size_t _len_B_out = _tmp_B_out_size;
 	uint8_t* _in_B_out = NULL;
 
-	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s, _len_p_sealed_s);
 	CHECK_UNIQUE_POINTER(_tmp_B_in, _len_B_in);
 	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
 
-	if (_tmp_p_sealed_s != NULL && _len_p_sealed_s != 0) {
-		_in_p_sealed_s = (sgx_sealed_data_t*)malloc(_len_p_sealed_s);
-		if (_in_p_sealed_s == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_p_sealed_s, _tmp_p_sealed_s, _len_p_sealed_s);
-	}
 	if (_tmp_B_in != NULL && _len_B_in != 0) {
 		_in_B_in = (uint8_t*)malloc(_len_B_in);
 		if (_in_B_in == NULL) {
@@ -323,14 +327,101 @@ static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 
 		memset((void*)_in_B_out, 0, _len_B_out);
 	}
-	ms->ms_retval = bb_exec(_in_p_sealed_s, _tmp_sealed_size, _in_B_in, _tmp_B_in_size, _in_B_out, _tmp_B_out_size);
+	ms->ms_retval = bb_exec(_in_B_in, _tmp_B_in_size, _in_B_out, _tmp_B_out_size);
 err:
-	if (_in_p_sealed_s) free(_in_p_sealed_s);
 	if (_in_B_in) free(_in_B_in);
 	if (_in_B_out) {
 		memcpy(_tmp_B_out, _in_B_out, _len_B_out);
 		free(_in_B_out);
 	}
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_bb_generate_first_msg(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_generate_first_msg_t));
+	ms_bb_generate_first_msg_t* ms = SGX_CAST(ms_bb_generate_first_msg_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_B_out = ms->ms_B_out;
+	size_t _tmp_B_out_size = ms->ms_B_out_size;
+	size_t _len_B_out = _tmp_B_out_size;
+	uint8_t* _in_B_out = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
+
+	if (_tmp_B_out != NULL && _len_B_out != 0) {
+		if ((_in_B_out = (uint8_t*)malloc(_len_B_out)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_B_out, 0, _len_B_out);
+	}
+	ms->ms_retval = bb_generate_first_msg(_in_B_out, _tmp_B_out_size);
+err:
+	if (_in_B_out) {
+		memcpy(_tmp_B_out, _in_B_out, _len_B_out);
+		free(_in_B_out);
+	}
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_bb_get_result(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_get_result_t));
+	ms_bb_get_result_t* ms = SGX_CAST(ms_bb_get_result_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	uint8_t* _tmp_B_out = ms->ms_B_out;
+	size_t _tmp_B_out_size = ms->ms_B_out_size;
+	size_t _len_B_out = _tmp_B_out_size;
+	uint8_t* _in_B_out = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
+
+	if (_tmp_B_out != NULL && _len_B_out != 0) {
+		if ((_in_B_out = (uint8_t*)malloc(_len_B_out)) == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memset((void*)_in_B_out, 0, _len_B_out);
+	}
+	ms->ms_retval = bb_get_result(_in_B_out, _tmp_B_out_size);
+err:
+	if (_in_B_out) {
+		memcpy(_tmp_B_out, _in_B_out, _len_B_out);
+		free(_in_B_out);
+	}
+
+	return status;
+}
+
+static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
+{
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_re_init_t));
+	ms_bb_re_init_t* ms = SGX_CAST(ms_bb_re_init_t*, pms);
+	sgx_status_t status = SGX_SUCCESS;
+	sgx_sealed_data_t* _tmp_p_sealed_s = ms->ms_p_sealed_s;
+	size_t _tmp_sealed_size = ms->ms_sealed_size;
+	size_t _len_p_sealed_s = _tmp_sealed_size;
+	sgx_sealed_data_t* _in_p_sealed_s = NULL;
+
+	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s, _len_p_sealed_s);
+
+	if (_tmp_p_sealed_s != NULL && _len_p_sealed_s != 0) {
+		_in_p_sealed_s = (sgx_sealed_data_t*)malloc(_len_p_sealed_s);
+		if (_in_p_sealed_s == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_p_sealed_s, _tmp_p_sealed_s, _len_p_sealed_s);
+	}
+	ms->ms_retval = bb_re_init(_in_p_sealed_s, _tmp_sealed_size, ms->ms_num_of_neighbors, ms->ms_num_of_vertices);
+err:
+	if (_in_p_sealed_s) free(_in_p_sealed_s);
 
 	return status;
 }
@@ -554,13 +645,16 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[9];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[12];
 } g_ecall_table = {
-	9,
+	12,
 	{
 		{(void*)(uintptr_t)sgx_bb_init_1, 0},
 		{(void*)(uintptr_t)sgx_bb_init_2, 0},
 		{(void*)(uintptr_t)sgx_bb_exec, 0},
+		{(void*)(uintptr_t)sgx_bb_generate_first_msg, 0},
+		{(void*)(uintptr_t)sgx_bb_get_result, 0},
+		{(void*)(uintptr_t)sgx_bb_re_init, 0},
 		{(void*)(uintptr_t)sgx_enclave_init_ra, 0},
 		{(void*)(uintptr_t)sgx_enclave_ra_close, 0},
 		{(void*)(uintptr_t)sgx_derive_smk, 0},
@@ -572,20 +666,20 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[10][9];
+	uint8_t entry_table[10][12];
 } g_dyn_entry_table = {
 	10,
 	{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
 	}
 };
 

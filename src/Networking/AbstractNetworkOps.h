@@ -38,6 +38,7 @@ protected:
 protected:
     void read();
     void send(vector<string>);
+    bool sendWithoutRead(vector<string> v);
     void process_read(char* buffer, int size, int type);
 
 private:

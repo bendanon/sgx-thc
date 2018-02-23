@@ -16,6 +16,7 @@ public:
     void handle_handshake(const boost::system::error_code& error);
 
     void startConnection();
+    bool SendMsg(vector<string> msg);
 
 private:
     boost::asio::ip::tcp::resolver::iterator endpoint_iterator;

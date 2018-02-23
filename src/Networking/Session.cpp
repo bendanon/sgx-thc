@@ -20,7 +20,7 @@ void Session::start() {
 
 void Session::handle_handshake(const boost::system::error_code& error) {
     if (!error) {
-        Log("Handshake successful");
+        Log("Session::handle_handshake - Handshake successful");
         this->read();
     } else {
         Log("Handshake was not successful: %s", error.message(), log::error);

@@ -19,7 +19,9 @@ typedef enum _thc_msg_types {
     THC_PK_REQ,
     THC_PK_RES,
     THC_SEC_REQ,
-    THC_SEC_RES
+    THC_SEC_RES,
+    THC_BB_MSG,
+    THC_BB_MSG_ACK
 } thc_msg_types;
 
 

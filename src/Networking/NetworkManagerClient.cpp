@@ -1,10 +1,10 @@
 #include "NetworkManagerClient.h"
 #include "../GeneralSettings.h"
 
-NetworkManagerClient* NetworkManagerClient::instance = NULL;
-
-NetworkManagerClient::NetworkManagerClient() {}
-
+NetworkManagerClient::NetworkManagerClient(int port, std::string host) {
+    setPort(port);
+    setHost(host);
+}
 
 void NetworkManagerClient::Init() {
     if (client) {
@@ -22,18 +22,6 @@ void NetworkManagerClient::Init() {
     this->client = new Client(io_service, ctx, iterator);
 }
 
-
-NetworkManagerClient* NetworkManagerClient::getInstance(int port,  std::string host) {
-    if (instance == NULL) {
-        instance = new NetworkManagerClient();
-        instance->setPort(port);
-        instance->setHost(host);
-    }
-
-    return instance;
-}
-
-
 void NetworkManagerClient::startService() {
     this->client->startConnection();
 }
@@ -46,6 +34,10 @@ void NetworkManagerClient::setHost(std::string host) {
 
 void NetworkManagerClient::connectCallbackHandler(CallbackHandler cb) {
     this->client->setCallbackHandler(cb);
+}
+
+bool NetworkManagerClient::SendMsg(vector<string> msg) {
+    return this->client->SendMsg(msg);
 }
 
 

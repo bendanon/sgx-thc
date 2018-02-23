@@ -6,17 +6,17 @@
 class NetworkManagerClient : public NetworkManager {
 
 public:
-    static NetworkManagerClient* getInstance(int port, std::string host = "localhost");
+    NetworkManagerClient(int port, std::string host = "localhost");
     void Init();
     void connectCallbackHandler(CallbackHandler cb);
     void startService();
     void setHost(std::string host);
+    bool SendMsg(vector<string> msg);
 
 private:
-    NetworkManagerClient();
+    
 
 private:
-    static NetworkManagerClient* instance;
     std::string host;
     Client *client = NULL;
 };

@@ -43,12 +43,15 @@ int Main(int argc, char* argv[]) {
 
     BbClient bbClient(bb_enclave, config);
 
-    while(!bbClient.hasSecret())
-    {
+    while(!bbClient.hasSecret()) {
         bbClient.obtainSecretFromSkg();        
     }
 
-    bbClient.runThcProtocol();
+    //This shouldn't terminate
+    if(!bbClient.runThcProtocol()){
+        Log("Failed obtain result");
+        ret = -1;
+    }
 
     delete bb_enclave;
     return ret;

@@ -40,12 +40,16 @@ public:
                          size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, 
                          size_t sealed_size);
 
-    sgx_status_t bbExec(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, 
-                        uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
-                        size_t B_out_size);
+    sgx_status_t bbExec(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 
     virtual sgx_status_t deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
                                    sgx_ec_key_128bit_t* p_smk, size_t smk_size);
+
+    sgx_status_t GetResult(uint8_t* result, size_t result_size);
+
+    sgx_status_t GenerateFirstMessage(uint8_t* B_out, size_t B_out_size);
+    
+    sgx_status_t ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
 };
 
 #endif

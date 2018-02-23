@@ -27,20 +27,24 @@
 #define MAX_GRAPH_SIZE 10
 #define EDGE_PRINT_SIZE_BYTES sizeof("[10,10]") /*according to MAX_GRAPH_SIZE*/
 
+
+#define THC_ACK_MSG_STRING "ACK"
 #define MAX_UINT32 ((uint32_t) 0-1)
 #define PARTY_ID_SIZE_BYTES (128 / 8)
 #define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)
 #define THC_MAX_NUMBER_OF_ROUNDS (MAX_GRAPH_SIZE + MAX_GRAPH_SIZE*MAX_GRAPH_SIZE)
 #define THC_ROUND_NUMBER_SIZE_BYTES sizeof(uint32_t)
-#define GRAPH_SIZE_SIZE_BYTES sizeof(uint32_t)
+#define VERTICES_LEN_SIZE_BYTES sizeof(uint32_t)
+#define EDGES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define THC_MSG_TYPE_SIZE_BYTES sizeof(uint32_t)
-#define MAX_EDGES(V) (V*(V-1)) 
+#define MAX_EDGES(V) (V*(V-1)/2) 
 #define THC_PLAIN_MSG_SIZE_BYTES (THC_MSG_TYPE_SIZE_BYTES + \
                                   THC_ROUND_NUMBER_SIZE_BYTES + \
                                   PARTY_ID_SIZE_BYTES + \
-                                  GRAPH_SIZE_SIZE_BYTES + \
-                                  MAX_GRAPH_SIZE*PARTY_ID_SIZE_BYTES + \
-                                  MAX_EDGES(MAX_GRAPH_SIZE)*EDGE_SIZE_BYTES)
+                                  VERTICES_LEN_SIZE_BYTES + \
+                                  (MAX_GRAPH_SIZE*PARTY_ID_SIZE_BYTES) + \
+                                  EDGES_LEN_SIZE_BYTES + \
+                                  (MAX_EDGES(MAX_GRAPH_SIZE)*EDGE_SIZE_BYTES))
 #define ABORT_MESSAGE "ABORT"
 #define DEBUG_RESULT_MESSAGE "RESULT"
 #define THC_ENCRYPTED_MSG_SIZE_BYTES (CIPHERTEXT_SIZE_OF(THC_PLAIN_MSG_SIZE_BYTES))

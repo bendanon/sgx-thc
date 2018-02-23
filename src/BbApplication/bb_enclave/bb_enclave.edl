@@ -15,10 +15,19 @@ enclave {
             [out, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
         
         
-        public sgx_status_t bb_exec(
-            [in, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size,
-            [in, size=B_in_size]uint8_t* B_in, size_t B_in_size,
+        public sgx_status_t bb_exec([in, size=B_in_size]uint8_t* B_in, size_t B_in_size,
+                                    [out, size=B_out_size] uint8_t* B_out, size_t B_out_size);
+
+        public sgx_status_t bb_generate_first_msg(           
             [out, size=B_out_size] uint8_t* B_out, size_t B_out_size);
+        
+        public sgx_status_t bb_get_result(           
+            [out, size=B_out_size] uint8_t* B_out, size_t B_out_size);
+        
+         public sgx_status_t bb_re_init(
+            [in, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size,
+            uint32_t num_of_neighbors, uint32_t num_of_vertices);       
+        
     };
 
 };

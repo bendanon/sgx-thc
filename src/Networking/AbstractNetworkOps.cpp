@@ -1,4 +1,5 @@
 #include "AbstractNetworkOps.h"
+#include "Network_def.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -64,7 +65,62 @@ void AbstractNetworkOps::read() {
 }
 
 
+
+bool AbstractNetworkOps::sendWithoutRead(vector<string> v){
+    if(v.empty()){
+        Log("AbstractNetworkOps::sendWithoutRead - empty vector");
+        return true;
+    }
+
+    string type = v[0];
+    string msg = v[1];
+
+    if (msg.size() > 0) {
+        const char *msg_c = msg.c_str();
+        int msg_length = msg.size();
+
+        string header = to_string(msg_length) + "@" + type;
+
+        char buffer_header[20];
+        memset(buffer_header, '\0', 20);
+        memcpy(buffer_header, header.c_str(), header.length());
+
+        try {
+            boost::asio::write(socket_, boost::asio::buffer(buffer_header, 20));
+        } catch (std::exception& e){
+            Log(e.what());
+            return false;
+        }
+
+        char *buffer_msg = (char*) malloc(sizeof(char) * msg_length);
+
+        memset(buffer_msg, '\0', sizeof(char) * msg_length);
+        memcpy(buffer_msg, msg_c, msg_length);
+
+        try {
+            boost::asio::write(socket_, boost::asio::buffer(buffer_msg, msg_length));
+        } catch (std::exception& e){
+            Log(e.what());
+            return false;
+        } 
+
+        free(buffer_msg);
+
+    } else {
+        this->saveCloseSocket();
+        return false;
+    }
+
+    return true;
+}
+
 void AbstractNetworkOps::send(vector<string> v) {
+
+    if(v.empty()){
+        Log("AbstractNetworkOps::send - empty vector");
+        return;
+    }
+
     string type = v[0];
     string msg = v[1];
 
@@ -105,16 +161,25 @@ void AbstractNetworkOps::process_read(char* buffer, int msg_size, int type) {
     
     if(buffer == NULL)
     {
+        /*
         Log("AbstractNetworkOps::process_read - buffer == NULL");
         std::string str;
         this->callback_handler(str, type);
-        return;
+        return;*/
+        Log("SaveCloseSocket===================");
+       this->saveCloseSocket();
+       return;
+
     }
 
     std::string str(reinterpret_cast<const char*>(buffer), msg_size);
     free(buffer);
 
     auto msg = this->callback_handler(str, type);
+
+    if(type == THC_BB_MSG){
+        return;
+    }
 
     if (msg.size() == 2 && msg[0].size() > 0 && msg[1].size() > 0) {
         Log("Send to client");

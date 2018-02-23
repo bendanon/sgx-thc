@@ -2,7 +2,8 @@
 #include "LogBase.h"
 #include "Network_def.h"
 #include "Messages.pb.h"
-
+#include <boost/chrono.hpp>
+#include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 
 using namespace util;
@@ -24,6 +25,11 @@ void Client::startConnection() {
 
     boost::system::error_code ec;
     boost::asio::connect(socket_.lowest_layer(), this->endpoint_iterator, ec);
+
+    while (ec) {
+        boost::this_thread::sleep_for(boost::chrono::seconds{2});
+        boost::asio::connect(socket_.lowest_layer(), this->endpoint_iterator, ec);
+    } 
 
     handle_connect(ec);
 }
@@ -56,13 +62,17 @@ void Client::handle_connect(const boost::system::error_code &error) {
 
 void Client::handle_handshake(const boost::system::error_code& error) {
     if (!error) {
-        Log("Handshake successful");
+        Log("Client::handle_handshake - Handshake successful");
 
         auto ret = this->callback_handler("", -1);
         send(ret);
     } else {
         Log("Handshake failed: %s", error.message(), log::error);
     }
+}
+
+bool Client::SendMsg(vector<string> msg) {
+    return sendWithoutRead(msg);
 }
 
 

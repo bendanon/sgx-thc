@@ -38,6 +38,7 @@ class MessageMsg0;
 class MessageMSG1;
 class PkRequest;
 class CertificateMSG;
+class BbMSG;
 class GetSecretResponse;
 class MessageMSG2;
 class MessageMSG3;
@@ -639,6 +640,99 @@ class CertificateMSG : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static CertificateMSG* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class BbMSG : public ::google::protobuf::Message {
+ public:
+  BbMSG();
+  virtual ~BbMSG();
+
+  BbMSG(const BbMSG& from);
+
+  inline BbMSG& operator=(const BbMSG& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const BbMSG& default_instance();
+
+  void Swap(BbMSG* other);
+
+  // implements Message ----------------------------------------------
+
+  BbMSG* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const BbMSG& from);
+  void MergeFrom(const BbMSG& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required uint32 type = 1;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 1;
+  inline ::google::protobuf::uint32 type() const;
+  inline void set_type(::google::protobuf::uint32 value);
+
+  // repeated uint32 bb_msg = 2 [packed = true];
+  inline int bb_msg_size() const;
+  inline void clear_bb_msg();
+  static const int kBbMsgFieldNumber = 2;
+  inline ::google::protobuf::uint32 bb_msg(int index) const;
+  inline void set_bb_msg(int index, ::google::protobuf::uint32 value);
+  inline void add_bb_msg(::google::protobuf::uint32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+      bb_msg() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+      mutable_bb_msg();
+
+  // @@protoc_insertion_point(class_scope:Messages.BbMSG)
+ private:
+  inline void set_has_type();
+  inline void clear_has_type();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > bb_msg_;
+  mutable int _bb_msg_cached_byte_size_;
+  ::google::protobuf::uint32 type_;
+  friend void  protobuf_AddDesc_Messages_2eproto();
+  friend void protobuf_AssignDesc_Messages_2eproto();
+  friend void protobuf_ShutdownFile_Messages_2eproto();
+
+  void InitAsDefaultInstance();
+  static BbMSG* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -2159,6 +2253,64 @@ inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
 CertificateMSG::mutable_full_response() {
   // @@protoc_insertion_point(field_mutable_list:Messages.CertificateMSG.full_response)
   return &full_response_;
+}
+
+// -------------------------------------------------------------------
+
+// BbMSG
+
+// required uint32 type = 1;
+inline bool BbMSG::has_type() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void BbMSG::set_has_type() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void BbMSG::clear_has_type() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void BbMSG::clear_type() {
+  type_ = 0u;
+  clear_has_type();
+}
+inline ::google::protobuf::uint32 BbMSG::type() const {
+  // @@protoc_insertion_point(field_get:Messages.BbMSG.type)
+  return type_;
+}
+inline void BbMSG::set_type(::google::protobuf::uint32 value) {
+  set_has_type();
+  type_ = value;
+  // @@protoc_insertion_point(field_set:Messages.BbMSG.type)
+}
+
+// repeated uint32 bb_msg = 2 [packed = true];
+inline int BbMSG::bb_msg_size() const {
+  return bb_msg_.size();
+}
+inline void BbMSG::clear_bb_msg() {
+  bb_msg_.Clear();
+}
+inline ::google::protobuf::uint32 BbMSG::bb_msg(int index) const {
+  // @@protoc_insertion_point(field_get:Messages.BbMSG.bb_msg)
+  return bb_msg_.Get(index);
+}
+inline void BbMSG::set_bb_msg(int index, ::google::protobuf::uint32 value) {
+  bb_msg_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Messages.BbMSG.bb_msg)
+}
+inline void BbMSG::add_bb_msg(::google::protobuf::uint32 value) {
+  bb_msg_.Add(value);
+  // @@protoc_insertion_point(field_add:Messages.BbMSG.bb_msg)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >&
+BbMSG::bb_msg() const {
+  // @@protoc_insertion_point(field_list:Messages.BbMSG.bb_msg)
+  return bb_msg_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
+BbMSG::mutable_bb_msg() {
+  // @@protoc_insertion_point(field_mutable_list:Messages.BbMSG.bb_msg)
+  return &bb_msg_;
 }
 
 // -------------------------------------------------------------------

@@ -32,6 +32,9 @@
 #include "NetworkManagerServer.h"
 #include <jsoncpp/json/json.h>
 
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
+
 using namespace std;
 using namespace util;
 
@@ -44,9 +47,9 @@ private:
 public:
     BbClient(BbEnclave* pEnclave, Json::Value& config);
     virtual ~BbClient();
-    
+        
     void obtainSecretFromSkg();
-    void runThcProtocol();
+    bool runThcProtocol();
     
     bool hasSecret();
 
@@ -82,21 +85,30 @@ public:
     bool execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 
     //TODO - this should be private and called by NetworkManagerClient
-    vector<string> incomingHandler(string v, int type);
+    vector<string> skgIncomingHandler(string v, int type);
+    vector<string> bbIncomingHandler(string v, int type);
+    vector<string> emptyHandler(string v, int type);
 
 private:
     bool obtainCertificate();
     bool readSecret();
     bool writeSecret();
+    bool handleBbMsg(Messages::BbMSG& in);
+    bool serializeBbMessage(uint8_t* inbuf, size_t inbuf_size);
 
 
 private:
-    NetworkManagerClient *m_nmc = NULL;
-    NetworkManagerServer *m_nms = NULL;
+    NetworkManagerClient *m_skgNmc = NULL;
+    NetworkManagerServer *m_bbNms = NULL;
     VerificationReport m_report;
     BbEnclave* m_pEnclave;
     AttestationClient* m_pClient;
     Json::Value& m_config;
+    NetworkManagerClient** m_neighbors;
+    size_t m_numOfNeighbors;
+    vector<string> m_bbMsg;
+    uint32_t m_timesResultSent = 0;
+    boost::mutex m_bbMsgMutex;
     sgx_ec256_public_t* p_bb_pk = NULL;
     sgx_sealed_data_t* p_sealed_k = NULL;
     sgx_sealed_data_t* p_sealed_s = NULL;

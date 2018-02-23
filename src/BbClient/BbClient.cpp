@@ -1,35 +1,90 @@
 #include "BbClient.h"
 
+#include <boost/thread.hpp>
+#include <iostream>
 
 string BbClient::secret_file_name = "secret.bb";
 
 BbClient::BbClient(BbEnclave* pEnclave, Json::Value& config) : m_pEnclave(pEnclave), m_pClient(NULL), m_config(config) { 
-    m_nmc = NetworkManagerClient::getInstance(Settings::rh_port, Settings::rh_host);
-    m_nms = NetworkManagerServer::getInstance(m_config["port"].asUInt());
+    m_skgNmc = new NetworkManagerClient(Settings::rh_port, Settings::rh_host);
+    m_bbNms = NetworkManagerServer::getInstance(m_config["port"].asUInt());
+    
+    const Json::Value& neighConfig = m_config["neighbors"];
 
+    m_numOfNeighbors = neighConfig.size();
+
+    m_neighbors = new NetworkManagerClient*[m_numOfNeighbors];    
+
+    for(int i = 0; i < m_numOfNeighbors; i++){
+        m_neighbors[i] = new NetworkManagerClient(neighConfig[i]["port"].asUInt(), neighConfig[i]["ip"].asString());
+    }    
 }
 
 BbClient::~BbClient(){
+    delete[] m_neighbors;
+    delete m_skgNmc;
     delete m_pClient;
     SafeFree(this->p_sealed_s); 
 }
 
 void BbClient::obtainSecretFromSkg() {
-    m_nmc->Init();
-    m_nmc->connectCallbackHandler([this](string v, int type) {
-        return this->incomingHandler(v, type);
+    m_skgNmc->Init();
+    m_skgNmc->connectCallbackHandler([this](string v, int type) {
+        return this->skgIncomingHandler(v, type);
     });
-    m_nmc->startService();
+    m_skgNmc->startService();
 }
 
-void BbClient::runThcProtocol(){
+bool BbClient::runThcProtocol(){
+    
 
-    m_nms->Init();
-    m_nms->connectCallbackHandler([this](string v, int type) {
-        return this->incomingHandler(v, type);
+    uint8_t firstMsgBuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
+
+    if(SGX_SUCCESS != m_pEnclave->GenerateFirstMessage(firstMsgBuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
+        Log("BbClient::runThcProtocol - failed to generate first message", log::error);
+        return false;
+    }
+    
+    if(!serializeBbMessage(firstMsgBuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
+        Log("BbClient::runThcProtocol - failed to serializeBbMessage");
+        return false;
+    }
+
+    m_bbNms->Init();
+    m_bbNms->connectCallbackHandler([this](string v, int type) {
+        return this->bbIncomingHandler(v, type);
     });
-    m_nms->startService();
+    boost::thread t(&NetworkManagerServer::startService, m_bbNms);
 
+    for(int i = 0; i < m_numOfNeighbors; i++){
+        m_neighbors[i]->Init();
+        m_neighbors[i]->connectCallbackHandler([this](string v, int type) { 
+            return this->emptyHandler(v, type);
+        });
+        m_neighbors[i]->startService();
+    }
+
+    while(true){       
+    
+        while(m_bbMsg.empty()){
+            boost::this_thread::sleep_for(boost::chrono::seconds{1});            
+        }
+        
+
+        //Send the message to all neighbors
+        for(int i = 0; i < m_numOfNeighbors; i++){
+            if(!m_neighbors[i]->SendMsg(m_bbMsg)){
+                Log("BbClient::handleBbMsg - failed to send message");
+                return false;
+            }
+        }        
+        
+        m_bbMsgMutex.lock();
+        m_bbMsg.clear();
+        m_bbMsgMutex.unlock();
+    }
+
+    t.join(); //This never terminates!
 }
 
 bool BbClient::hasSecret() {
@@ -69,7 +124,16 @@ bool BbClient::readSecret() {
     
         Log("BbClient::readSecret readFromFile failed");
         return false;
-    }    
+    }
+
+    if(SGX_SUCCESS != m_pEnclave->ReInit(this->p_sealed_s,
+                                         SECRET_KEY_SEALED_SIZE_BYTES,
+                                         m_config["neighbors"].size(),                                 
+                                         m_config["num_of_nodes"].asUInt()))
+    {
+        Log("BbClient::ReInit - failed", log::error);
+        return false;                               
+    }
 
     Log("BbClient::readSecret succeeded");
     return true;
@@ -203,9 +267,7 @@ bool BbClient::execute(uint8_t* B_in, size_t B_in_size,
 
     sgx_status_t status;    
 
-    status = m_pEnclave->bbExec(this->p_sealed_s, SECRET_KEY_SEALED_SIZE_BYTES, 
-                                B_in, B_in_size, 
-                                B_out, B_out_size);
+    status = m_pEnclave->bbExec(B_in, B_in_size, B_out, B_out_size);
 
     if(status)
     {
@@ -217,14 +279,23 @@ bool BbClient::execute(uint8_t* B_in, size_t B_in_size,
     return true;
 }
 
-vector<string> BbClient::incomingHandler(string v, int type) {
+
+vector<string> BbClient::emptyHandler(string v, int type) { 
+
+    std::vector<string> firstMsg;
+    Log("BbClient::emptyHandler");    
+    return firstMsg;
+}
+
+//Handles messages from SKG
+vector<string> BbClient::skgIncomingHandler(string v, int type) {
     vector<string> res;
     bool ret;
     string s;
 
     if(type == THC_FAILED_READ)
     {
-        Log("BbClient::incomingHandler - Failed read, restarting");
+        Log("BbClient::skgIncomingHandler - Failed read, restarting");
         //restart();
         return res;
     }
@@ -241,7 +312,7 @@ vector<string> BbClient::incomingHandler(string v, int type) {
                         res.push_back(to_string(THC_SEC_REQ));                        
                     }
                     else {
-                        Log("BbClient::incomingHandler - processPkRequest failed");
+                        Log("BbClient::skgIncomingHandler - processPkRequest failed");
                     }                
                 }
             }
@@ -251,10 +322,10 @@ vector<string> BbClient::incomingHandler(string v, int type) {
                 ret = getSecretResponse.ParseFromString(v);
                 if (ret && (getSecretResponse.type() == THC_SEC_RES)){
                     if(this->processGetSecretResponse(getSecretResponse)){
-                        Log("BbClient::incomingHandler - processGetSecretResponse succeeded");
+                        Log("BbClient::skgIncomingHandler - processGetSecretResponse succeeded");
                     }
                     else {
-                        Log("BbClient::incomingHandler - processGetSecretResponse failed");
+                        Log("BbClient::skgIncomingHandler - processGetSecretResponse failed");
                     }                
                 }
             }
@@ -269,10 +340,102 @@ vector<string> BbClient::incomingHandler(string v, int type) {
         if (this->generatePkRequest(pkRequest) && pkRequest.SerializeToString(&s)){
             res.push_back(to_string(THC_PK_REQ));
         } else { 
-            Log("BbClient::incomingHandler - generatePkRequest failed");            
+            Log("BbClient::skgIncomingHandler - generatePkRequest failed");            
         }
     }
 
     res.push_back(s);
+    return res;
+}
+
+bool BbClient::serializeBbMessage(uint8_t* inbuf, size_t inbuf_size){
+    
+    Messages::BbMSG msg;
+    
+    msg.set_type(THC_BB_MSG);
+    
+    for (int i = 0; i < inbuf_size; i++)
+        msg.add_bb_msg(inbuf[i]);
+    
+    string s;    
+    if(!msg.SerializeToString(&s)){
+        Log("BbClient::serializeBbMessage - failed to serialize the BB msg");
+        return false;
+    }
+    
+    while(!m_bbMsg.empty()){       
+        boost::this_thread::sleep_for(boost::chrono::seconds{1});
+    }
+
+    m_bbMsgMutex.lock();
+    m_bbMsg.push_back(to_string(THC_BB_MSG));
+    m_bbMsg.push_back(s);
+    m_bbMsgMutex.unlock();
+
+    return true;
+}
+
+bool BbClient::handleBbMsg(Messages::BbMSG& in){
+
+    Log("Got a message!!");
+
+    uint8_t inbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
+    uint8_t outbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];    
+
+    for (int i = 0; i < THC_ENCRYPTED_MSG_SIZE_BYTES; i++)
+        inbuf[i] = in.bb_msg(i);
+    
+    if(!execute(inbuf, sizeof(inbuf), outbuf, sizeof(outbuf))){
+        Log("BbClient::handleBbMsg - failed to execute", log::error);
+        return false;
+    }
+
+    //This means we are in the middle of a round
+    if(0==memcmp(THC_ACK_MSG_STRING, outbuf, sizeof(THC_ACK_MSG_STRING))){
+        Log("BbClient::handleBbMsg - no out");
+        return true;
+    }    
+    
+    if(0==memcmp(ABORT_MESSAGE, outbuf, sizeof(ABORT_MESSAGE))){
+        Log("BbClient::handleBbMsg - abort");
+        exit(0);               
+    }
+
+    if(0==memcmp(DEBUG_RESULT_MESSAGE, outbuf, sizeof(DEBUG_RESULT_MESSAGE))){
+        Log("BbClient::handleBbMsg - result");
+        //TODO - display result
+        exit(0);               
+    }
+
+    if(!serializeBbMessage(outbuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
+        Log("BbClient::handleBbMsg - failed to serializeBbMessage");
+        return false;
+    }
+
+    return true;
+}
+
+//Handles messages from other BBs
+vector<string> BbClient::bbIncomingHandler(string v, int type) {
+    vector<string> res;    
+    bool ret;
+
+    switch (type) {
+        case THC_BB_MSG: {
+            Messages::BbMSG in;
+            ret = in.ParseFromString(v);
+            if (!ret || (in.type() != THC_BB_MSG)){
+                Log("BbClient::bbIncomingHandler - bad input", log::error);
+                return res;
+            }
+            if(!handleBbMsg(in)){                        
+                Log("BbClient::bbIncomingHandler - handleBbMsg failed", log::error);
+            }
+        }
+        break;
+        default:
+            Log("Unknown type: %d", type, log::error);
+            break;
+    }
     return res;
 }
