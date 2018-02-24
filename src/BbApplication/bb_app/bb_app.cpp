@@ -47,8 +47,10 @@ int Main(int argc, char* argv[]) {
         bbClient.obtainSecretFromSkg();        
     }
 
+    uint8_t outbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
+
     //This shouldn't terminate
-    if(!bbClient.runThcProtocol()){
+    if(!bbClient.runThcProtocol(outbuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
         Log("Failed obtain result");
         ret = -1;
     }

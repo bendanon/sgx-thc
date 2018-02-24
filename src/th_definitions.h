@@ -27,6 +27,9 @@
 #define MAX_GRAPH_SIZE 10
 #define EDGE_PRINT_SIZE_BYTES sizeof("[10,10]") /*according to MAX_GRAPH_SIZE*/
 
+#define THC_MSG_HEADER_SIZE (20 + sizeof("255.255.255.255:99999999"))
+#define THC_MAX_NUM_OF_TRIES 3
+#define THC_SLEEP_BETWEEN_RETRIES_SECONDS 1
 
 #define THC_ACK_MSG_STRING "ACK"
 #define MAX_UINT32 ((uint32_t) 0-1)

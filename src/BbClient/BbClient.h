@@ -35,6 +35,9 @@
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
+#include "ThcServer.h"
+#include "ThcClient.h"
+
 using namespace std;
 using namespace util;
 
@@ -49,7 +52,7 @@ public:
     virtual ~BbClient();
         
     void obtainSecretFromSkg();
-    bool runThcProtocol();
+    bool runThcProtocol(uint8_t* outbuf, size_t outbuf_len);
     
     bool hasSecret();
 
@@ -76,26 +79,13 @@ public:
     ***/
     bool processGetSecretResponse(Messages::GetSecretResponse& getSecretResponse);
 
-    /*
-    [Execution: input sealed data (s), memory buffer B_in]
-    1. Unseal s
-    2. Execute B_out=X_s(B_in)
-    3. Output B_out
-    */
-    bool execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
-
     //TODO - this should be private and called by NetworkManagerClient
     vector<string> skgIncomingHandler(string v, int type);
-    vector<string> bbIncomingHandler(string v, int type);
-    vector<string> emptyHandler(string v, int type);
 
 private:
     bool obtainCertificate();
     bool readSecret();
     bool writeSecret();
-    bool handleBbMsg(Messages::BbMSG& in);
-    bool serializeBbMessage(uint8_t* inbuf, size_t inbuf_size);
-
 
 private:
     NetworkManagerClient *m_skgNmc = NULL;
@@ -104,14 +94,14 @@ private:
     BbEnclave* m_pEnclave;
     AttestationClient* m_pClient;
     Json::Value& m_config;
-    NetworkManagerClient** m_neighbors;
-    size_t m_numOfNeighbors;
-    vector<string> m_bbMsg;
-    uint32_t m_timesResultSent = 0;
-    boost::mutex m_bbMsgMutex;
+    
     sgx_ec256_public_t* p_bb_pk = NULL;
     sgx_sealed_data_t* p_sealed_k = NULL;
     sgx_sealed_data_t* p_sealed_s = NULL;
+
+
+    ThcClient* m_pThcClient;
+    ThcServer* m_pThcServer;
 };
 
 #endif
