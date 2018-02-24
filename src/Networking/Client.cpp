@@ -27,6 +27,7 @@ void Client::startConnection() {
     boost::asio::connect(socket_.lowest_layer(), this->endpoint_iterator, ec);
 
     while (ec) {
+        Log("Client::startConnection - waiting.....");
         boost::this_thread::sleep_for(boost::chrono::seconds{2});
         boost::asio::connect(socket_.lowest_layer(), this->endpoint_iterator, ec);
     } 
@@ -51,7 +52,10 @@ void Client::handle_connect(const boost::system::error_code &error) {
         Log("Connection established");
 
         boost::system::error_code ec;
+
+        Log("Client::handle_connect - start handshake");
         socket_.handshake(boost::asio::ssl::stream_base::client, ec);
+        Log("Client::handle_connect - end handshake");
 
         handle_handshake(ec);
     } else {

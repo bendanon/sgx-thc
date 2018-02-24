@@ -178,7 +178,7 @@ void AbstractNetworkOps::process_read(char* buffer, int msg_size, int type) {
     auto msg = this->callback_handler(str, type);
 
     if(type == THC_BB_MSG){
-        return;
+        read();
     }
 
     if (msg.size() == 2 && msg[0].size() > 0 && msg[1].size() > 0) {

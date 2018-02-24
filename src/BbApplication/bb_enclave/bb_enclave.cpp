@@ -1170,7 +1170,7 @@ private:
         }
 
         if(roundNumber != m_ctrRound){
-            ocall_print("BlackBoxExecuter::consumeRoundNumber - received a message with the wrong round number %d", m_ctrRound);
+            ocall_print("BlackBoxExecuter::consumeRoundNumber - received a message with the wrong round number %d", roundNumber);
             return false;
         }
         else{

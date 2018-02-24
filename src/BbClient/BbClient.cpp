@@ -54,17 +54,19 @@ bool BbClient::runThcProtocol(){
     m_bbNms->connectCallbackHandler([this](string v, int type) {
         return this->bbIncomingHandler(v, type);
     });
-    boost::thread t(&NetworkManagerServer::startService, m_bbNms);
+    boost::thread serverThread(&NetworkManagerServer::startService, m_bbNms);
+
+    boost::thread* clientThreads[m_numOfNeighbors];
 
     for(int i = 0; i < m_numOfNeighbors; i++){
         m_neighbors[i]->Init();
         m_neighbors[i]->connectCallbackHandler([this](string v, int type) { 
             return this->emptyHandler(v, type);
         });
-        m_neighbors[i]->startService();
+        clientThreads[i] = new boost::thread(&NetworkManagerClient::startService, m_neighbors[i]);
     }
 
-    while(true){       
+    /*while(true){       
     
         while(m_bbMsg.empty()){
             boost::this_thread::sleep_for(boost::chrono::seconds{1});            
@@ -82,9 +84,13 @@ bool BbClient::runThcProtocol(){
         m_bbMsgMutex.lock();
         m_bbMsg.clear();
         m_bbMsgMutex.unlock();
-    }
+    }*/
 
-    t.join(); //This never terminates!
+    for(int i = 0; i < m_numOfNeighbors; i++){
+        clientThreads[i]->join();
+        delete clientThreads[i];
+    }    
+    serverThread.join(); //This never terminates!
 }
 
 bool BbClient::hasSecret() {
@@ -282,9 +288,23 @@ bool BbClient::execute(uint8_t* B_in, size_t B_in_size,
 
 vector<string> BbClient::emptyHandler(string v, int type) { 
 
-    std::vector<string> firstMsg;
-    Log("BbClient::emptyHandler");    
-    return firstMsg;
+    std::vector<string> toSend;
+
+    while(m_bbMsg.empty()){
+        Log("BbClient::emptyHandler - waiting.....");
+        boost::this_thread::sleep_for(boost::chrono::seconds{1});         
+    }
+
+    toSend = m_bbMsg;
+     
+    if(++m_timesResultSent >= m_numOfNeighbors){
+       m_bbMsgMutex.lock();
+       m_bbMsg.clear();
+       m_bbMsgMutex.unlock();
+       m_timesResultSent = 0;
+    }    
+
+    return toSend;
 }
 
 //Handles messages from SKG
@@ -364,6 +384,7 @@ bool BbClient::serializeBbMessage(uint8_t* inbuf, size_t inbuf_size){
     }
     
     while(!m_bbMsg.empty()){       
+        Log("BbClient::serializeBbMessage - waiting.....");
         boost::this_thread::sleep_for(boost::chrono::seconds{1});
     }
 
