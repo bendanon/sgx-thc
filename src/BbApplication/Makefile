@@ -49,7 +49,7 @@ endif
 App_Cpp_Files := bb_app/bb_app.cpp ../Util/LogBase.cpp ../Networking/NetworkManager.cpp ../Networking/Session.cpp ../Networking/Server.cpp \
 ../Networking/Client.cpp ../Networking/NetworkManagerClient.cpp ../Networking/NetworkManagerServer.cpp ../GoogleMessages/Messages.pb.cpp ../Networking/AbstractNetworkOps.cpp \
 ../Util/UtilityFunctions.cpp ../Enclave/Enclave.cpp ../Enclave/BbEnclave.cpp ../AttestationClient/AttestationClient.cpp ../Util/Base64.cpp ../VerificationReport/VerificationReport.cpp \
-../BbClient/BbClient.cpp ../BbClient/ThcServer.cpp ../BbClient/ThcClient.cpp ../BbClient/ReceiverSocket.cpp ../BbClient/SenderSocket.cpp ../WebService/WebService.cpp
+../BbClient/BbClient.cpp ../BbClient/Queues.cpp ../BbClient/ThcServer.cpp ../BbClient/ThcClient.cpp ../BbClient/ReceiverSocket.cpp ../BbClient/SenderSocket.cpp ../WebService/WebService.cpp
 
 App_Include_Paths := -I../Util -Isample_libcrypto -I$(SGX_SDK)/include -Iheaders  -I../Networking -Ibb_app -I../GoogleMessages -I/usr/local/include -I../Enclave \
 -I../AttestationClient -I../VerificationReport -I../BbClient -I../Networking -I../WebService -Isample_libcrypto

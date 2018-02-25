@@ -29,16 +29,26 @@ bool ThcClient::Init(){
         std::string ip = neighConfig[i]["ip"].asString();
         uint32_t port = neighConfig[i]["port"].asUInt();
 
-        if(!m_sockets[i].Init(ip, port)){
+        if(!m_sockets[i].Init(ip, port, m_config["port"].asUInt())){
             Log("ThcClient::Init - failed to prepare socket for %s, %d", ip, port, log::error);
             return false;
+        }
+        else
+        {
+            Log("ThcClient::Init - SenderSocket init succesfully to %d!!", i);
         }
 
         if(!m_sockets[i].Send(firstMsgBuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
             Log("ThcClient::Init - failed to send first msg to %s, %d", ip, port, log::error);
             return false;
         }
+        else
+        {
+            Log("ThcClient::Init - first message sent succesfully to %d!!", i);
+        }
     }
+
+    return true;
 }
 
 
@@ -46,7 +56,7 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
 
     const Json::Value& neighConfig = m_config["neighbors"];
 
-    for(int roundNumber = 0; true; roundNumber++){        
+    for(int roundNumber = 1; true; roundNumber++){        
 
         for(int neighborIndex = 0; neighborIndex < m_numOfNeighbors; neighborIndex++){
             
@@ -57,6 +67,7 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
 
             while(!p_queues->GetMsgFromNeighbor(roundNumber, ip, port, msg) && ++numOfTries <= THC_MAX_NUM_OF_TRIES)
             {
+                //Log("ThcClient::Run - GetMsgFromNeighbor failed. retrying...");
                 boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
             }
 
@@ -73,6 +84,7 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
             }
             else{
 
+                Log("ThcClient::Run - aborting...");
                 if(!execute(NULL, 0, NULL, 0)){
                     Log("ThcClient::Run - failed to execute abort", log::error);
                     return false;
@@ -89,6 +101,11 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
                 Log("ThcClient::Run - failed to send message to neighbor %s, %d", ip, port, log::error);
                 return false;
             }
+            /*else{
+                std::string ip = neighConfig[neighborIndex]["ip"].asString();
+                uint32_t port = neighConfig[neighborIndex]["port"].asUInt();
+                Log("ThcClient::Run - %d message successfully sent to %s, %d+++++", roundNumber, ip, port);
+            }*/
         }       
 
     }
@@ -122,6 +139,6 @@ bool ThcClient::execute(uint8_t* B_in, size_t B_in_size,
         return false;
     }
 
-    Log("BbClient::execute - success");
+    Log("ThcClient::execute - success");
     return true;
 }

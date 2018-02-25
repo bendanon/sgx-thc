@@ -19,21 +19,26 @@ bool ReceiverSocket::Init(Queues* p_queues){
 
 void ReceiverSocket::Receive(){
     
+    //Log("ReceiverSocket::Receive - started=====================================================");  
     std::string msg;
     uint32_t port;
-    std::string ip;
+    std::string ip = m_socket.remote_endpoint().address().to_string();
 
-    while(read(ip, port, msg)){        
-        Log("ReceiverSocket::Receive - Received message from %s, %d", ip, port);
+    while(read(port, msg)){        
+        //Log("ReceiverSocket::Receive - Received message from %s, %d", ip, port);
 
         while(!m_queues->InsertFromNeighbor(ip, port, msg)){
             Log("ReceiverSocket::Receive - failed to insert from %s, %d, retrying...", ip, port);
             boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
         }
-    }    
+
+        msg = "";
+    }
+
+    Log("ReceiverSocket::Receive - stopped=====================================================", log::error);  
 }
 
-bool ReceiverSocket::read(std::string& ip, uint32_t& port, std::string& msg){
+bool ReceiverSocket::read(uint32_t& port, std::string& msg){
     char buffer_header[THC_MSG_HEADER_SIZE];
     memset(buffer_header, '\0', THC_MSG_HEADER_SIZE);
     
@@ -56,18 +61,12 @@ bool ReceiverSocket::read(std::string& ip, uint32_t& port, std::string& msg){
 
     } else {
         vector<string> incoming;
-        boost::split(incoming, buffer_header, boost::is_any_of("@:"));
+        boost::split(incoming, buffer_header, boost::is_any_of("@"));
 
         msg_size = boost::lexical_cast<int>(incoming[0]);
 
-        if(THC_ENCRYPTED_MSG_SIZE_BYTES != msg_size){
-            Log("ReceiverSocket::read - bad message size - %d", msg_size, log::error);
-            return false;
-        }
-
         type = boost::lexical_cast<int>(incoming[1]);
-        ip = incoming[2];
-        port = boost::lexical_cast<int>(incoming[3]);
+        port = boost::lexical_cast<int>(incoming[2]);
 
         buffer = (char*) malloc(sizeof(char) * msg_size);
         memset(buffer, '\0', sizeof(char)*msg_size);

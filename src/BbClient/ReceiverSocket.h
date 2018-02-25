@@ -33,7 +33,7 @@ public:
     
 private:
     void close();
-    bool read(std::string& ip, uint32_t& port, std::string& msg);
+    bool read(uint32_t& port, std::string& msg);
 
 private:
     boost::asio::io_service m_ioService;

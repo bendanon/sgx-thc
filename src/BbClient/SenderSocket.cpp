@@ -42,30 +42,45 @@ bool SenderSocket::Send(uint8_t* buffer, size_t bufferLen){
     string type = v[0];
     string msg = v[1];
 
-    if (msg.size() > 0) {
-        const char *msg_c = msg.c_str();
-        int msg_length = msg.size();
-
-        string header = to_string(msg_length) + "@" + type + m_host + ":" + std::to_string(m_port);
-
-        char buffer_header[THC_MSG_HEADER_SIZE];
-        memset(buffer_header, '\0', THC_MSG_HEADER_SIZE);
-        memcpy(buffer_header, header.c_str(), header.length());
-
-        boost::asio::write(m_socket, boost::asio::buffer(buffer_header, THC_MSG_HEADER_SIZE));
-
-        char *buffer_msg = (char*) malloc(sizeof(char) * msg_length);
-
-        memset(buffer_msg, '\0', sizeof(char) * msg_length);
-        memcpy(buffer_msg, msg_c, msg_length);
-
-        boost::asio::write(m_socket, boost::asio::buffer(buffer_msg, msg_length));
-
-        free(buffer_msg);
-
-    } else {
+    if(msg.size() <= 0) {
         this->close();
+        Log("SenderSocket::Send - msg.size() <= 0, socket closed", log::error);
+        return false;
     }
+
+    
+    const char *msg_c = msg.c_str();
+    int msg_length = msg.size();
+
+    string header = to_string(msg_length) + "@" + type + "@" + std::to_string(m_localPort);
+
+    char buffer_header[THC_MSG_HEADER_SIZE];
+    memset(buffer_header, '\0', THC_MSG_HEADER_SIZE);
+    memcpy(buffer_header, header.c_str(), header.length());
+
+    try {
+        boost::asio::write(m_socket, boost::asio::buffer(buffer_header, THC_MSG_HEADER_SIZE));
+    } catch (std::exception& e) {
+        Log("SenderSocket::Send header- exception: %s", e.what(), log::error);
+        return false;
+    }
+
+    char *buffer_msg = (char*) malloc(sizeof(char) * msg_length);
+
+    memset(buffer_msg, '\0', sizeof(char) * msg_length);
+    memcpy(buffer_msg, msg_c, msg_length);
+
+    try{   
+        boost::asio::write(m_socket, boost::asio::buffer(buffer_msg, msg_length));
+    } catch (std::exception& e) {
+        Log("SenderSocket::Send msg - exception: %s", e.what(), log::error);
+        free(buffer_msg);
+        return false;
+    }
+
+    free(buffer_msg);
+
+    return true;
 }
 
 void SenderSocket::close() {
@@ -81,10 +96,9 @@ void SenderSocket::close() {
     }
 }
 
-bool SenderSocket::Init(std::string host, int port){
+bool SenderSocket::Init(std::string host, int port, int localPort){
 
-    m_host = host;
-    m_port = port;
+    m_localPort = localPort;
 
     boost::asio::ip::tcp::resolver resolver(m_ioService);
     boost::asio::ip::tcp::resolver::query query(host, std::to_string(port).c_str());
@@ -100,6 +114,8 @@ bool SenderSocket::Init(std::string host, int port){
         boost::this_thread::sleep_for(boost::chrono::seconds{2});
         boost::asio::connect(m_socket.lowest_layer(), ei, ec);
     }
+
+    Log("Connected successfully to %s, %d", host, port);
 
     return true;
 }

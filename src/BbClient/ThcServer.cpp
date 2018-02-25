@@ -25,11 +25,15 @@ void ThcServer::RunServer(){
     }
 
     startAccept();
+    m_ioService.run();
 }
 
 void ThcServer::startAccept(){
 
+    Log("ThcServer::startAccept - started================");
     if(m_acceptedConnections >= m_numOfNeighbors){
+        Log("ThcServer::startAccept - m_acceptedConnections(%d) >= m_numOfNeighbors(%d) ================", 
+        m_acceptedConnections, m_numOfNeighbors, log::error);
         return;
     }
 
@@ -39,11 +43,12 @@ void ThcServer::startAccept(){
                                 boost::bind(&ThcServer::handleAccept, 
                                             this, 
                                             &m_sockets[m_acceptedConnections], 
-                                            boost::asio::placeholders::error));
+                                            boost::asio::placeholders::error));    
 }
 
 void ThcServer::handleAccept(ReceiverSocket* receiverSocket, const boost::system::error_code& error){
 
+    Log("Connection from %s", receiverSocket->socket().remote_endpoint().address().to_string());
     m_threadPtrs[m_acceptedConnections++] = new boost::thread(&ReceiverSocket::Receive, receiverSocket);
     startAccept();
 }

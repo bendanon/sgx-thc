@@ -21,86 +21,24 @@
 #include <boost/chrono.hpp>
 using namespace util;
 
-class Queues{
 
-    class Queue{
+class Queue{
     
-    public:
+public:
+    bool InsertMsg(std::string& msg);
+    bool GetMsg(uint32_t roundNumber, std::string& o_msg);
+private:
+    vector<std::string> m_msg;
+    uint32_t m_roundNumber = 0;
+};
 
-        bool InsertMsg(std::string& msg){
-
-            if(!m_msg.empty()){                
-                return false;
-            }
-
-            m_msg.push_back(msg);
-            m_roundNumber++;
-
-            return true;
-        }
-
-        bool GetMsg(uint32_t roundNumber, std::string& o_msg){
-
-            if(roundNumber != m_roundNumber){
-                Log("Queue::GetMsg - asked for a message from round %d when holding %d", roundNumber, m_roundNumber);
-                return false;
-            }
-
-            if(m_msg.empty()){
-                return false;
-            }
-
-            o_msg = m_msg[0];
-            m_msg.clear();
-
-            return true;                        
-        }
-
-    private:
-        vector<std::string> m_msg;
-        uint32_t m_roundNumber = 0;
-    };
+class Queues{
 
 public:
 
-    bool InsertFromNeighbor(std::string neighborIp, int neighborPort, std::string& msg){
+    bool InsertFromNeighbor(std::string neighborIp, int neighborPort, std::string& msg);
 
-        std::string neighbor = neighborIp + std::to_string (neighborPort);
-
-        bool retval = false;
-
-        m_mutex.lock();
-
-        //If the queue doesn't exist yet, create it        
-        if(m_map.find(neighbor) == m_map.end()){
-            m_map[neighbor] = new Queue();
-        }
-
-        retval = m_map[neighbor]->InsertMsg(msg);
-
-        m_mutex.unlock();
-
-        return retval;
-    }
-
-    bool GetMsgFromNeighbor(uint32_t roundNumber, std::string neighborIp, int neighborPort, std::string& msg){
-
-        std::string neighbor = neighborIp + std::to_string (neighborPort);
-        
-        bool retval = false;
-        m_mutex.lock();
-        
-        if(m_map.find(neighbor) == m_map.end()){
-            Log("Queues::GetMsgToNeighbor - neighbor %s does not exist", neighbor);
-            return false;
-        }
-
-        retval = m_map[neighbor]->GetMsg(roundNumber, msg);
-
-        m_mutex.unlock();
-
-        return retval;
-    }
+    bool GetMsgFromNeighbor(uint32_t roundNumber, std::string neighborIp, int neighborPort, std::string& msg);
     
 
 private:

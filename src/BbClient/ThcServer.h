@@ -37,11 +37,11 @@ private:
     Json::Value& m_config;
     ReceiverSocket* m_sockets;
     boost::thread** m_threadPtrs;
-    uint32_t m_numOfNeighbors;
+    uint32_t m_numOfNeighbors = 0;
 
     boost::asio::io_service m_ioService;
     boost::asio::ip::tcp::acceptor m_acceptor;
-    uint32_t m_acceptedConnections;
+    uint32_t m_acceptedConnections = 0;
 };
 
 #endif //THC_SERVER_H

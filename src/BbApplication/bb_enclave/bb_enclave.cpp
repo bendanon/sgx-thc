@@ -767,7 +767,7 @@ public:
         //This means abort
         if(0 == B_in_size){
             updateAbort();
-            //TODO - what kind of output should I return?
+            ocall_print("ABORT!!!!");
             return true;
         }
 
@@ -800,6 +800,8 @@ public:
         if(!consumePartyId(&decryptedPtr, &decryptedLen)) return false; //TODO - check party ID
 
         m_ctrNeighbor++;
+
+        ocall_print("=========m_ctrNeighbor=%d===============", m_ctrNeighbor);
 
         //This means we are in the graph collection phase
         if(THC_MSG_COLLECTION == type && m_ctrRound <= m_numOfVertices) { 
@@ -834,17 +836,6 @@ public:
                 return false;
             }            
         }
-        else {
-            
-            if(sizeof(THC_ACK_MSG_STRING) > B_out_size){
-                ocall_print("BlackBoxExecuter::Execute - B_out_size smaller than ack message, %d", B_out_size);
-                return false;
-            }
-            if(sizeof(THC_ACK_MSG_STRING)-1 != snprintf((char*)B_out, sizeof(THC_ACK_MSG_STRING), "%s", THC_ACK_MSG_STRING)){
-                ocall_print("BlackBoxExecuter::Execute - failed to print ack message");
-                return false;
-            }
-        }
         
         return true;
     }
@@ -858,7 +849,7 @@ public:
         ocall_print("m_abortedRound is %d", m_abortedRound);
         ocall_print("local id is:");
         m_localId.Print();
-        ocall_print("m_numOfVertices = %d", m_numOfNeighbors);
+        ocall_print("m_numOfVertices = %d", m_numOfVertices);
         ocall_print("Graph is:");
         if(NULL != m_pGraph){
             m_pGraph->Print();
@@ -874,31 +865,6 @@ public:
         return m_pGraph->IsEquivalent(other.m_pGraph);
     }
 
-    bool GetResult(uint8_t* result, size_t result_size){
-
-        if(!IsReady()){
-            ocall_print("BlackBoxExecuter::GetResult - not ready");
-            return false;
-        }
-
-        //This means we are in the last round of consistency checking
-        if(m_ctrRound == m_numOfVertices + m_numOfVertices*m_pGraph->GetDiameter()){
-            //TODO: check if should abort.
-
-            if(!calculateResult(result, result_size)){
-                ocall_print("BlackBoxExeuter::generateOutput - failed to calculate result");
-                return false;
-            }
-        }
-        else {
-
-            ocall_print("BlackBoxExecuter::GetResult - result is not ready yet");
-            return false;
-        }        
-
-        return true;
-    }
-
 private:
 
     bool generateOutput(uint8_t* B_out, size_t B_out_size){
@@ -908,7 +874,17 @@ private:
             return false;
          }
 
-        if(m_ctrRound < m_pGraph->GetDiameter()) { 
+        //This means we are in the last round of consistency checking
+        if(m_ctrRound == m_numOfVertices + m_numOfVertices*m_pGraph->GetDiameter()){
+
+            //TODO: check if should abort.
+
+            if(!calculateResult(B_out, B_out_size)){
+                ocall_print("BlackBoxExeuter::generateOutput - failed to calculate result");
+                return false;
+            }
+
+        } else if(m_ctrRound < m_pGraph->GetDiameter()) { 
         //This means we are in the graph collection phase
 
             if(!generateCollectionMessage(B_out, B_out_size)){
@@ -1173,9 +1149,6 @@ private:
             ocall_print("BlackBoxExecuter::consumeRoundNumber - received a message with the wrong round number %d", roundNumber);
             return false;
         }
-        else{
-            ocall_print("BlackBoxExecuter::consumeRoundNumber - received a message with the good round number %d", roundNumber); 
-        }
 
         return true;
     }
@@ -1422,10 +1395,10 @@ sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint3
 
 sgx_status_t bb_get_result(uint8_t* B_out, size_t B_out_size) {
 
-    if(!bbx.GetResult(B_out, B_out_size)){
+    /*if(!bbx.GetResult(B_out, B_out_size)){
         ocall_print("bb_get_result - failed to get result");
         return SGX_ERROR_UNEXPECTED;        
-    }
+    }*/
 
     return SGX_SUCCESS;
 }
@@ -1468,6 +1441,8 @@ sgx_status_t bb_exec(uint8_t* B_in, size_t B_in_size,                   //in (B_
         ocall_print("bb_exec - failed to execute");
         return status;
     }
+
+    bbx.Print();
 
     return SGX_SUCCESS;
 }

@@ -27,7 +27,7 @@ class SenderSocket{
 public:
     SenderSocket();
     ~SenderSocket();
-    bool Init(std::string ip, int port);
+    bool Init(std::string ip, int port, int localPort);
     bool Send(uint8_t* buffer, size_t bufferLen);
 
 private:
@@ -36,8 +36,7 @@ private:
 private:
     boost::asio::io_service m_ioService;
     boost::asio::ip::tcp::socket m_socket;
-    std::string m_host;
-    uint32_t m_port;
+    uint32_t m_localPort;
 };
 
 #endif
