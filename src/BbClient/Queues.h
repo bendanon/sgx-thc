@@ -28,7 +28,7 @@ public:
     bool InsertMsg(std::string& msg);
     bool GetMsg(uint32_t roundNumber, std::string& o_msg);
 private:
-    vector<std::string> m_msg;
+    std::string m_msg;
     uint32_t m_roundNumber = 0;
 };
 
@@ -43,8 +43,7 @@ public:
 
 private:
     boost::unordered_map<std::string, Queue*> m_map;
-    boost::mutex m_mutex;
-
+    std::mutex m_mutex;
 };
 
 #endif //QUEUES_H

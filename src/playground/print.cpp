@@ -664,7 +664,7 @@ class BlackBoxExecuter
 public:
     BlackBoxExecuter() : m_fIsInitialized(false),
                          m_fIsSecretSet(false),
-                         m_abortedRound(0), 
+                         m_abortedRound(MAX_UINT32), 
                          m_numOfVertices(0),
                          m_numOfNeighbors(0),                         
                          m_ctrRound(0),
@@ -767,7 +767,7 @@ public:
 
     void updateAbort(){
         //This means no abort has be
-        if(0 == m_abortedRound){
+        if(MAX_UINT32 == m_abortedRound){
             m_abortedRound = m_ctrRound;
         }
     }
@@ -978,7 +978,7 @@ private:
             return false;
         }
 
-        if((0 != m_abortedRound) && (m_abortedRound / m_numOfVertices < m_pGraph->IndexOf(m_localId))){
+        if((MAX_UINT32 != m_abortedRound) && (m_abortedRound / m_numOfVertices < m_pGraph->IndexOf(m_localId))){
             if(sizeof(ABORT_MESSAGE) > B_out_size){
                 ocall_print("BlackBoxExecuter::calculateResult - B_out_size smaller than abort message, %d", B_out_size);
                 return false;
@@ -1065,7 +1065,7 @@ private:
             return false;
         }
 
-        bool fAbort = (0 != m_abortedRound);
+        bool fAbort = (MAX_UINT32 != m_abortedRound);
         if(bufferLength < sizeof(fAbort)){
             ocall_print("BlackBoxExecuter::generateThcMessage - buffer too small to serialize msg type");
             return false;

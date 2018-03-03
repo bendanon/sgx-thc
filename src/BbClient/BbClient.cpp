@@ -48,6 +48,8 @@ bool BbClient::runThcProtocol(uint8_t* outbuf, size_t outbuf_len){
     }
 
     thcServerThread.join();
+
+    return true;
 }
 
 bool BbClient::hasSecret() {

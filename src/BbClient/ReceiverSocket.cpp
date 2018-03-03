@@ -58,37 +58,47 @@ bool ReceiverSocket::read(uint32_t& port, std::string& msg){
         }
 
         return false;
+    }
 
-    } else {
-        vector<string> incoming;
-        boost::split(incoming, buffer_header, boost::is_any_of("@"));
+    vector<string> incoming;
+    boost::split(incoming, buffer_header, boost::is_any_of("@"));
 
-        msg_size = boost::lexical_cast<int>(incoming[0]);
+    msg_size = boost::lexical_cast<int>(incoming[0]);
 
-        type = boost::lexical_cast<int>(incoming[1]);
-        port = boost::lexical_cast<int>(incoming[2]);
+    type = boost::lexical_cast<int>(incoming[1]);
+    port = boost::lexical_cast<int>(incoming[2]);
 
-        buffer = (char*) malloc(sizeof(char) * msg_size);
-        memset(buffer, '\0', sizeof(char)*msg_size);
+    buffer = (char*) malloc(sizeof(char) * msg_size);
+    memset(buffer, '\0', sizeof(char)*msg_size);
 
-        read = boost::asio::read(m_socket, boost::asio::buffer(buffer, msg_size));        
-        
-        std::string msgBody(buffer, msg_size);
+    read = boost::asio::read(m_socket, boost::asio::buffer(buffer, msg_size), ec);
 
-        Messages::BbMSG in;        
-        if (!in.ParseFromString(msgBody) || (in.type() != THC_BB_MSG)){
-            Log("ReceiverSocket::read - failed to parse bb message", log::error);
-            return false;
+    if (ec) {
+
+        if ((boost::asio::error::eof == ec) || (boost::asio::error::connection_reset == ec)) {
+            Log("Connection has been closed by remote host");
+        } else {
+            Log("Unknown socket error while reading occured!", log::error);
         }
 
-        char inbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
-        
-        for (int i = 0; i < THC_ENCRYPTED_MSG_SIZE_BYTES; i++)
-            inbuf[i] = in.bb_msg(i);
-
-        std::string msgBodyDeserialized(inbuf, THC_ENCRYPTED_MSG_SIZE_BYTES);
-        msg += msgBodyDeserialized;
+        return false;
     }
+    
+    std::string msgBody(buffer, msg_size);
+
+    Messages::BbMSG in;        
+    if (!in.ParseFromString(msgBody) || (in.type() != THC_BB_MSG)){
+        Log("ReceiverSocket::read - failed to parse bb message", log::error);
+        return false;
+    }
+
+    char inbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
+    
+    for (int i = 0; i < THC_ENCRYPTED_MSG_SIZE_BYTES; i++)
+        inbuf[i] = in.bb_msg(i);
+
+    std::string msgBodyDeserialized(inbuf, THC_ENCRYPTED_MSG_SIZE_BYTES);
+    msg += msgBodyDeserialized;
 
     return true;    
 }

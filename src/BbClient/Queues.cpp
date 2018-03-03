@@ -7,7 +7,7 @@ bool Queue::InsertMsg(std::string& msg){
         return false;
     }
 
-    m_msg.push_back(msg);
+    m_msg = msg;
     m_roundNumber++;
 
     return true;
@@ -24,8 +24,8 @@ bool Queue::GetMsg(uint32_t roundNumber, std::string& o_msg){
         return false;
     }
 
-    o_msg = m_msg[0];
-    m_msg.clear();
+    o_msg = m_msg;
+    m_msg = "";
 
     return true;                        
 }
@@ -70,12 +70,12 @@ bool Queues::GetMsgFromNeighbor(uint32_t roundNumber, std::string neighborIp, in
 
     m_mutex.unlock();
 
-    /*if(retval){
-        Log("Queues::GetMsgFromNeighbor - getting from %s for round %d succeeded", neighbor, roundNumber);
+    if(retval){
+        Log("Queues::GetMsgFromNeighbor - getting from %s for round %d succeeded. Length is %d", neighbor, roundNumber, msg.length());
     } else{
         Log("Queues::GetMsgFromNeighbor - getting from %s for round %d failed", neighbor, roundNumber);
 
-    }*/
+    }
 
     return retval;
 }

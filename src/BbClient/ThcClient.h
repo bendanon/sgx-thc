@@ -47,6 +47,7 @@ private:
 
     SenderSocket* m_sockets;
     uint32_t m_numOfNeighbors;
+    bool* m_abortedSockets;
 };
 
 #endif //THC_CLIENT_H
