@@ -1,10 +1,5 @@
 package Messages;
 
-message InitialMessage {
-	required uint32 type = 1;
-	optional uint32 size = 2;
-}
-
 message MessageMsg0 {
 	required uint32 type = 1;
 	required uint32 epid = 2;
@@ -77,31 +72,6 @@ message MessageMSG4 {
 	required uint32 size = 2;
 	repeated uint32 response_body = 3 [packed=true];
 	repeated uint32 intel_signature = 4 [packed=true];
-}
-
-message AttestationMessage {
-	required uint32 type = 1;
-	required uint32 size = 2;
-
-	optional uint32 epid_group_status = 3;
-	optional uint32 tcb_evaluation_status = 4;
-	optional uint32 pse_evaluation_status = 5;
-	repeated uint32 latest_equivalent_tcb_psvn = 6 [packed=true];
-	repeated uint32 latest_pse_isvsvn = 7 [packed=true];
-	repeated uint32 latest_psda_svn = 8 [packed=true];
-	repeated uint32 performance_rekey_gid = 9 [packed=true];
-	repeated uint32 ec_sign256_x = 10 [packed=true];
-	repeated uint32 ec_sign256_y = 11 [packed=true];
-	repeated uint32 mac_smk = 12 [packed=true];
-
-	optional uint32 result_size = 13;
-	repeated uint32 reserved = 14 [packed=true];
-	repeated uint32 payload_tag = 15 [packed=true];
-	repeated uint32 payload = 16 [packed=true];
-}
-
-message SecretMessage { 
-	required uint32 type = 1;
 }
 
 

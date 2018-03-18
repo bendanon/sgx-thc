@@ -93,7 +93,7 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-bb_Enclave_Cpp_Files := AdjacencyMatrix/AdjacencyMatrix.cpp bb_enclave/bb_enclave.cpp ../common_enclave/common_enclave.cpp
+bb_Enclave_Cpp_Files := bb_enclave/PartyId.cpp bb_enclave/Edge.cpp bb_enclave/Graph.cpp bb_enclave/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp ../common_enclave/common_enclave.cpp
 Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
@@ -186,10 +186,6 @@ bb_app/%.o: bb_app/%.cpp
 
 ../WebService/%.o: ../WebService/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
-	@echo "CXX  <=  $<"
-
-../AdjacencyMatrix/%.o: ../AdjacencyMatrix/%.cpp
-	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
 ../BbClient/%.o: ../BbClient/%.cpp

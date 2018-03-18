@@ -75,4 +75,7 @@ sgx_status_t _derive_smk(sgx_ec256_public_t* p_pk,
                          size_t smk_size, 
                          sgx_ec256_private_t* p_priv);
 
+void ocall_print(const char* format, uint32_t number);
+void print_buffer(uint8_t* buffer, size_t len);
+
 #endif //COMMON_ENCLAVE_H
