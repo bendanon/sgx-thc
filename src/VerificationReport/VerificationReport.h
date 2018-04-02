@@ -28,11 +28,11 @@
 #include <openssl/rand.h>
 #include <curl/curl.h>
 #include <jsoncpp/json/json.h>
+#include <Enclave.h>
 
 using namespace std;
 using namespace util;
 
-#define SIGNATURE_LENGTH_BYTES 256
 #define HASH_ALGORITHM "SHA256"
 
 class VerificationReport {
@@ -42,7 +42,7 @@ public:
     virtual ~VerificationReport();
 
     bool isValid();    
-    bool fromCertMsg(Messages::CertificateMSG& certMsg);
+    bool fromCertMsg(Messages::CertificateMSG& certMsg, Enclave* pEnclave);
     bool toCertMsg(sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg);
     bool fromResult(vector<pair<string, string>> result);
     bool setGa(sgx_ec256_public_t* p_ga);

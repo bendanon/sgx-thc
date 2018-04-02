@@ -79,7 +79,7 @@ bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_gb){
 bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg){ 
 
     if(!m_isValid) {
-        Log("VerificationReport::fromCertMsg - invalid", log::error);
+        Log("VerificationReport::toCertMsg - invalid", log::error);
         return false;
     }
 
@@ -130,12 +130,31 @@ bool VerificationReport::verifyMrSigner(){
     return true;
 }
 
+std::string extractQuoteBody(const char* report_buf){
+    char *tok = strstr(const_cast<char*>(report_buf), "isvEnclaveQuoteBody");
+    int counter = 0;
+    while ((tok = strtok(tok, "\"")) != NULL)
+    {
+        if(2 == counter) {
+            std::string quoteBody(tok);
+            return quoteBody;
+        }        
+        tok = NULL;
+        counter++;
+    }
+    return "";
+}
 
-bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
+bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave* pEnclave) {
 
 
     if(m_isValid) {
         Log("VerificationReport::fromCertMsg - already valid", log::error);
+        return false;
+    }
+
+    if(NULL == pEnclave){
+        Log("VerificationReport::fromCertMsg - pEnclave is NULL", log::error);
         return false;
     }
 
@@ -159,6 +178,23 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
         return false;
     }
 
+    /*Extract pk to verify it against quote body*/
+    /*sgx_ec256_public_t pkToVerify;
+
+    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
+        pkToVerify.gx[i] = certMsg.gx(i);
+        pkToVerify.gy[i] = certMsg.gy(i);
+    }
+
+    if(SGX_SUCCESS != pEnclave->VerifyPeer((unsigned char*) m_full_response.c_str(), m_full_response.length(), 
+                                           (unsigned char*) m_x_iasreport_signing_certificate.c_str(), m_x_iasreport_signing_certificate.length(), 
+                                           (unsigned char*) m_x_iasreport_signature.c_str(), m_x_iasreport_signature.length(),
+                                           &pkToVerify, &m_ga, sizeof(m_ga)))
+    {
+        Log("VerificationReport::fromCertMsg - VerifyPeer failed", log::error);
+        return false;
+    }*/
+
     /*Verify the IAS response*/    
     if(!verifyCertificateChain()){
         Log("VerificationReport::fromResult - verifyCertificateChain failed");
@@ -171,15 +207,7 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg) {
     }
 
     /*Extract isvEnclaveQuoteBody from the report*/
-    Json::Value root;
-    Json::Reader reader;
-
-    if (!reader.parse(m_full_response.c_str(), root)) {
-        Log("Failed to parse JSON string from IAS", log::error);
-        return false;
-    }
-
-    string isvEnclaveQuoteBody = root.get("isvEnclaveQuoteBody", "UTF-8" ).asString();
+    string isvEnclaveQuoteBody = extractQuoteBody(m_full_response.c_str());
     memcpy(&m_quote_body, Base64decode(isvEnclaveQuoteBody).c_str(), sizeof(m_quote_body));
 
     if(!verifyMrSigner()){
@@ -484,6 +512,10 @@ bool VerificationReport::verifySignature() {
         Log("Error getting public key from certificate");
         return false;
     }
+    BIO* outbio = NULL;
+    outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+    PEM_write_bio_PUBKEY(outbio, pkey);
 
     EVP_MD_CTX* ctx = NULL;
     
@@ -496,38 +528,36 @@ bool VerificationReport::verifySignature() {
             break; /* failed */
         }
         
-        const EVP_MD* md = EVP_get_digestbyname(HASH_ALGORITHM);
+        const EVP_MD* md = EVP_sha256();
         assert(md != NULL);
         if(md == NULL) {
             Log("EVP_get_digestbyname failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
-        
+
         int rc = EVP_DigestInit_ex(ctx, md, NULL);
         if(rc != 1) {
             Log("EVP_DigestInit_ex failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
-        rc = EVP_DigestVerifyInit(ctx, NULL, md, NULL, pkey);
-        if(rc != 1) {
-            Log("EVP_DigestVerifyInit failed, error 0x%lx\n", ERR_get_error());
-            break; /* failed */
-        }
-        
-        rc = EVP_DigestVerifyUpdate(ctx, (const byte*)m_full_response.c_str(), 
+        rc = EVP_DigestUpdate(ctx, (const byte*)m_full_response.c_str(), 
                                     m_full_response.length());
+
+        Log("report len %d", m_full_response.length());
+
+        cout << m_full_response << "\n";
+        cout << m_x_iasreport_signature << "\n";
+
         if(rc != 1) {
             Log("EVP_DigestVerifyUpdate failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
-        /* Clear any errors for the call below */
-        ERR_clear_error();
-        
-        rc = EVP_DigestVerifyFinal(ctx, 
+        rc = EVP_VerifyFinal(ctx, 
                         (const byte*)base64_decode(m_x_iasreport_signature).c_str(), 
-                        SIGNATURE_LENGTH_BYTES);
+                        SIGNATURE_LENGTH_BYTES,
+                        pkey);
         
         if(rc != 1) {
             Log("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());

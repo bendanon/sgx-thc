@@ -3,6 +3,9 @@ enclave {
     include "sgx_tseal.h"
     include "sgx_key_exchange.h"
     include "sgx_trts.h"
+    include "wolfssl/ssl.h"
+	include "wolfssl/wolfcrypt/settings.h"
+	include "wolfssl/wolfcrypt/types.h"
 
     trusted {
         public sgx_status_t enclave_init_ra(int b_pse, [out] sgx_ra_context_t *p_context);
@@ -13,13 +16,26 @@ enclave {
          public sgx_status_t derive_smk(             
             [in, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size,
             [out, size=smk_size]sgx_ec_key_128bit_t* smk,size_t smk_size);
+
+        public sgx_status_t verify_peer(
+                            [in, size=reportBody_size]unsigned char* reportBody, size_t reportBody_size, 
+                            [in, size=chain_size]unsigned char* chain, size_t chain_size, 
+                            [in, size=signature_size]unsigned char* signature, size_t signature_size,
+                            [in, size=pk_size]sgx_ec256_public_t* peer_pk, 
+                            [in, size=pk_size]sgx_ec256_public_t* unusable_pk, size_t pk_size);
         
     };
 
     untrusted {
         /* define OCALLs here. */
         void ocall_print([in, string]const char* str);
+        void ocall_print_string([in, string] const char* str);
+        void ocall_current_time([out] double* time);
+        void ocall_low_res_time([out] int* time);
+        size_t ocall_recv(int sockfd, [out, size=len] void *buf, size_t len, int flags) propagate_errno;
+        size_t ocall_send(int sockfd, [in, size=len] const void *buf, size_t len, int flags) propagate_errno;
     };
+
 
 };
 

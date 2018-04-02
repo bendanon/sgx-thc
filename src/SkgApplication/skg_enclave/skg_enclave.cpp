@@ -17,6 +17,64 @@ void ocall_print(const char* format, uint32_t number){
     ocall_print(output);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double current_time(void)
+{
+    double curr;
+    ocall_current_time(&curr);
+    return curr;
+}
+
+int LowResTimer(void) //low_res timer
+{
+    int time;
+    ocall_low_res_time(&time);
+    return time;
+}
+
+int recv(int sockfd, void *buf, int len, int flags)
+{
+    size_t ret;
+    int sgxStatus;
+    sgxStatus = ocall_recv(&ret, sockfd, buf, len, flags);
+    return ret;
+}
+
+size_t send(int sockfd, const void *buf, size_t len, int flags)
+{
+    size_t ret;
+    int sgxStatus;
+    sgxStatus = ocall_send(&ret, sockfd, buf, len, flags);
+    return ret;
+}
+
+void printf(const char *fmt, ...)
+{
+    char buf[BUFSIZ] = {'\0'};
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+}
+
+int sprintf(char* buf, const char *fmt, ...)
+{
+    va_list ap;
+    int ret;
+    va_start(ap, fmt);
+    ret = vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    return ret;
+}
+
+#ifdef __cplusplus
+};
+#endif
+
 /***
 [Initialization: no input] - *SKG ENCLAVE CODE*
 1. Use SGX hardware randomness to generate shared secret key s
@@ -141,4 +199,12 @@ sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size,
 
    return _derive_smk(p_pk, pk_size, p_smk,smk_size, &skg_priv_key);
 
+}
+
+sgx_status_t verify_peer(unsigned char* reportBody, size_t reportBody_size, 
+                          unsigned char* chain, size_t chain_size, 
+                          unsigned char* signature, size_t signature_size,
+                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
+{
+    return _verify_peer(reportBody, reportBody_size, chain, chain_size, signature, signature_size, peer_pk, unusable_pk, pk_size);
 }

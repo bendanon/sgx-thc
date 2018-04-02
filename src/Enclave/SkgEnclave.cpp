@@ -135,6 +135,25 @@ sgx_status_t SkgEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size,
     return this->status;
 }
 
+sgx_status_t SkgEnclave::VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
+                                  unsigned char* chain, size_t chain_size, 
+                                  unsigned char* signature, size_t signature_size,
+                                  sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
+{
+    verify_peer(this->enclave_id,
+                        &this->status,
+                        reportBody, reportBody_size,
+                        chain, chain_size,
+                        signature, signature_size,
+                        peer_pk, unusable_pk, pk_size);
+    
+    if(SGX_SUCCESS != this->status){
+        Log("enclave_verify_peer failed, status is %d", this->status);
+    }
+
+    return this->status;
+}
+
 
 
 

@@ -7,8 +7,71 @@
 #include "../GeneralSettings.h"
 #include "bb_enclave_t.h"
 #include "BlackBoxExecuter.h"
+
+#include <wolfssl/options.h>
+#include <wolfssl/ssl.h>
+#include <wolfssl/openssl/ssl.h>
+#include <wolfssl/wolfcrypt/error-crypt.h>
+
 using namespace std;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double current_time(void)
+{
+    double curr;
+    ocall_current_time(&curr);
+    return curr;
+}
+
+int LowResTimer(void) //low_res timer
+{
+    int time;
+    ocall_low_res_time(&time);
+    return time;
+}
+
+int recv(int sockfd, void *buf, int len, int flags)
+{
+    size_t ret;
+    int sgxStatus;
+    sgxStatus = ocall_recv(&ret, sockfd, buf, len, flags);
+    return ret;
+}
+
+size_t send(int sockfd, const void *buf, size_t len, int flags)
+{
+    size_t ret;
+    int sgxStatus;
+    sgxStatus = ocall_send(&ret, sockfd, buf, len, flags);
+    return ret;
+}
+
+void printf(const char *fmt, ...)
+{
+    char buf[BUFSIZ] = {'\0'};
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+}
+
+int sprintf(char* buf, const char *fmt, ...)
+{
+    va_list ap;
+    int ret;
+    va_start(ap, fmt);
+    ret = vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    return ret;
+}
+
+#ifdef __cplusplus
+};
+#endif
 
 void ocall_print(const char* format, uint32_t number){
     char output[500];
@@ -32,6 +95,7 @@ void print_buffer(uint8_t* buffer, size_t len){
 
     ocall_print(toPrint);
 }
+
 
 /*BB enclave internal data*/
 uint8_t k[SECRET_KEY_SIZE_BYTES];
@@ -57,6 +121,8 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
         ocall_print("bb_init_1 - bbx failed to initialize");
         return status;
     }
+
+    printf("fg");
     
     memset(k, 0, sizeof(k));
 
@@ -249,4 +315,12 @@ sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size,
 
     return _derive_smk(p_pk, pk_size, p_smk,smk_size, &bb_priv_key);
 
+}
+
+sgx_status_t verify_peer(unsigned char* reportBody, size_t reportBody_size, 
+                          unsigned char* chain, size_t chain_size, 
+                          unsigned char* signature, size_t signature_size,
+                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
+{
+    return _verify_peer(reportBody, reportBody_size, chain, chain_size, signature, signature_size, peer_pk, unusable_pk, pk_size);
 }

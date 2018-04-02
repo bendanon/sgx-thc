@@ -86,4 +86,3 @@ sgx_ra_context_t Enclave::getContext() {
 
 
 
-

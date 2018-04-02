@@ -2,6 +2,8 @@
 SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= SIM
 SGX_ARCH ?= x64
+SGX_WOLFSSL_LIB ?= /home/ben/Projects/sgx/wolfssl/wolfssl/IDE/LINUX-SGX/
+WOLFSSL_ROOT ?= /home/ben/Projects/sgx/wolfssl/wolfssl/
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -93,10 +95,18 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-skg_Enclave_Cpp_Files := skg_enclave/skg_enclave.cpp ../common_enclave/common_enclave.cpp
-Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
+Wolfssl_Include_Paths := -I$(WOLFSSL_ROOT)/ \
+						 -I$(WOLFSSL_ROOT)/wolfcrypt/
 
-Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
+Wolfssl_Enclave_Include_Paths := -IInclude -Itrusted $(Wolfssl_Include_Paths)\
+   								   -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc\
+								   -I$(SGX_SDK)/include/stlport
+
+
+skg_Enclave_Cpp_Files := skg_enclave/skg_enclave.cpp ../common_enclave/common_enclave.cpp
+Enclave_Include_Paths := -I$(Wolfssl_Enclave_Include_Paths) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -IBlackBoxExecuter
+
+Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -DWOLFSSL_SGX
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++
 
 # To generate a proper enclave, it is recommended to follow below guideline to link the trusted libraries:
@@ -107,6 +117,7 @@ Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
 skg_Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+	-L$(SGX_WOLFSSL_LIB) -lwolfssl.sgx.static.lib \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tkey_exchange -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \

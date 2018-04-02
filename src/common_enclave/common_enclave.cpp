@@ -1,5 +1,15 @@
 #include "common_enclave.h"
 
+#include <stdio.h>
+#include <wolfssl/options.h>
+#include <wolfssl/ssl.h>
+#include <wolfssl/wolfcrypt/rsa.h>
+#include <wolfssl/wolfcrypt/asn.h>
+#include <wolfssl/wolfcrypt/signature.h>
+
+#include <string>
+#include "Base64_enclave.h"
+
 #ifdef SUPPLIED_KEY_DERIVATION
 
 // Derive two keys from shared key and key id.
@@ -226,4 +236,284 @@ sgx_status_t _derive_smk(sgx_ec256_public_t* p_pk,
     }
 
     return SGX_SUCCESS;
+}
+
+const char* caCertBuf = "-----BEGIN CERTIFICATE-----\n"
+                        "MIIFSzCCA7OgAwIBAgIJANEHdl0yo7CUMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNV\n"
+                        "BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLU2FudGEgQ2xhcmExGjAYBgNV\n"
+                        "BAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQDDCdJbnRlbCBTR1ggQXR0ZXN0\n"
+                        "YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwIBcNMTYxMTE0MTUzNzMxWhgPMjA0OTEy\n"
+                        "MzEyMzU5NTlaMH4xCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwL\n"
+                        "U2FudGEgQ2xhcmExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQD\n"
+                        "DCdJbnRlbCBTR1ggQXR0ZXN0YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwggGiMA0G\n"
+                        "CSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQCfPGR+tXc8u1EtJzLA10Feu1Wg+p7e\n"
+                        "LmSRmeaCHbkQ1TF3Nwl3RmpqXkeGzNLd69QUnWovYyVSndEMyYc3sHecGgfinEeh\n"
+                        "rgBJSEdsSJ9FpaFdesjsxqzGRa20PYdnnfWcCTvFoulpbFR4VBuXnnVLVzkUvlXT\n"
+                        "L/TAnd8nIZk0zZkFJ7P5LtePvykkar7LcSQO85wtcQe0R1Raf/sQ6wYKaKmFgCGe\n"
+                        "NpEJUmg4ktal4qgIAxk+QHUxQE42sxViN5mqglB0QJdUot/o9a/V/mMeH8KvOAiQ\n"
+                        "byinkNndn+Bgk5sSV5DFgF0DffVqmVMblt5p3jPtImzBIH0QQrXJq39AT8cRwP5H\n"
+                        "afuVeLHcDsRp6hol4P+ZFIhu8mmbI1u0hH3W/0C2BuYXB5PC+5izFFh/nP0lc2Lf\n"
+                        "6rELO9LZdnOhpL1ExFOq9H/B8tPQ84T3Sgb4nAifDabNt/zu6MmCGo5U8lwEFtGM\n"
+                        "RoOaX4AS+909x00lYnmtwsDVWv9vBiJCXRsCAwEAAaOByTCBxjBgBgNVHR8EWTBX\n"
+                        "MFWgU6BRhk9odHRwOi8vdHJ1c3RlZHNlcnZpY2VzLmludGVsLmNvbS9jb250ZW50\n"
+                        "L0NSTC9TR1gvQXR0ZXN0YXRpb25SZXBvcnRTaWduaW5nQ0EuY3JsMB0GA1UdDgQW\n"
+                        "BBR4Q3t2pn680K9+QjfrNXw7hwFRPDAfBgNVHSMEGDAWgBR4Q3t2pn680K9+Qjfr\n"
+                        "NXw7hwFRPDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADANBgkq\n"
+                        "hkiG9w0BAQsFAAOCAYEAeF8tYMXICvQqeXYQITkV2oLJsp6J4JAqJabHWxYJHGir\n"
+                        "IEqucRiJSSx+HjIJEUVaj8E0QjEud6Y5lNmXlcjqRXaCPOqK0eGRz6hi+ripMtPZ\n"
+                        "sFNaBwLQVV905SDjAzDzNIDnrcnXyB4gcDFCvwDFKKgLRjOB/WAqgscDUoGq5ZVi\n"
+                        "zLUzTqiQPmULAQaB9c6Oti6snEFJiCQ67JLyW/E83/frzCmO5Ru6WjU4tmsmy8Ra\n"
+                        "Ud4APK0wZTGtfPXU7w+IBdG5Ez0kE1qzxGQaL4gINJ1zMyleDnbuS8UicjJijvqA\n"
+                        "152Sq049ESDz+1rRGc2NVEqh1KaGXmtXvqxXcTB+Ljy5Bw2ke0v8iGngFBPqCTVB\n"
+                        "3op5KBG3RjbF6RRSzwzuWfL7QErNC8WEy5yDVARzTA5+xmBc388v9Dm21HGfcC8O\n"
+                        "DD+gT9sSpssq0ascmvH49MOgjt1yoysLtdCtJW/9FZpoOypaHx0R+mJTLwPXVMrv\n"
+                        "DaVzWh5aiEx+idkSGMnX\n"
+                        "-----END CERTIFICATE-----";
+
+
+const char* certChainBuf = "-----BEGIN CERTIFICATE-----\n"
+                         "MIIEoTCCAwmgAwIBAgIJANEHdl0yo7CWMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNV\n"
+                         "BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLU2FudGEgQ2xhcmExGjAYBgNV\n"
+                         "BAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQDDCdJbnRlbCBTR1ggQXR0ZXN0\n"
+                         "YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwHhcNMTYxMTIyMDkzNjU4WhcNMjYxMTIw\n"
+                         "MDkzNjU4WjB7MQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExFDASBgNVBAcMC1Nh\n"
+                         "bnRhIENsYXJhMRowGAYDVQQKDBFJbnRlbCBDb3Jwb3JhdGlvbjEtMCsGA1UEAwwk\n"
+                         "SW50ZWwgU0dYIEF0dGVzdGF0aW9uIFJlcG9ydCBTaWduaW5nMIIBIjANBgkqhkiG\n"
+                         "9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqXot4OZuphR8nudFrAFiaGxxkgma/Es/BA+t\n"
+                         "beCTUR106AL1ENcWA4FX3K+E9BBL0/7X5rj5nIgX/R/1ubhkKWw9gfqPG3KeAtId\n"
+                         "cv/uTO1yXv50vqaPvE1CRChvzdS/ZEBqQ5oVvLTPZ3VEicQjlytKgN9cLnxbwtuv\n"
+                         "LUK7eyRPfJW/ksddOzP8VBBniolYnRCD2jrMRZ8nBM2ZWYwnXnwYeOAHV+W9tOhA\n"
+                         "ImwRwKF/95yAsVwd21ryHMJBcGH70qLagZ7Ttyt++qO/6+KAXJuKwZqjRlEtSEz8\n"
+                         "gZQeFfVYgcwSfo96oSMAzVr7V0L6HSDLRnpb6xxmbPdqNol4tQIDAQABo4GkMIGh\n"
+                         "MB8GA1UdIwQYMBaAFHhDe3amfrzQr35CN+s1fDuHAVE8MA4GA1UdDwEB/wQEAwIG\n"
+                         "wDAMBgNVHRMBAf8EAjAAMGAGA1UdHwRZMFcwVaBToFGGT2h0dHA6Ly90cnVzdGVk\n"
+                         "c2VydmljZXMuaW50ZWwuY29tL2NvbnRlbnQvQ1JML1NHWC9BdHRlc3RhdGlvblJl\n"
+                         "cG9ydFNpZ25pbmdDQS5jcmwwDQYJKoZIhvcNAQELBQADggGBAGcIthtcK9IVRz4r\n"
+                         "Rq+ZKE+7k50/OxUsmW8aavOzKb0iCx07YQ9rzi5nU73tME2yGRLzhSViFs/LpFa9\n"
+                         "lpQL6JL1aQwmDR74TxYGBAIi5f4I5TJoCCEqRHz91kpG6Uvyn2tLmnIdJbPE4vYv\n"
+                         "WLrtXXfFBSSPD4Afn7+3/XUggAlc7oCTizOfbbtOFlYA4g5KcYgS1J2ZAeMQqbUd\n"
+                         "ZseZCcaZZZn65tdqee8UXZlDvx0+NdO0LR+5pFy+juM0wWbu59MvzcmTXbjsi7HY\n"
+                         "6zd53Yq5K244fwFHRQ8eOB0IWB+4PfM7FeAApZvlfqlKOlLcZL2uyVmzRkyR5yW7\n"
+                         "2uo9mehX44CiPJ2fse9Y6eQtcfEhMPkmHXI01sN+KwPbpA39+xOsStjhP9N1Y1a2\n"
+                         "tQAVo+yVgLgV2Hws73Fc0o3wC78qPEA+v2aRs/Be3ZFDgDyghc/1fgU+7C+P6kbq\n"
+                         "d4poyb6IW8KCJbxfMJvkordNOgOUUxndPHEi/tb/U7uLjLOgPA==\n"
+                         "-----END CERTIFICATE-----\n"
+                         "-----BEGIN CERTIFICATE-----\n"
+                         "MIIFSzCCA7OgAwIBAgIJANEHdl0yo7CUMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNV\n"
+                         "BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLU2FudGEgQ2xhcmExGjAYBgNV\n"
+                         "BAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQDDCdJbnRlbCBTR1ggQXR0ZXN0\n"
+                         "YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwIBcNMTYxMTE0MTUzNzMxWhgPMjA0OTEy\n"
+                         "MzEyMzU5NTlaMH4xCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwL\n"
+                         "U2FudGEgQ2xhcmExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0aW9uMTAwLgYDVQQD\n"
+                         "DCdJbnRlbCBTR1ggQXR0ZXN0YXRpb24gUmVwb3J0IFNpZ25pbmcgQ0EwggGiMA0G\n"
+                         "CSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQCfPGR+tXc8u1EtJzLA10Feu1Wg+p7e\n"
+                         "LmSRmeaCHbkQ1TF3Nwl3RmpqXkeGzNLd69QUnWovYyVSndEMyYc3sHecGgfinEeh\n"
+                         "rgBJSEdsSJ9FpaFdesjsxqzGRa20PYdnnfWcCTvFoulpbFR4VBuXnnVLVzkUvlXT\n"
+                         "L/TAnd8nIZk0zZkFJ7P5LtePvykkar7LcSQO85wtcQe0R1Raf/sQ6wYKaKmFgCGe\n"
+                         "NpEJUmg4ktal4qgIAxk+QHUxQE42sxViN5mqglB0QJdUot/o9a/V/mMeH8KvOAiQ\n"
+                         "byinkNndn+Bgk5sSV5DFgF0DffVqmVMblt5p3jPtImzBIH0QQrXJq39AT8cRwP5H\n"
+                         "afuVeLHcDsRp6hol4P+ZFIhu8mmbI1u0hH3W/0C2BuYXB5PC+5izFFh/nP0lc2Lf\n"
+                         "6rELO9LZdnOhpL1ExFOq9H/B8tPQ84T3Sgb4nAifDabNt/zu6MmCGo5U8lwEFtGM\n"
+                         "RoOaX4AS+909x00lYnmtwsDVWv9vBiJCXRsCAwEAAaOByTCBxjBgBgNVHR8EWTBX\n"
+                         "MFWgU6BRhk9odHRwOi8vdHJ1c3RlZHNlcnZpY2VzLmludGVsLmNvbS9jb250ZW50\n"
+                         "L0NSTC9TR1gvQXR0ZXN0YXRpb25SZXBvcnRTaWduaW5nQ0EuY3JsMB0GA1UdDgQW\n"
+                         "BBR4Q3t2pn680K9+QjfrNXw7hwFRPDAfBgNVHSMEGDAWgBR4Q3t2pn680K9+Qjfr\n"
+                         "NXw7hwFRPDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADANBgkq\n"
+                         "hkiG9w0BAQsFAAOCAYEAeF8tYMXICvQqeXYQITkV2oLJsp6J4JAqJabHWxYJHGir\n"
+                         "IEqucRiJSSx+HjIJEUVaj8E0QjEud6Y5lNmXlcjqRXaCPOqK0eGRz6hi+ripMtPZ\n"
+                         "sFNaBwLQVV905SDjAzDzNIDnrcnXyB4gcDFCvwDFKKgLRjOB/WAqgscDUoGq5ZVi\n"
+                         "zLUzTqiQPmULAQaB9c6Oti6snEFJiCQ67JLyW/E83/frzCmO5Ru6WjU4tmsmy8Ra\n"
+                         "Ud4APK0wZTGtfPXU7w+IBdG5Ez0kE1qzxGQaL4gINJ1zMyleDnbuS8UicjJijvqA\n"
+                         "152Sq049ESDz+1rRGc2NVEqh1KaGXmtXvqxXcTB+Ljy5Bw2ke0v8iGngFBPqCTVB\n"
+                         "3op5KBG3RjbF6RRSzwzuWfL7QErNC8WEy5yDVARzTA5+xmBc388v9Dm21HGfcC8O\n"
+                         "DD+gT9sSpssq0ascmvH49MOgjt1yoysLtdCtJW/9FZpoOypaHx0R+mJTLwPXVMrv\n"
+                         "DaVzWh5aiEx+idkSGMnX\n"
+                         "-----END CERTIFICATE-----";
+
+std::string extractQuoteBody(const char* report_buf){
+    char *tok = strstr(const_cast<char*>(report_buf), "isvEnclaveQuoteBody");
+    int counter = 0;
+    while ((tok = strtok(tok, "\"")) != NULL)
+    {
+        if(2 == counter) {
+            std::string quoteBody(tok);
+            return quoteBody;
+        }        
+        tok = NULL;
+        counter++;
+    }
+    return "";
+}
+
+bool verifyPublicKey(sgx_ec256_public_t* p_gb, sgx_ec256_public_t* p_ga, sgx_quote_t* p_quote_body){
+
+
+    sgx_report_data_t report_data = {0};
+    sgx_sha_state_handle_t sha_handle = NULL;
+
+    // Verify the report_data in the Quote matches the expected value.
+    // The first 32 bytes of report_data are SHA256 HASH of {ga|gb|vk}.
+    // The second 32 bytes of report_data are set to zero.
+    sgx_status_t ret = sgx_sha256_init(&sha_handle);
+    if (ret != SGX_SUCCESS) {
+        ocall_print("Error, init hash failed %d", 0);
+        return false;
+    }
+
+    ret = sgx_sha256_update((uint8_t *)p_ga, sizeof(sgx_ec256_public_t), sha_handle);
+    if (ret != SGX_SUCCESS) {
+        ocall_print("Error, udpate hash failed %d", 0);
+        return false;
+    }
+
+    ret = sgx_sha256_update((uint8_t *)p_gb, sizeof(sgx_ec256_public_t), sha_handle);
+    if (ret != SGX_SUCCESS) {
+        ocall_print("Error, udpate hash failed %d", 0);
+        return false;
+    }
+
+    ret = sgx_sha256_update(Settings::const_vk, sizeof(Settings::const_vk), sha_handle);
+    if (ret != SGX_SUCCESS) {
+        ocall_print("Error, udpate hash failed %d", 0);
+        return false;
+    }
+
+    ret = sgx_sha256_get_hash(sha_handle, (sgx_sha256_hash_t *)&report_data);
+    if (ret != SGX_SUCCESS) {
+        ocall_print("Error, Get hash failed %d", 0);
+        return false;
+    }
+
+    if (memcmp((uint8_t *)&report_data, (uint8_t *)&(p_quote_body->report_body.report_data), sizeof(report_data))) {
+        ocall_print("Error, verify hash failed %d", 0);
+        return false;
+    }
+
+    return true;
+}
+
+sgx_status_t _verify_peer(unsigned char* reportBody, size_t reportBody_size, 
+                          unsigned char* chain, size_t chain_size, 
+                          unsigned char* signature, size_t signature_size,
+                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size){
+
+    int ret;
+    WOLFSSL_CERT_MANAGER* cm = 0;
+    byte  derCert[MAX_CERT_SIZE];
+    RsaKey pubKey;
+    WOLFSSL_X509* cert;
+    WOLFSSL_EVP_PKEY* pubKeyTmp;
+
+    cm = wolfSSL_CertManagerNew();
+    if (cm == NULL) {
+        ocall_print("wolfSSL_CertManagerNew() failed %d\n", 0);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    ret = wolfSSL_CertManagerLoadCABuffer(cm, (unsigned char*)caCertBuf, strlen(caCertBuf) ,WOLFSSL_FILETYPE_PEM);
+    if (ret != SSL_SUCCESS) {
+        ocall_print("wolfSSL_CertManagerLoadCA() failed (%d)\n", ret);
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    ret = wolfSSL_CertManagerVerifyBuffer(cm, (unsigned char*)certChainBuf, strlen(certChainBuf), WOLFSSL_FILETYPE_PEM);
+    ocall_print("chain_size %d", chain_size);
+
+    if (ret != SSL_SUCCESS) {
+
+        ocall_print("wolfSSL_CertManagerVerify() failed (%d)\n", ret);
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    /*By now we know the certificate chain is valid against the hard-coded CA certificate*/
+
+    int derCertSz = wolfSSL_CertPemToDer((unsigned char*)chain, chain_size, derCert, MAX_CERT_SIZE, CERT_TYPE);
+
+    if(derCertSz <= 0){
+        ocall_print("wolfSSL_CertPemToDer failed %d", derCertSz);
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    /* convert cert from DER to internal WOLFSSL_X509 struct */
+    cert = wolfSSL_X509_d2i(&cert, derCert, derCertSz);
+    if (cert == NULL){
+        ocall_print("Failed to convert DER to WOLFSSL_X509 %d", 0);
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    /* extract PUBLIC KEY from cert */
+    pubKeyTmp = wolfSSL_X509_get_pubkey(cert);
+    if (pubKeyTmp == NULL) {
+        ocall_print("wolfSSL_X509_get_pubkey failed %d", 0);
+        
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+        
+
+    if(0 != wc_InitRsaKey(&pubKey, 0)){
+        ocall_print("wc_InitRsaKey failed %d", 0);      
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    word32 idx = 0;
+    ret = wc_RsaPublicKeyDecode((byte*)pubKeyTmp->pkey.ptr, &idx, &pubKey,
+                                pubKeyTmp->pkey_sz);
+    if (ret != 0){
+        ocall_print("wc_RsaPublicKeyDecode failed, %d", ret);
+
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    ret = wc_SignatureVerify(WC_HASH_TYPE_SHA256, WC_SIGNATURE_TYPE_RSA_W_ENC, 
+                            reportBody, reportBody_size, 
+                            signature, signature_size, 
+                            &pubKey, sizeof(pubKey));
+
+    
+    if(0 != ret){
+        ocall_print("Signature Verification failed, %d", ret);
+        wolfSSL_CertManagerFree(cm);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    wolfSSL_CertManagerFree(cm);
+
+    /*By now we know the report is valid*/
+
+    sgx_quote_t quote_body;
+    string isvEnclaveQuoteBody = extractQuoteBody((char*)reportBody);
+    memcpy(&quote_body, base64_decode(isvEnclaveQuoteBody).c_str(), sizeof(quote_body));
+
+    if(0!=memcmp(Settings::mrsigner, 
+                 base64_encode((uint8_t*)&quote_body.report_body.mr_signer, sizeof(quote_body.report_body.mr_signer)).c_str(),
+                 strlen(Settings::mrsigner)))
+    {
+        ocall_print("mrsigner is invealid %d", 0);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    //TODO - MRENCLAVE
+
+    if(!verifyPublicKey(peer_pk, unusable_pk, &quote_body)){
+        ocall_print("verify public key failed %d", 0);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    wolfSSL_EVP_PKEY_free(pubKeyTmp);
+    wolfSSL_X509_free(cert);
+    wolfSSL_CertManagerFree(cm);
+
+    return SGX_SUCCESS;    
 }

@@ -29,7 +29,6 @@ enclave {
             uint32_t num_of_neighbors, uint32_t num_of_vertices);       
         
     };
-
 };
 
 

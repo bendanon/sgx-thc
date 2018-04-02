@@ -50,6 +50,11 @@ public:
     sgx_status_t GenerateFirstMessage(uint8_t* B_out, size_t B_out_size);
     
     sgx_status_t ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
+
+    virtual sgx_status_t VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
+                             unsigned char* chain, size_t chain_size, 
+                             unsigned char* signature, size_t signature_size,
+                             sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size);
 };
 
 #endif

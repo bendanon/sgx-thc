@@ -134,7 +134,7 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
 
     //Extract attestation report, verify its signature and verify skg pk with it
     VerificationReport skgReport;
-    if(!skgReport.fromCertMsg(skgCertMsg)){
+    if(!skgReport.fromCertMsg(skgCertMsg, m_pEnclave)){
         Log("BbClient::processPkResponse - failed to verify skg verification report");
         return false;
     }

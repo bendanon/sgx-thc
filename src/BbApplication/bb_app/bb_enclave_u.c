@@ -68,6 +68,19 @@ typedef struct ms_derive_smk_t {
 	size_t ms_smk_size;
 } ms_derive_smk_t;
 
+typedef struct ms_verify_peer_t {
+	sgx_status_t ms_retval;
+	unsigned char* ms_reportBody;
+	size_t ms_reportBody_size;
+	unsigned char* ms_chain;
+	size_t ms_chain_size;
+	unsigned char* ms_signature;
+	size_t ms_signature_size;
+	sgx_ec256_public_t* ms_peer_pk;
+	sgx_ec256_public_t* ms_unusable_pk;
+	size_t ms_pk_size;
+} ms_verify_peer_t;
+
 typedef struct ms_sgx_ra_get_ga_t {
 	sgx_status_t ms_retval;
 	sgx_ra_context_t ms_context;
@@ -95,6 +108,36 @@ typedef struct ms_sgx_ra_get_msg3_trusted_t {
 typedef struct ms_ocall_print_t {
 	char* ms_str;
 } ms_ocall_print_t;
+
+typedef struct ms_ocall_print_string_t {
+	char* ms_str;
+} ms_ocall_print_string_t;
+
+typedef struct ms_ocall_current_time_t {
+	double* ms_time;
+} ms_ocall_current_time_t;
+
+typedef struct ms_ocall_low_res_time_t {
+	int* ms_time;
+} ms_ocall_low_res_time_t;
+
+typedef struct ms_ocall_recv_t {
+	size_t ms_retval;
+	int ocall_errno;
+	int ms_sockfd;
+	void* ms_buf;
+	size_t ms_len;
+	int ms_flags;
+} ms_ocall_recv_t;
+
+typedef struct ms_ocall_send_t {
+	size_t ms_retval;
+	int ocall_errno;
+	int ms_sockfd;
+	void* ms_buf;
+	size_t ms_len;
+	int ms_flags;
+} ms_ocall_send_t;
 
 typedef struct ms_create_session_ocall_t {
 	sgx_status_t ms_retval;
@@ -162,6 +205,46 @@ static sgx_status_t SGX_CDECL bb_enclave_ocall_print(void* pms)
 	ms_ocall_print_t* ms = SGX_CAST(ms_ocall_print_t*, pms);
 	ocall_print((const char*)ms->ms_str);
 
+	return SGX_SUCCESS;
+}
+
+static sgx_status_t SGX_CDECL bb_enclave_ocall_print_string(void* pms)
+{
+	ms_ocall_print_string_t* ms = SGX_CAST(ms_ocall_print_string_t*, pms);
+	ocall_print_string((const char*)ms->ms_str);
+
+	return SGX_SUCCESS;
+}
+
+static sgx_status_t SGX_CDECL bb_enclave_ocall_current_time(void* pms)
+{
+	ms_ocall_current_time_t* ms = SGX_CAST(ms_ocall_current_time_t*, pms);
+	ocall_current_time(ms->ms_time);
+
+	return SGX_SUCCESS;
+}
+
+static sgx_status_t SGX_CDECL bb_enclave_ocall_low_res_time(void* pms)
+{
+	ms_ocall_low_res_time_t* ms = SGX_CAST(ms_ocall_low_res_time_t*, pms);
+	ocall_low_res_time(ms->ms_time);
+
+	return SGX_SUCCESS;
+}
+
+static sgx_status_t SGX_CDECL bb_enclave_ocall_recv(void* pms)
+{
+	ms_ocall_recv_t* ms = SGX_CAST(ms_ocall_recv_t*, pms);
+	ms->ms_retval = ocall_recv(ms->ms_sockfd, ms->ms_buf, ms->ms_len, ms->ms_flags);
+	ms->ocall_errno = errno;
+	return SGX_SUCCESS;
+}
+
+static sgx_status_t SGX_CDECL bb_enclave_ocall_send(void* pms)
+{
+	ms_ocall_send_t* ms = SGX_CAST(ms_ocall_send_t*, pms);
+	ms->ms_retval = ocall_send(ms->ms_sockfd, (const void*)ms->ms_buf, ms->ms_len, ms->ms_flags);
+	ms->ocall_errno = errno;
 	return SGX_SUCCESS;
 }
 
@@ -239,11 +322,16 @@ static sgx_status_t SGX_CDECL bb_enclave_sgx_thread_set_multiple_untrusted_event
 
 static const struct {
 	size_t nr_ocall;
-	void * table[10];
+	void * table[15];
 } ocall_table_bb_enclave = {
-	10,
+	15,
 	{
 		(void*)bb_enclave_ocall_print,
+		(void*)bb_enclave_ocall_print_string,
+		(void*)bb_enclave_ocall_current_time,
+		(void*)bb_enclave_ocall_low_res_time,
+		(void*)bb_enclave_ocall_recv,
+		(void*)bb_enclave_ocall_send,
 		(void*)bb_enclave_create_session_ocall,
 		(void*)bb_enclave_exchange_report_ocall,
 		(void*)bb_enclave_close_session_ocall,
@@ -367,13 +455,31 @@ sgx_status_t derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_pu
 	return status;
 }
 
+sgx_status_t verify_peer(sgx_enclave_id_t eid, sgx_status_t* retval, unsigned char* reportBody, size_t reportBody_size, unsigned char* chain, size_t chain_size, unsigned char* signature, size_t signature_size, sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
+{
+	sgx_status_t status;
+	ms_verify_peer_t ms;
+	ms.ms_reportBody = reportBody;
+	ms.ms_reportBody_size = reportBody_size;
+	ms.ms_chain = chain;
+	ms.ms_chain_size = chain_size;
+	ms.ms_signature = signature;
+	ms.ms_signature_size = signature_size;
+	ms.ms_peer_pk = peer_pk;
+	ms.ms_unusable_pk = unusable_pk;
+	ms.ms_pk_size = pk_size;
+	status = sgx_ecall(eid, 9, &ocall_table_bb_enclave, &ms);
+	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
+	return status;
+}
+
 sgx_status_t sgx_ra_get_ga(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context, sgx_ec256_public_t* g_a)
 {
 	sgx_status_t status;
 	ms_sgx_ra_get_ga_t ms;
 	ms.ms_context = context;
 	ms.ms_g_a = g_a;
-	status = sgx_ecall(eid, 9, &ocall_table_bb_enclave, &ms);
+	status = sgx_ecall(eid, 10, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
@@ -387,7 +493,7 @@ sgx_status_t sgx_ra_proc_msg2_trusted(sgx_enclave_id_t eid, sgx_status_t* retval
 	ms.ms_p_qe_target = (sgx_target_info_t*)p_qe_target;
 	ms.ms_p_report = p_report;
 	ms.ms_p_nonce = p_nonce;
-	status = sgx_ecall(eid, 10, &ocall_table_bb_enclave, &ms);
+	status = sgx_ecall(eid, 11, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
@@ -401,7 +507,7 @@ sgx_status_t sgx_ra_get_msg3_trusted(sgx_enclave_id_t eid, sgx_status_t* retval,
 	ms.ms_qe_report = qe_report;
 	ms.ms_p_msg3 = p_msg3;
 	ms.ms_msg3_size = msg3_size;
-	status = sgx_ecall(eid, 11, &ocall_table_bb_enclave, &ms);
+	status = sgx_ecall(eid, 12, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
 }
