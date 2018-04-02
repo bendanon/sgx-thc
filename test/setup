@@ -1,9 +1,7 @@
 #!/bin/bash
 
-for i in $(eval echo {1..$1});
-do
-	mkdir bb_$i
-	mkdir bb_$i/assets
-	cp ../src/BbApplication/app bb_$i/ ; cp ../src/BbApplication/bb_enclave.signed.so bb_$i/
+mkdir bb
+mkdir bb/assets
+cp ../src/BbApplication/app bb/ ; cp ../src/BbApplication/bb_enclave.signed.so bb/
+cp stress.py bb/
 
-done

@@ -64,7 +64,7 @@ sgx_status_t BbEnclave::closeRa(){
 
     if(!m_raInitialized)
     {
-        Log("Called closeRa but ra not initialized");
+        //Log("Called closeRa but ra not initialized");
         return SGX_SUCCESS;
     }
 

@@ -142,12 +142,12 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
 
 bool ThcClient::thcFinished(uint8_t* outbuf, size_t outbuf_len){
     if(0==memcmp(ABORT_MESSAGE, outbuf, sizeof(ABORT_MESSAGE))){
-        Log("BbClient::handleBbMsg - abort");
+        Log("BbClient::thcFinished %d got abort", m_config["port"].asUInt());
         return true;               
     }
 
     if(0==memcmp(DEBUG_RESULT_MESSAGE, outbuf, sizeof(DEBUG_RESULT_MESSAGE))){
-        Log("BbClient::handleBbMsg - result");        
+        Log("BbClient::thcFinished %d got result", m_config["port"].asUInt());        
         return true;               
     }
 

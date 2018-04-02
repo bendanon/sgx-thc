@@ -35,7 +35,7 @@ void ReceiverSocket::Receive(){
         msg = "";
     }
 
-    Log("ReceiverSocket::Receive - stopped=====================================================", log::error);  
+    //Log("ReceiverSocket::Receive - stopped=====================================================", log::error);  
 }
 
 bool ReceiverSocket::read(uint32_t& port, std::string& msg){

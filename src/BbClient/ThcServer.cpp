@@ -30,10 +30,8 @@ void ThcServer::RunServer(){
 
 void ThcServer::startAccept(){
 
-    Log("ThcServer::startAccept - started================");
-    if(m_acceptedConnections >= m_numOfNeighbors){
-        Log("ThcServer::startAccept - m_acceptedConnections(%d) >= m_numOfNeighbors(%d) ================", 
-        m_acceptedConnections, m_numOfNeighbors, log::error);
+    //startAccept will be called by handleAccept once too much, this stops it
+    if(m_acceptedConnections >= m_numOfNeighbors){        
         return;
     }
 

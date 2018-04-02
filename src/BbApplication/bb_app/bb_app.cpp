@@ -62,12 +62,14 @@ size_t ocall_send(int sockfd, const void *buf, size_t len, int flags)
 int Main(int argc, char* argv[]) {
 
     LogBase::Inst();
-
+    
     if(argc != 2){
         Log("Usage: ./app <config_file_name>.json", log::error);
         return -1;
     }
-    
+
+    printf("THC_ENCRYPTED_MSG_SIZE_BYTES for  %d is %lu\n", MAX_GRAPH_SIZE, THC_ENCRYPTED_MSG_SIZE_BYTES);
+
     ifstream ifs(argv[1]);
     Json::Reader reader;
     Json::Value config;

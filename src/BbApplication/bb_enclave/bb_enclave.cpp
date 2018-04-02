@@ -306,6 +306,8 @@ sgx_status_t bb_exec(uint8_t* B_in, size_t B_in_size,                   //in (B_
         return status;
     }
 
+    ocall_print("bb_exec================");
+
     if(!bbx.Execute(B_in, B_in_size, B_out, B_out_size)){
         ocall_print("bb_exec - failed to execute");
         return status;
