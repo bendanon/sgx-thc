@@ -70,12 +70,14 @@ bool Queues::GetMsgFromNeighbor(uint32_t roundNumber, std::string neighborIp, in
 
     m_mutex.unlock();
 
+    /*
     if(retval){
         Log("Queues::GetMsgFromNeighbor - getting from %s for round %d succeeded. Length is %d", neighbor, roundNumber, msg.length());
     } else{
         Log("Queues::GetMsgFromNeighbor - getting from %s for round %d failed", neighbor, roundNumber);
 
     }
+    */
 
     return retval;
 }

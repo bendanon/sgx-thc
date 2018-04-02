@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_print, (const char* str));
+void SGX_UBRIDGE(SGX_NOCONVENTION, _ocall_print, (const char* str));
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_print_string, (const char* str));
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_current_time, (double* time));
 void SGX_UBRIDGE(SGX_NOCONVENTION, ocall_low_res_time, (int* time));

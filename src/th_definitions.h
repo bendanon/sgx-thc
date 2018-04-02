@@ -71,4 +71,6 @@
 #define SIGNATURE_LENGTH_BYTES 256
 #define MAX_CERT_SIZE 16384
 
+//#define THC_DEBUG_PRINTS
+
 #endif //TH_DEFINES_H

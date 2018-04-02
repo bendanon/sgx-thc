@@ -14,7 +14,7 @@ using namespace util;
 #include <fstream>
 #include <jsoncpp/json/json.h> // or jsoncpp/json.h , or json/json.h etc.
 
-void ocall_print(const char* str) {
+void _ocall_print(const char* str) {
     printf("%s\n", str);
 }
 

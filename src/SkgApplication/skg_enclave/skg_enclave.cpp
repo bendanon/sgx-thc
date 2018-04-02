@@ -17,6 +17,10 @@ void ocall_print(const char* format, uint32_t number){
     ocall_print(output);
 }
 
+void ocall_print(const char* str){
+    _ocall_print(str);    
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif

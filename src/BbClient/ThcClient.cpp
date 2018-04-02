@@ -75,17 +75,17 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
 
             snprintf((char*)outbuf, sizeof("CANARY"), "%s", "CANARY");
 
-            Log("ThcClient::Run - Neighbor %d", port);
+            //Log("ThcClient::Run - Neighbor %d", port);
 
             //If this neighbor is aborted, don't recieve message from it. 
             //just send another abort to the black box
 
             while(!m_abortedSockets[neighborIndex] && 
-                  !p_queues->GetMsgFromNeighbor(roundNumber, ip, port, msg) && 
-                  (++numOfTries < THC_MAX_NUM_OF_TRIES))
+                  !p_queues->GetMsgFromNeighbor(roundNumber, ip, port, msg) /*&& 
+                  (++numOfTries < THC_MAX_NUM_OF_TRIES)*/)
             {
-                Log("ThcClient::Run - GetMsgFromNeighbor %d failed. retrying (%d)...", port, numOfTries);
-                boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
+                //Log("ThcClient::Run - GetMsgFromNeighbor %d failed. retrying (%d)...", port, numOfTries);
+                //boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
             }
 
             if(m_abortedSockets[neighborIndex] ||
@@ -100,7 +100,7 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
 
             } else if(THC_ENCRYPTED_MSG_SIZE_BYTES ==  msg.length()) {
 
-                Log("ThcClient::Run - execute on message from %d", port);
+                //Log("ThcClient::Run - execute on message from %d", port);
                 if(!execute((uint8_t*)msg.c_str(), THC_ENCRYPTED_MSG_SIZE_BYTES, outbuf, outbuf_len)){
                     Log("ThcClient::Run - failed to execute", log::error);
                     abort();
@@ -168,6 +168,6 @@ bool ThcClient::execute(uint8_t* B_in, size_t B_in_size,
         return false;
     }
 
-    Log("ThcClient::execute - success");
+    //Log("ThcClient::execute - success");
     return true;
 }

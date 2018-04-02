@@ -8,7 +8,7 @@ using namespace util;
 #include "SkgServer.h"
 #include "SkgEnclave.h"
 
-void ocall_print(const char* str) {
+void _ocall_print(const char* str) {
     printf("%s\n", str);
 }
 

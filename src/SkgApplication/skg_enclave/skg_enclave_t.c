@@ -92,9 +92,9 @@ typedef struct ms_sgx_ra_get_msg3_trusted_t {
 	uint32_t ms_msg3_size;
 } ms_sgx_ra_get_msg3_trusted_t;
 
-typedef struct ms_ocall_print_t {
+typedef struct ms__ocall_print_t {
 	char* ms_str;
-} ms_ocall_print_t;
+} ms__ocall_print_t;
 
 typedef struct ms_ocall_print_string_t {
 	char* ms_str;
@@ -655,13 +655,13 @@ SGX_EXTERNC const struct {
 };
 
 
-sgx_status_t SGX_CDECL ocall_print(const char* str)
+sgx_status_t SGX_CDECL _ocall_print(const char* str)
 {
 	sgx_status_t status = SGX_SUCCESS;
 	size_t _len_str = str ? strlen(str) + 1 : 0;
 
-	ms_ocall_print_t* ms = NULL;
-	size_t ocalloc_size = sizeof(ms_ocall_print_t);
+	ms__ocall_print_t* ms = NULL;
+	size_t ocalloc_size = sizeof(ms__ocall_print_t);
 	void *__tmp = NULL;
 
 	ocalloc_size += (str != NULL && sgx_is_within_enclave(str, _len_str)) ? _len_str : 0;
@@ -671,8 +671,8 @@ sgx_status_t SGX_CDECL ocall_print(const char* str)
 		sgx_ocfree();
 		return SGX_ERROR_UNEXPECTED;
 	}
-	ms = (ms_ocall_print_t*)__tmp;
-	__tmp = (void *)((size_t)__tmp + sizeof(ms_ocall_print_t));
+	ms = (ms__ocall_print_t*)__tmp;
+	__tmp = (void *)((size_t)__tmp + sizeof(ms__ocall_print_t));
 
 	if (str != NULL && sgx_is_within_enclave(str, _len_str)) {
 		ms->ms_str = (char*)__tmp;

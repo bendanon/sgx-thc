@@ -105,9 +105,9 @@ typedef struct ms_sgx_ra_get_msg3_trusted_t {
 	uint32_t ms_msg3_size;
 } ms_sgx_ra_get_msg3_trusted_t;
 
-typedef struct ms_ocall_print_t {
+typedef struct ms__ocall_print_t {
 	char* ms_str;
-} ms_ocall_print_t;
+} ms__ocall_print_t;
 
 typedef struct ms_ocall_print_string_t {
 	char* ms_str;
@@ -200,10 +200,10 @@ typedef struct ms_sgx_thread_set_multiple_untrusted_events_ocall_t {
 	size_t ms_total;
 } ms_sgx_thread_set_multiple_untrusted_events_ocall_t;
 
-static sgx_status_t SGX_CDECL bb_enclave_ocall_print(void* pms)
+static sgx_status_t SGX_CDECL bb_enclave__ocall_print(void* pms)
 {
-	ms_ocall_print_t* ms = SGX_CAST(ms_ocall_print_t*, pms);
-	ocall_print((const char*)ms->ms_str);
+	ms__ocall_print_t* ms = SGX_CAST(ms__ocall_print_t*, pms);
+	_ocall_print((const char*)ms->ms_str);
 
 	return SGX_SUCCESS;
 }
@@ -326,7 +326,7 @@ static const struct {
 } ocall_table_bb_enclave = {
 	15,
 	{
-		(void*)bb_enclave_ocall_print,
+		(void*)bb_enclave__ocall_print,
 		(void*)bb_enclave_ocall_print_string,
 		(void*)bb_enclave_ocall_current_time,
 		(void*)bb_enclave_ocall_low_res_time,

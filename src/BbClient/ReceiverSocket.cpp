@@ -28,8 +28,8 @@ void ReceiverSocket::Receive(){
         //Log("ReceiverSocket::Receive - Received message from %s, %d", ip, port);
 
         while(!m_queues->InsertFromNeighbor(ip, port, msg)){
-            Log("ReceiverSocket::Receive - failed to insert from %s, %d, retrying...", ip, port);
-            boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
+            //Log("ReceiverSocket::Receive - failed to insert from %s, %d, retrying...", ip, port);                        
+            //boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
         }
 
         msg = "";

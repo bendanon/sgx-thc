@@ -80,6 +80,12 @@ void ocall_print(const char* format, uint32_t number){
     ocall_print(output);
 }
 
+void ocall_print(const char* str){
+    #ifdef THC_DEBUG_PRINTS
+    _ocall_print(str);
+    #endif
+}
+
 void print_buffer(uint8_t* buffer, size_t len){
     char toPrint[len * 3 + 3];
     char* ptr = toPrint;
