@@ -24,8 +24,8 @@
 #define SECRET_KEY_ENCRYPTED_SIZE_BYTES (CIPHERTEXT_SIZE_OF(SECRET_KEY_SIZE_BYTES))
 
 
-#define MAX_GRAPH_SIZE 500
-#define EDGE_PRINT_SIZE_BYTES sizeof("[50,50]") /*according to MAX_GRAPH_SIZE*/
+#define MAX_GRAPH_SIZE 10000
+#define EDGE_PRINT_SIZE_BYTES sizeof("[10000,10000]") /*according to MAX_GRAPH_SIZE*/
 
 #define THC_MSG_HEADER_SIZE (20 + sizeof("255.255.255.255:99999999"))
 #define THC_MAX_NUM_OF_TRIES 3
@@ -35,22 +35,22 @@
 #define MAX_UINT32 ((uint32_t) 0-1)
 #define PARTY_ID_SIZE_BYTES (128 / 8)
 #define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)
-#define THC_MAX_NUMBER_OF_ROUNDS (MAX_GRAPH_SIZE + MAX_GRAPH_SIZE*MAX_GRAPH_SIZE)
+#define THC_MAX_NUMBER_OF_ROUNDS(GRAPH_SIZE) (GRAPH_SIZE + GRAPH_SIZE*GRAPH_SIZE)
 #define THC_ROUND_NUMBER_SIZE_BYTES sizeof(uint32_t)
 #define VERTICES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define EDGES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define THC_MSG_TYPE_SIZE_BYTES sizeof(uint32_t)
 #define MAX_EDGES(V) (V*(V-1)/2) 
-#define THC_PLAIN_MSG_SIZE_BYTES (THC_MSG_TYPE_SIZE_BYTES + \
+#define THC_PLAIN_MSG_SIZE_BYTES(GRAPH_SIZE) (THC_MSG_TYPE_SIZE_BYTES + \
                                   THC_ROUND_NUMBER_SIZE_BYTES + \
                                   PARTY_ID_SIZE_BYTES + \
                                   VERTICES_LEN_SIZE_BYTES + \
-                                  (MAX_GRAPH_SIZE*PARTY_ID_SIZE_BYTES) + \
+                                  (GRAPH_SIZE*PARTY_ID_SIZE_BYTES) + \
                                   EDGES_LEN_SIZE_BYTES + \
-                                  (MAX_EDGES(MAX_GRAPH_SIZE)*EDGE_SIZE_BYTES))
+                                  (MAX_EDGES(GRAPH_SIZE)*EDGE_SIZE_BYTES))
 #define ABORT_MESSAGE "ABORT"
 #define DEBUG_RESULT_MESSAGE "RESULT"
-#define THC_ENCRYPTED_MSG_SIZE_BYTES (CIPHERTEXT_SIZE_OF(THC_PLAIN_MSG_SIZE_BYTES))
+#define THC_ENCRYPTED_MSG_SIZE_BYTES(GRAPH_SIZE) (CIPHERTEXT_SIZE_OF(THC_PLAIN_MSG_SIZE_BYTES(GRAPH_SIZE)))
 
 #define SKG_DATA_SIZE_BYTES (SECRET_KEY_SIZE_BYTES + sizeof(sgx_ec256_private_t))
 #define SKG_DATA_SEALED_SIZE_BYTES 624 //sgx_calc_sealed_data_size(0,SKG_DATA_SIZE_BYTES);

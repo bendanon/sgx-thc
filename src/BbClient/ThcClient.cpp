@@ -86,6 +86,7 @@ bool ThcClient::Run(Queues* p_queues, uint8_t* outbuf, size_t outbuf_len){
             {
                 //Log("ThcClient::Run - GetMsgFromNeighbor %d failed. retrying (%d)...", port, numOfTries);
                 //boost::this_thread::sleep_for(boost::chrono::seconds{THC_SLEEP_BETWEEN_RETRIES_SECONDS});
+                 boost::this_thread::sleep_for(boost::chrono::milliseconds{1});
             }
 
             if(m_abortedSockets[neighborIndex] ||

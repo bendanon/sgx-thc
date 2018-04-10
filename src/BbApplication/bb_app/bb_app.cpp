@@ -68,7 +68,7 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    printf("THC_ENCRYPTED_MSG_SIZE_BYTES for  %d is %lu\n", MAX_GRAPH_SIZE, THC_ENCRYPTED_MSG_SIZE_BYTES);
+    //printf("THC_ENCRYPTED_MSG_SIZE_BYTES for  %d is %lu\n", MAX_GRAPH_SIZE, THC_ENCRYPTED_MSG_SIZE_BYTES);
 
     ifstream ifs(argv[1]);
     Json::Reader reader;
