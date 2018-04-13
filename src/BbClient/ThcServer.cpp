@@ -8,6 +8,7 @@ ThcServer::ThcServer(Json::Value& config) : m_config(config),
     const Json::Value& neighConfig = m_config["neighbors"];
 
     m_numOfNeighbors = neighConfig.size();
+    m_numOfVertices = m_config["num_of_nodes"].asUInt();
 
     m_sockets = new ReceiverSocket[m_numOfNeighbors];
     m_threadPtrs = new boost::thread*[m_numOfNeighbors];
@@ -35,7 +36,7 @@ void ThcServer::startAccept(){
         return;
     }
 
-    m_sockets[m_acceptedConnections].Init(m_queues);
+    m_sockets[m_acceptedConnections].Init(m_queues, m_numOfVertices);
 
     m_acceptor.async_accept(m_sockets[m_acceptedConnections].socket(), 
                                 boost::bind(&ThcServer::handleAccept, 
@@ -46,7 +47,7 @@ void ThcServer::startAccept(){
 
 void ThcServer::handleAccept(ReceiverSocket* receiverSocket, const boost::system::error_code& error){
 
-    Log("Connection from %s", receiverSocket->socket().remote_endpoint().address().to_string());
+    //Log("Connection from %s", receiverSocket->socket().remote_endpoint().address().to_string());
     m_threadPtrs[m_acceptedConnections++] = new boost::thread(&ReceiverSocket::Receive, receiverSocket);
     startAccept();
 }

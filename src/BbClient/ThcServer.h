@@ -38,6 +38,7 @@ private:
     ReceiverSocket* m_sockets;
     boost::thread** m_threadPtrs;
     uint32_t m_numOfNeighbors = 0;
+    size_t m_numOfVertices = 0;
 
     boost::asio::io_service m_ioService;
     boost::asio::ip::tcp::acceptor m_acceptor;

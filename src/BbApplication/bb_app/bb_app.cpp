@@ -68,8 +68,6 @@ int Main(int argc, char* argv[]) {
         return -1;
     }
 
-    //printf("THC_ENCRYPTED_MSG_SIZE_BYTES for  %d is %lu\n", MAX_GRAPH_SIZE, THC_ENCRYPTED_MSG_SIZE_BYTES);
-
     ifstream ifs(argv[1]);
     Json::Reader reader;
     Json::Value config;
@@ -90,14 +88,25 @@ int Main(int argc, char* argv[]) {
         bbClient.obtainSecretFromSkg();        
     }
 
-    uint8_t outbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
+    size_t graphSize = config["num_of_nodes"].asUInt();
+
+    if(MAX_GRAPH_SIZE < graphSize){
+        Log("Graph size %d is bigger than maximum %d", graphSize, MAX_GRAPH_SIZE);
+        return -1;
+    }
+
+    size_t outbufSize = THC_ENCRYPTED_MSG_SIZE_BYTES(graphSize);
+    Log("graphSize is %d, THC_ENCRYPTED_MSG_SIZE_BYTES(graphSize) is %d", graphSize, outbufSize);
+    uint8_t* outbuf = new uint8_t[outbufSize];
 
     //This shouldn't terminate
-    if(!bbClient.runThcProtocol(outbuf, THC_ENCRYPTED_MSG_SIZE_BYTES)){
+    if(!bbClient.runThcProtocol(outbuf, outbufSize)){
         Log("Failed obtain result");
         ret = -1;
     }
 
+
+    delete outbuf;
     delete bb_enclave;
     return ret;
 }

@@ -1,11 +1,11 @@
 #include "ReceiverSocket.h"
 
-ReceiverSocket::ReceiverSocket() : m_socket(m_ioService){
+ReceiverSocket::ReceiverSocket() : m_socket(m_ioService), m_encrypted(NULL), m_encryptedSize(0) {
 
 }
 
 ReceiverSocket::~ReceiverSocket(){
-
+    delete m_encrypted;
 }
 
 boost::asio::ip::tcp::socket& ReceiverSocket::socket(){
@@ -13,8 +13,22 @@ boost::asio::ip::tcp::socket& ReceiverSocket::socket(){
 }
 
 
-bool ReceiverSocket::Init(Queues* p_queues){
+bool ReceiverSocket::Init(Queues* p_queues, size_t numOfVertices){
     m_queues = p_queues;
+
+    if(MAX_GRAPH_SIZE < numOfVertices){
+        Log("ReceiverSocket::Init - invalid numOfVertices (%d)", numOfVertices);
+        return false;
+    }
+    m_encryptedSize = THC_ENCRYPTED_MSG_SIZE_BYTES(numOfVertices);
+
+    m_encrypted = new uint8_t[m_encryptedSize];
+    if(NULL == m_encrypted){
+        Log("ReceiverSocket::Init - failed to allocate encrypted buffer");
+        return false;   
+    }
+
+    return true;
 }
 
 void ReceiverSocket::Receive(){
@@ -52,7 +66,7 @@ bool ReceiverSocket::read(uint32_t& port, std::string& msg){
     if (ec) {
 
         if ((boost::asio::error::eof == ec) || (boost::asio::error::connection_reset == ec)) {
-            Log("Connection has been closed by remote host");
+            //Log("Connection has been closed by remote host");
         } else {
             Log("Unknown socket error while reading occured!", log::error);
         }
@@ -76,7 +90,7 @@ bool ReceiverSocket::read(uint32_t& port, std::string& msg){
     if (ec) {
 
         if ((boost::asio::error::eof == ec) || (boost::asio::error::connection_reset == ec)) {
-            Log("Connection has been closed by remote host");
+            //Log("Connection has been closed by remote host");
         } else {
             Log("Unknown socket error while reading occured!", log::error);
         }
@@ -91,13 +105,11 @@ bool ReceiverSocket::read(uint32_t& port, std::string& msg){
         Log("ReceiverSocket::read - failed to parse bb message", log::error);
         return false;
     }
-
-    char inbuf[THC_ENCRYPTED_MSG_SIZE_BYTES];
     
-    for (int i = 0; i < THC_ENCRYPTED_MSG_SIZE_BYTES; i++)
-        inbuf[i] = in.bb_msg(i);
+    for (int i = 0; i < m_encryptedSize; i++)
+        m_encrypted[i] = in.bb_msg(i);
 
-    std::string msgBodyDeserialized(inbuf, THC_ENCRYPTED_MSG_SIZE_BYTES);
+    std::string msgBodyDeserialized((const char*)m_encrypted, m_encryptedSize);
     msg += msgBodyDeserialized;
 
     return true;    

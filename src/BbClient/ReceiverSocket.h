@@ -27,7 +27,7 @@ public:
     
     ReceiverSocket();
     ~ReceiverSocket();
-    bool Init(Queues* p_queues);
+    bool Init(Queues* p_queues, size_t numOfVertices);
     void Receive();
     boost::asio::ip::tcp::socket& socket();
     
@@ -40,7 +40,9 @@ private:
     boost::asio::ip::tcp::socket m_socket;
     Queues* m_queues = NULL;
 
-
+    uint8_t* m_encrypted;
+    size_t m_encryptedSize;
+    
     //For identification
     std::string m_peerIp; 
     uint32_t m_peerPort;

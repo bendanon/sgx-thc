@@ -47,7 +47,12 @@ private:
 
     SenderSocket* m_sockets;
     uint32_t m_numOfNeighbors;
+
+    uint8_t* m_encrypted;
+    size_t m_encryptedSize;
+
     bool* m_abortedSockets;
+    uint32_t m_timesSlept = 0;
 };
 
 #endif //THC_CLIENT_H

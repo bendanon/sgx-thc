@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <cmath>
 
 #ifndef TRUE
 # define TRUE 1
@@ -40,7 +41,7 @@
 #define VERTICES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define EDGES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define THC_MSG_TYPE_SIZE_BYTES sizeof(uint32_t)
-#define MAX_EDGES(V) (V*(V-1)/2) 
+#define MAX_EDGES(V) (V*log2(V)) 
 #define THC_PLAIN_MSG_SIZE_BYTES(GRAPH_SIZE) (THC_MSG_TYPE_SIZE_BYTES + \
                                   THC_ROUND_NUMBER_SIZE_BYTES + \
                                   PARTY_ID_SIZE_BYTES + \
@@ -72,5 +73,6 @@
 #define MAX_CERT_SIZE 16384
 
 //#define THC_DEBUG_PRINTS
+#define SCHIZZO_TEST
 
 #endif //TH_DEFINES_H

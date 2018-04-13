@@ -104,7 +104,7 @@ bool SenderSocket::Init(std::string host, int port, int localPort){
     boost::asio::ip::tcp::resolver::query query(host, std::to_string(port).c_str());
     boost::asio::ip::tcp::resolver::iterator ei = resolver.resolve(query);   
 
-    Log("SenderSocket::Init - Start connecting...");
+    //Log("SenderSocket::Init - Start connecting...");
 
     boost::system::error_code ec;
     boost::asio::connect(m_socket.lowest_layer(), ei, ec);
@@ -115,7 +115,7 @@ bool SenderSocket::Init(std::string host, int port, int localPort){
         boost::asio::connect(m_socket.lowest_layer(), ei, ec);
     }
 
-    Log("Connected successfully to %s, %d", host, port);
+    //Log("Connected successfully to %s, %d", host, port);
 
     return true;
 }

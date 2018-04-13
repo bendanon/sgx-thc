@@ -10,7 +10,10 @@ BlackBoxExecuter::BlackBoxExecuter() : m_fIsInitialized(false),
                         //m_ctrNeighbor(0),
                         m_pGraph(NULL),
                         m_pNeighbors(NULL),
-                        m_pRoundChecklist(NULL)
+                        m_pRoundChecklist(NULL),
+                        m_decrypted(NULL),
+                        m_decryptedSize(0),
+                        m_encryptedSize(0)
 
 
 {
@@ -23,6 +26,7 @@ BlackBoxExecuter::~BlackBoxExecuter()
     delete m_pGraph;
     delete m_pNeighbors;
     delete m_pRoundChecklist;
+    delete m_decrypted;
 }
 
 bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertices) 
@@ -33,6 +37,11 @@ bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertice
 
     if(numOfNeighbors > numOfVertices){
         ocall_print("BlackBoxExecuter::Initialize - numOfNeighbors > numOfVertices");
+        return false;
+    }
+
+    if(MAX_GRAPH_SIZE < numOfVertices){
+        ocall_print("BlackBoxExecuter::Initialize - MAX_GRAPH_SIZE < numOfVertices");
         return false;
     }
 
@@ -58,9 +67,30 @@ bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertice
 
     //+1 because we also store the local is in the neighbors graph
     m_pNeighbors = new Graph(m_numOfNeighbors + 1);
+
+    if(NULL == m_pNeighbors){
+        ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_pNeighbors");
+        return false;
+    }
+
     m_pNeighbors->AddVertex(m_localId);
 
     m_pRoundChecklist = new Graph(m_numOfNeighbors);
+
+    if(NULL == m_pRoundChecklist){
+        ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_pRoundChecklist");
+        return false;
+    }
+
+    m_decryptedSize = THC_PLAIN_MSG_SIZE_BYTES(m_numOfVertices);
+    m_encryptedSize = THC_ENCRYPTED_MSG_SIZE_BYTES(m_numOfVertices);
+
+    m_decrypted = new uint8_t[m_decryptedSize];
+
+    if(NULL == m_decrypted){
+        ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_decrypted");
+        return false;
+    }
 
     return m_fIsInitialized = true;
 }
@@ -91,7 +121,7 @@ bool BlackBoxExecuter::SetSecret(uint8_t s[SECRET_KEY_SIZE_BYTES], size_t size)
 
 bool BlackBoxExecuter::GenerateFirstMessage(uint8_t* B_out, size_t B_out_size){
 
-    if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_out_size){
+    if(m_encryptedSize != B_out_size){
         ocall_print("BlackBoxExecuter::GenerateFirstMessage - wrong buffer size");
         return false;
     }
@@ -157,22 +187,23 @@ bool BlackBoxExecuter::Execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
         return true;
     }
 
-    if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_in_size){
+    if(m_encryptedSize != B_in_size){
         ocall_print("BlackBoxExecuter::Execute - wrong input buffer size, %d", B_in_size);
         return false;
     }
     
     //We should know all graph vertices in d (=diameter) rounds, and d < N (=m_numOfVertices)
+    #ifndef SCHIZZO_TEST
     if((m_pGraph->GetSize() < m_numOfVertices) && (m_ctrRound > m_numOfVertices)){
         ocall_print("m_ctrRound > m_numOfVertices, yet graph is incomlete");
         return false;
     }
+    #endif
 
-    uint8_t decrypted[THC_PLAIN_MSG_SIZE_BYTES];
-    uint8_t* decryptedPtr = decrypted;
-    size_t decryptedLen = THC_PLAIN_MSG_SIZE_BYTES;
+    uint8_t* decryptedPtr = m_decrypted;
+    size_t decryptedLen = m_decryptedSize;
 
-    sgx_status_t status = decrypt(decrypted, sizeof(decrypted), B_in, m_s);
+    sgx_status_t status = decrypt(m_decrypted, m_decryptedSize, B_in, m_s);
 
     if(SGX_SUCCESS != status){
         ocall_print("failed to decrypt B_in, status is %d", status);
@@ -422,7 +453,7 @@ bool BlackBoxExecuter::generateThcMessage(uint8_t** buffer, size_t* len, eThcMsg
         return false;
     }
 
-    if(THC_PLAIN_MSG_SIZE_BYTES != *len){
+    if(m_decryptedSize != *len){
         ocall_print("BlackBoxExecuter::generateThcMessage - wrong buffer size, %d", *len);
         return false;
     }
@@ -463,15 +494,13 @@ bool BlackBoxExecuter::generateConsistencyMessage (uint8_t* B_out, size_t B_out_
         return false;
     }
 
-    if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_out_size){
+    if(m_encryptedSize != B_out_size){
         ocall_print("BlackBoxExecuter::generateConsistencyMessage - wrong buffer size, %d", B_out_size);
         return false;
     }
 
-    uint8_t buffer[THC_PLAIN_MSG_SIZE_BYTES];
-    uint8_t* bufferPtr = buffer;
-    size_t bufferLength = THC_PLAIN_MSG_SIZE_BYTES;
-    memset(buffer, 0, sizeof(buffer));
+    uint8_t* bufferPtr = m_decrypted;
+    size_t bufferLength = m_decryptedSize;
 
     if(!generateThcMessage(&bufferPtr, &bufferLength, THC_MSG_CONSISTENCY)){
         ocall_print("BlackBoxExecuter::generateConsistencyMessage - failed to generate message");
@@ -488,7 +517,7 @@ bool BlackBoxExecuter::generateConsistencyMessage (uint8_t* B_out, size_t B_out_
     memcpy(bufferPtr, &fAbort, sizeof(fAbort));
 
     sgx_status_t status;
-    if(SGX_SUCCESS != (status = encrypt(buffer, THC_PLAIN_MSG_SIZE_BYTES,B_out, m_s))){
+    if(SGX_SUCCESS != (status = encrypt(m_decrypted, m_decryptedSize, B_out, m_s))){
         ocall_print("BlackBoxExecuter::generateConsistencyMessage - failed to encrypt collection message, %d", status);
         return false;
     }
@@ -509,15 +538,13 @@ bool BlackBoxExecuter::generateCollectionMessage (uint8_t* B_out, size_t B_out_s
         return false;
     }
 
-    if(THC_ENCRYPTED_MSG_SIZE_BYTES != B_out_size){
+    if(m_encryptedSize != B_out_size){
         ocall_print("BlackBoxExecuter::generateCollectionMessage - wrong buffer size, %d", B_out_size);
         return false;
     }
 
-    uint8_t buffer[THC_PLAIN_MSG_SIZE_BYTES];
-    uint8_t* bufferPtr = buffer;
-    size_t bufferLength = THC_PLAIN_MSG_SIZE_BYTES;
-    memset(buffer, 0, sizeof(buffer));
+    uint8_t* bufferPtr = m_decrypted;
+    size_t bufferLength = m_decryptedSize;
 
     if(!generateThcMessage(&bufferPtr, &bufferLength, THC_MSG_COLLECTION)){
         ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to generate message");
@@ -530,7 +557,7 @@ bool BlackBoxExecuter::generateCollectionMessage (uint8_t* B_out, size_t B_out_s
     }
 
     sgx_status_t status;
-    if(SGX_SUCCESS != (status = encrypt(buffer, THC_PLAIN_MSG_SIZE_BYTES,B_out, m_s))){
+    if(SGX_SUCCESS != (status = encrypt(m_decrypted, m_decryptedSize, B_out, m_s))){
         ocall_print("BlackBoxExecuter::generateCollectionMessage - failed to encrypt collection message, %d", status);
         return false;
     }
@@ -570,7 +597,7 @@ bool BlackBoxExecuter::consumeRoundNumber(uint8_t** msg, size_t* len) {
     *msg += sizeof(uint32_t);
     *len -= sizeof(uint32_t);
 
-    if(THC_MAX_NUMBER_OF_ROUNDS < roundNumber){
+    if(THC_MAX_NUMBER_OF_ROUNDS(m_numOfVertices) < roundNumber){
         ocall_print("BlackBoxExecuter::consumeRoundNumber failed, invalid round number %d", roundNumber);
         return false;
     }

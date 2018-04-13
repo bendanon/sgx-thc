@@ -91,5 +91,8 @@ private:
     size_t m_numOfNeighbors;
     uint32_t m_ctrRound;
     uint32_t m_abortCounter;
+    uint8_t* m_decrypted;
+    size_t m_decryptedSize;
+    size_t m_encryptedSize;
     //uint32_t m_ctrNeighbor;
 };

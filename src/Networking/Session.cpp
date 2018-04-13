@@ -10,7 +10,7 @@ Session::~Session() {}
 
 
 void Session::start() {
-    Log("Connection from %s", socket().remote_endpoint().address().to_string());
+    //Log("Connection from %s", socket().remote_endpoint().address().to_string());
 
     socket_.async_handshake(boost::asio::ssl::stream_base::server,
                             boost::bind(&Session::handle_handshake, this,
