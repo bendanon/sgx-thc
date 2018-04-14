@@ -31,9 +31,9 @@ BlackBoxExecuter::~BlackBoxExecuter()
 
 bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertices) 
 {
-    uint8_t localIdBuf[PARTY_ID_SIZE_BYTES];
-    size_t localIdSize = PARTY_ID_SIZE_BYTES;
-    uint8_t* bufPtr = localIdBuf;
+    uint8_t localPartyBuf[APP_PARTY_FULL_SIZE_BYTES];
+    size_t localPartySize = APP_PARTY_FULL_SIZE_BYTES;
+    uint8_t* bufPtr = localPartyBuf;
 
     if(numOfNeighbors > numOfVertices){
         ocall_print("BlackBoxExecuter::Initialize - numOfNeighbors > numOfVertices");
@@ -46,14 +46,14 @@ bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertice
     }
 
     //Use SGX hardware randomness to generate a local ID string
-    sgx_status_t status = sgx_read_rand((unsigned char*)bufPtr, localIdSize);        
+    sgx_status_t status = sgx_read_rand((unsigned char*)bufPtr, PARTY_ID_SIZE_BYTES);        
     
     if(status) {
         ocall_print("BlackBoxExecuter::Initialize - sgx_read_rand status is %d\n", status);
         return false;
     }
 
-    if(!m_localId.FromBuffer(&bufPtr, &localIdSize)) {
+    if(!m_localId.FromBuffer(&bufPtr, &localPartySize)) {
         ocall_print("BlackBoxExecuter::Initialize -failed to parse id from buffer");
         return false;
     }
@@ -356,7 +356,12 @@ bool BlackBoxExecuter::updateGraph(Graph& graph){
     }
 
     //Add all new vertices
-    while(vi.GetNext(pid)) m_pGraph->AddVertex(pid);        
+    while(vi.GetNext(pid)) {
+        if(!m_pGraph->AddVertex(pid)){
+            ocall_print("BlackBoxExecuter::updateGraph - failed to insert vertex");
+            return false;
+        }
+    }
 
     EdgeIterator ei;
     Edge e;

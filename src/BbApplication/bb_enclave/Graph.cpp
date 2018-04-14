@@ -85,7 +85,7 @@ bool Graph::AddVertex(PartyId& id){
 
     //Here we know that a vertex needs to be added. Is there any room?
     if(m_verticesOpenSpot >= m_verticesLen) {
-        ocall_print("Graph::AddVertex - graph is full");
+        ocall_print("Graph::AddVertex - graph is full");      
         return false;
     }
 
@@ -246,7 +246,7 @@ bool Graph::FromBuffer(uint8_t** buffer, size_t* len) {
     *buffer += sizeof(uint32_t);
     *len -= sizeof(uint32_t);
 
-    if(m_edgesLen > m_verticesLen*m_verticesLen){
+    if(m_edgesLen > MAX_EDGES(m_verticesLen)){
         ocall_print("Graph::FromBuffer - bad value for m_edgesLen %d", m_edgesLen);
         return false;
     }
@@ -260,6 +260,9 @@ bool Graph::FromBuffer(uint8_t** buffer, size_t* len) {
             return false;
         }
     }
+
+    ocall_print("Graph::FromBuffer - m_edgesLen is %d", m_edgesLen);
+    ocall_print("Graph::FromBuffer - m_verticesLen is %d", m_verticesLen);
 
     return true;
 }
@@ -280,7 +283,7 @@ bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
     *buffer += sizeof(m_verticesOpenSpot);
     *len -= sizeof(m_verticesOpenSpot);
 
-    if(*len < m_verticesOpenSpot*PARTY_ID_SIZE_BYTES){
+    if(*len < m_verticesOpenSpot*APP_PARTY_FULL_SIZE_BYTES){
         ocall_print("Graph::ToBuffer - m_vertices failed, buffer too short, %d", *len);
         return false;
     }

@@ -4,12 +4,12 @@ PartyId::PartyId(){
     memset(m_id, 0, sizeof(m_id));
 }
 
-bool PartyId::FromBuffer(uint8_t** id, size_t* len){
-    return serdes(id, len, false);
+bool PartyId::FromBuffer(uint8_t** buffer, size_t* len){
+    return serdes(buffer, len, false);
 }
 
-bool PartyId::ToBuffer(uint8_t** id, size_t* len){
-    return serdes(id, len, true);
+bool PartyId::ToBuffer(uint8_t** buffer, size_t* len){
+    return serdes(buffer, len, true);
 }
 
 PartyId& PartyId::operator=(const PartyId& rhs){
@@ -54,19 +54,29 @@ bool PartyId::isValid(){
     }
 }
 
-bool PartyId::serdes(uint8_t** id, size_t* len, bool fSer){
-    if(*len < PARTY_ID_SIZE_BYTES){
+bool PartyId::serdes(uint8_t** buffer, size_t* len, bool fSer){
+    if(*len < (APP_PARTY_FULL_SIZE_BYTES)){
         ocall_print("PartyId::serdes failed, buffer too small, %d", *len);
         return false;
     }
     if(fSer){
-        memcpy(*id ,m_id, sizeof(m_id));
+        memcpy(*buffer ,m_id, sizeof(m_id));
     } else {
-        memcpy(m_id, *id, sizeof(m_id));
+        memcpy(m_id, *buffer, sizeof(m_id));
     }               
 
-    *id += PARTY_ID_SIZE_BYTES;
+    *buffer += PARTY_ID_SIZE_BYTES;
     *len -= PARTY_ID_SIZE_BYTES;
+
+    if(fSer){
+        memcpy(*buffer ,(uint8_t*)m_auxData, sizeof(m_auxData));
+
+    } else {
+        memcpy((uint8_t*)m_auxData, *buffer, sizeof(m_auxData));
+    }
+
+    *buffer += APP_PARTY_AUX_SIZE_BYTES;
+    *len -= APP_PARTY_AUX_SIZE_BYTES;
 
     return true;
 }

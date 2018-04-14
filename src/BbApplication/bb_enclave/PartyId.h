@@ -9,9 +9,9 @@ class PartyId
         
         PartyId();
 
-        bool FromBuffer(uint8_t** id, size_t* len);
+        bool FromBuffer(uint8_t** buffer, size_t* len);
 
-        bool ToBuffer(uint8_t** id, size_t* len);
+        bool ToBuffer(uint8_t** buffer, size_t* len);
 
         PartyId& operator=(const PartyId& rhs);
 
@@ -32,6 +32,7 @@ class PartyId
 
     private:
         uint8_t m_id[PARTY_ID_SIZE_BYTES];
+        PARAM_T m_auxData[APP_NUM_OF_PARAMETERS_SIZE_BYTES];
 };
 
 class VertexIterator

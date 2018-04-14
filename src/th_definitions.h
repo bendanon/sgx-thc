@@ -35,6 +35,11 @@
 #define THC_ACK_MSG_STRING "ACK"
 #define MAX_UINT32 ((uint32_t) 0-1)
 #define PARTY_ID_SIZE_BYTES (128 / 8)
+#define APP_PARAMETER_DATA_TYPE uint8_t
+#define PARAM_T APP_PARAMETER_DATA_TYPE
+#define APP_NUM_OF_PARAMETERS_SIZE_BYTES 4
+#define APP_PARTY_AUX_SIZE_BYTES (sizeof(APP_PARAMETER_DATA_TYPE)*APP_NUM_OF_PARAMETERS_SIZE_BYTES)
+#define APP_PARTY_FULL_SIZE_BYTES (PARTY_ID_SIZE_BYTES+APP_PARTY_AUX_SIZE_BYTES)
 #define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)
 #define THC_MAX_NUMBER_OF_ROUNDS(GRAPH_SIZE) (GRAPH_SIZE + GRAPH_SIZE*GRAPH_SIZE)
 #define THC_ROUND_NUMBER_SIZE_BYTES sizeof(uint32_t)
@@ -46,7 +51,7 @@
                                   THC_ROUND_NUMBER_SIZE_BYTES + \
                                   PARTY_ID_SIZE_BYTES + \
                                   VERTICES_LEN_SIZE_BYTES + \
-                                  (GRAPH_SIZE*PARTY_ID_SIZE_BYTES) + \
+                                  (GRAPH_SIZE*(APP_PARTY_FULL_SIZE_BYTES)) + \
                                   EDGES_LEN_SIZE_BYTES + \
                                   (MAX_EDGES(GRAPH_SIZE)*EDGE_SIZE_BYTES))
 #define ABORT_MESSAGE "ABORT"
