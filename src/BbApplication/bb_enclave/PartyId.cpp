@@ -13,7 +13,8 @@ bool PartyId::ToBuffer(uint8_t** buffer, size_t* len){
 }
 
 PartyId& PartyId::operator=(const PartyId& rhs){
-    memcpy(m_id,&rhs,sizeof(m_id));
+    memcpy(m_id,rhs.m_id,sizeof(m_id));
+    memcpy(m_auxData,rhs.m_auxData,sizeof(m_auxData));
     return *this;
 }
 
@@ -44,6 +45,7 @@ bool PartyId::operator!=(const PartyId& other){
 
 void PartyId::Print(){
     print_buffer(m_id, PARTY_ID_SIZE_BYTES);
+    print_buffer(m_auxData, sizeof(m_auxData));
 }
 
 bool PartyId::isValid(){

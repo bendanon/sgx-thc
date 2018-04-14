@@ -123,7 +123,7 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
 
 
     sgx_status_t status = SGX_ERROR_UNEXPECTED;
-    if(!bbx.Initialize(p_config->num_of_neighbors, p_config->num_of_vertices)){
+    if(!bbx.Initialize(p_config)){
         ocall_print("bb_init_1 - bbx failed to initialize");
         return status;
     }
@@ -235,7 +235,7 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
 
 sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* p_config, size_t config_size){
 
-    if(!bbx.Initialize(p_config->num_of_neighbors, p_config->num_of_vertices)){
+    if(!bbx.Initialize(p_config)){
         ocall_print("bb_re_init - Initialize failed");
         return SGX_ERROR_UNEXPECTED;
     }

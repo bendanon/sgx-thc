@@ -19,7 +19,7 @@ public:
 
     ~BlackBoxExecuter();
 
-    bool Initialize(uint32_t numOfNeighbors, uint32_t numOfVertices);
+    bool Initialize(bb_config_t* p_config);
     
     bool IsSecretSet() const;
 

@@ -101,10 +101,22 @@ bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize
     
     (*ppBbConfig)->num_of_vertices = m_config["num_of_nodes"].asUInt();
 
-    if(0 == *ppBbConfig){
+    if(0 == (*ppBbConfig)->num_of_vertices){
         Log("BbClient::extractConfiguration - failed to extract num_of_nodes", log::error);
         return false;
     }
+
+    for(int i = 0; i < APP_NUM_OF_PARAMETERS_SIZE_BYTES; i++){
+        (*ppBbConfig)->params[i] = (uint8_t)m_config["p"+std::to_string(i)].asUInt();
+    }
+
+    /*const Json::Value& neighConfig = m_config["neighbors"];
+
+    for(int i = 0; i < num_of_neighbors; i++){
+        for(int j = 0; j < APP_NUM_OF_PARAMETERS_SIZE_BYTES; j++){
+            (*ppBbConfig)->neighbor_params[i][j] = (uint8_t)neighConfig[i]["p"+std::to_string(j)].asUInt();
+        }
+    }*/
 
     return true;
 }

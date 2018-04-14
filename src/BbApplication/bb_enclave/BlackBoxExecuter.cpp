@@ -29,18 +29,18 @@ BlackBoxExecuter::~BlackBoxExecuter()
     delete m_decrypted;
 }
 
-bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertices) 
+bool BlackBoxExecuter::Initialize(bb_config_t* p_config) 
 {
     uint8_t localPartyBuf[APP_PARTY_FULL_SIZE_BYTES];
     size_t localPartySize = APP_PARTY_FULL_SIZE_BYTES;
     uint8_t* bufPtr = localPartyBuf;
-
-    if(numOfNeighbors > numOfVertices){
+        
+    if(p_config->num_of_neighbors > p_config->num_of_vertices){
         ocall_print("BlackBoxExecuter::Initialize - numOfNeighbors > numOfVertices");
         return false;
     }
 
-    if(MAX_GRAPH_SIZE < numOfVertices){
+    if(MAX_GRAPH_SIZE < p_config->num_of_vertices){
         ocall_print("BlackBoxExecuter::Initialize - MAX_GRAPH_SIZE < numOfVertices");
         return false;
     }
@@ -53,13 +53,17 @@ bool BlackBoxExecuter::Initialize(uint32_t numOfNeighbors, uint32_t numOfVertice
         return false;
     }
 
+    memcpy(bufPtr+PARTY_ID_SIZE_BYTES, p_config->params, APP_PARTY_AUX_SIZE_BYTES);
+
     if(!m_localId.FromBuffer(&bufPtr, &localPartySize)) {
         ocall_print("BlackBoxExecuter::Initialize -failed to parse id from buffer");
         return false;
     }
+    
+    m_localId.Print();
 
-    m_numOfVertices = numOfVertices;
-    m_numOfNeighbors = numOfNeighbors;
+    m_numOfVertices = p_config->num_of_vertices;
+    m_numOfNeighbors = p_config->num_of_neighbors;
 
     m_pGraph = new Graph(m_numOfVertices);
 

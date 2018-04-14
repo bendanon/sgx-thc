@@ -1,8 +1,13 @@
 import os,sys;
 
 numOfNodes = int(sys.argv[1])
+schizzo = len(sys.argv) == 3 and int(sys.argv[2]) == "-s"
 startPort = 4441
-lastNodePort = startPort+numOfNodes-1
+
+if schizzo:
+	lastNodePort = startPort+1		
+else:
+	lastNodePort = startPort+numOfNodes-1
 
 fmt="""
 {
@@ -40,12 +45,16 @@ f = open(filename, 'w')
 f.write(edgeFmt % (numOfNodes, lastNodePort, lastNodePort-1))
 
 
-for currPort in range(startPort+1, lastNodePort):
-	filename = fileNameFmt % (currPort)
-	f = open(filename, 'w')
-	f.write(fmt % (numOfNodes, currPort, currPort-1, currPort+1))
+if not schizzo:
+	
+	for currPort in range(startPort+1, lastNodePort):
+		filename = fileNameFmt % (currPort)
+		f = open(filename, 'w')
+		f.write(fmt % (numOfNodes, currPort, currPort-1, currPort+1))
 
 
 for i in range(startPort, lastNodePort+1):
 	#print "./app config_" + str(i) + ".json"
 	os.system("./app config_" + str(i) + ".json &")
+
+
