@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cmath>
+#include "BbConfig.h"
 
 #ifndef TRUE
 # define TRUE 1
@@ -35,9 +36,6 @@
 #define THC_ACK_MSG_STRING "ACK"
 #define MAX_UINT32 ((uint32_t) 0-1)
 #define PARTY_ID_SIZE_BYTES (128 / 8)
-#define APP_PARAMETER_DATA_TYPE uint8_t
-#define PARAM_T APP_PARAMETER_DATA_TYPE
-#define APP_NUM_OF_PARAMETERS_SIZE_BYTES 4
 #define APP_PARTY_AUX_SIZE_BYTES (sizeof(APP_PARAMETER_DATA_TYPE)*APP_NUM_OF_PARAMETERS_SIZE_BYTES)
 #define APP_PARTY_FULL_SIZE_BYTES (PARTY_ID_SIZE_BYTES+APP_PARTY_AUX_SIZE_BYTES)
 #define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)

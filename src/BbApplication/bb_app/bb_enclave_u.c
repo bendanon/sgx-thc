@@ -8,8 +8,8 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint32_t ms_num_of_neighbors;
-	uint32_t ms_num_of_vertices;
+	bb_config_t* ms_config;
+	size_t ms_config_size;
 } ms_bb_init_1_t;
 
 typedef struct ms_bb_init_2_t {
@@ -45,8 +45,8 @@ typedef struct ms_bb_re_init_t {
 	sgx_status_t ms_retval;
 	sgx_sealed_data_t* ms_p_sealed_s;
 	size_t ms_sealed_size;
-	uint32_t ms_num_of_neighbors;
-	uint32_t ms_num_of_vertices;
+	bb_config_t* ms_config;
+	size_t ms_config_size;
 } ms_bb_re_init_t;
 
 typedef struct ms_enclave_init_ra_t {
@@ -343,7 +343,7 @@ static const struct {
 		(void*)bb_enclave_sgx_thread_set_multiple_untrusted_events_ocall,
 	}
 };
-sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t num_of_neighbors, uint32_t num_of_vertices)
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, bb_config_t* config, size_t config_size)
 {
 	sgx_status_t status;
 	ms_bb_init_1_t ms;
@@ -352,8 +352,8 @@ sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_da
 	ms.ms_bb_pk = bb_pk;
 	ms.ms_skg_pk = skg_pk;
 	ms.ms_pk_size = pk_size;
-	ms.ms_num_of_neighbors = num_of_neighbors;
-	ms.ms_num_of_vertices = num_of_vertices;
+	ms.ms_config = config;
+	ms.ms_config_size = config_size;
 	status = sgx_ecall(eid, 0, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;
@@ -408,14 +408,14 @@ sgx_status_t bb_get_result(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* 
 	return status;
 }
 
-sgx_status_t bb_re_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices)
+sgx_status_t bb_re_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* config, size_t config_size)
 {
 	sgx_status_t status;
 	ms_bb_re_init_t ms;
 	ms.ms_p_sealed_s = p_sealed_s;
 	ms.ms_sealed_size = sealed_size;
-	ms.ms_num_of_neighbors = num_of_neighbors;
-	ms.ms_num_of_vertices = num_of_vertices;
+	ms.ms_config = config;
+	ms.ms_config_size = config_size;
 	status = sgx_ecall(eid, 5, &ocall_table_bb_enclave, &ms);
 	if (status == SGX_SUCCESS && retval) *retval = ms.ms_retval;
 	return status;

@@ -88,7 +88,7 @@ sgx_status_t BbEnclave::closeRa(){
 
 sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                                 sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, 
-                                uint32_t num_of_neighbors, uint32_t num_of_vertices) {
+                                bb_config_t* p_config, size_t config_size) {
 
     bb_init_1(this->enclave_id,
              &this->status, 
@@ -97,8 +97,8 @@ sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_si
              bb_pk,
              skg_pk, 
              pk_size,
-             num_of_neighbors, 
-             num_of_vertices);
+             p_config,
+             config_size);
 
     if(SGX_SUCCESS != this->status) {
         Log("bb_init_1 failed, retval is %d", this->status, log::error);
@@ -163,14 +163,14 @@ sgx_status_t BbEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size,
 }
 
 
-sgx_status_t BbEnclave::ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices) {
+sgx_status_t BbEnclave::ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* p_config, size_t config_size) {
 
     bb_re_init(this->enclave_id,
                &this->status,
                p_sealed_s,
                sealed_size,
-               num_of_neighbors,
-               num_of_vertices);
+               p_config,
+               config_size);
 
     if(SGX_SUCCESS != this->status) {
         Log("ReInit failed, retval is %d", this->status, log::error);

@@ -77,6 +77,39 @@ bool BbClient::writeSecret()
     return true;
 }
 
+
+bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize){
+
+    size_t num_of_neighbors = m_config["neighbors"].size();
+
+    if(0 == num_of_neighbors){
+        Log("BbClient::extractConfiguration - failed to extract num_of_neighbors", log::error);
+        return false;
+    }
+
+    configSize = sizeof(bb_config_t) + (num_of_neighbors*
+                                         sizeof(PARAM_T)*
+                                         APP_NUM_OF_PARAMETERS_SIZE_BYTES);
+
+    *ppBbConfig = (bb_config_t*) malloc(configSize);
+    (*ppBbConfig)->num_of_neighbors = num_of_neighbors;
+
+    if(NULL == *ppBbConfig){
+        Log("BbClient::extractConfiguration - failed to allocate bb_config_t ", log::error);
+        return false;
+    }
+    
+    (*ppBbConfig)->num_of_vertices = m_config["num_of_nodes"].asUInt();
+
+    if(0 == *ppBbConfig){
+        Log("BbClient::extractConfiguration - failed to extract num_of_nodes", log::error);
+        return false;
+    }
+
+    return true;
+}
+
+
 bool BbClient::readSecret() {
 
     SafeFree(this->p_sealed_s);
@@ -87,15 +120,25 @@ bool BbClient::readSecret() {
                   SECRET_KEY_SEALED_SIZE_BYTES)) 
     {
     
-        Log("BbClient::readSecret readFromFile failed");
+        Log("BbClient::readSecret readFromFile failed", log::error);
         return false;
     }
 
-    if(SGX_SUCCESS != m_pEnclave->ReInit(this->p_sealed_s,
-                                         SECRET_KEY_SEALED_SIZE_BYTES,
-                                         m_config["neighbors"].size(),                                 
-                                         m_config["num_of_nodes"].asUInt()))
-    {
+    bb_config_t* pBbConfig = NULL;
+    size_t configSize;
+
+    if(!extractConfiguration(&pBbConfig, configSize)){
+        Log("BbClient::readSecret extractConfiguration failed", log::error);
+        return false;
+    }
+    sgx_status_t status = m_pEnclave->ReInit(this->p_sealed_s,
+                                             SECRET_KEY_SEALED_SIZE_BYTES,
+                                             pBbConfig,                                 
+                                             configSize);
+    
+    free(pBbConfig);
+
+    if(status) {
         Log("BbClient::ReInit - failed", log::error);
         return false;                               
     }
@@ -158,12 +201,22 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
     this->p_bb_pk = (sgx_ec256_public_t*)malloc(sizeof(sgx_ec256_public_t));    
     size_t pk_size = sizeof(sgx_ec256_public_t);
     memset(this->p_bb_pk, 0, pk_size);
+
+    bb_config_t* pBbConfig = NULL;
+    size_t configSize;
+    
+    if(!extractConfiguration(&pBbConfig, configSize)){
+        Log("BbClient::processPkResponse extractConfiguration failed", log::error);
+        return false;
+    }
     
     sgx_status_t status;
     status = m_pEnclave->bbInit1(this->p_sealed_k, SECRET_KEY_SEALED_SIZE_BYTES, 
                                  this->p_bb_pk, &skg_pk, pk_size, 
-                                 m_config["neighbors"].size(),                                 
-                                 m_config["num_of_nodes"].asUInt());
+                                 pBbConfig,                                 
+                                 configSize);
+
+    free(pBbConfig);
 
     if(status) {
         Log("bb_init_1 failed with status %d", status);

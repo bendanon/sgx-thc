@@ -86,6 +86,7 @@ private:
     bool obtainCertificate();
     bool readSecret();
     bool writeSecret();
+    bool extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize);
 
 private:
     NetworkManagerClient *m_skgNmc = NULL;

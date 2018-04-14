@@ -7,6 +7,7 @@
 #include <string.h>
 #include "sgx_edger8r.h" /* for sgx_satus_t etc. */
 
+#include "../BbConfig.h"
 #include "sgx_tseal.h"
 #include "sgx_key_exchange.h"
 #include "sgx_trts.h"
@@ -38,12 +39,12 @@ int SGX_UBRIDGE(SGX_CDECL, sgx_thread_set_untrusted_event_ocall, (const void* wa
 int SGX_UBRIDGE(SGX_CDECL, sgx_thread_setwait_untrusted_events_ocall, (const void* waiter, const void* self));
 int SGX_UBRIDGE(SGX_CDECL, sgx_thread_set_multiple_untrusted_events_ocall, (const void** waiters, size_t total));
 
-sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
+sgx_status_t bb_init_1(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, bb_config_t* config, size_t config_size);
 sgx_status_t bb_init_2(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, size_t s_encrypted_size, sgx_sealed_data_t* p_sealed_s, size_t sealed_size);
 sgx_status_t bb_exec(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* B_in, size_t B_in_size, uint8_t* B_out, size_t B_out_size);
 sgx_status_t bb_generate_first_msg(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* B_out, size_t B_out_size);
 sgx_status_t bb_get_result(sgx_enclave_id_t eid, sgx_status_t* retval, uint8_t* B_out, size_t B_out_size);
-sgx_status_t bb_re_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
+sgx_status_t bb_re_init(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* config, size_t config_size);
 sgx_status_t enclave_init_ra(sgx_enclave_id_t eid, sgx_status_t* retval, int b_pse, sgx_ra_context_t* p_context);
 sgx_status_t enclave_ra_close(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ra_context_t context);
 sgx_status_t derive_smk(sgx_enclave_id_t eid, sgx_status_t* retval, sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size);

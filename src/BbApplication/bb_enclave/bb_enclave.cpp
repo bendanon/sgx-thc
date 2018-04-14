@@ -119,14 +119,16 @@ uint32_t* graph_ids = NULL;
 ***/
 sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size, 
                        sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,
-                       uint32_t num_of_neighbors, uint32_t num_of_vertices) {
+                       bb_config_t* p_config, size_t config_size) {
 
 
     sgx_status_t status = SGX_ERROR_UNEXPECTED;
-    if(!bbx.Initialize(num_of_neighbors, num_of_vertices)){
+    if(!bbx.Initialize(p_config->num_of_neighbors, p_config->num_of_vertices)){
         ocall_print("bb_init_1 - bbx failed to initialize");
         return status;
     }
+
+    bb_config_t bbc;
 
     printf("fg");
     
@@ -231,9 +233,9 @@ sgx_status_t bb_init_2(sgx_sealed_data_t* p_sealed_k,                       //in
 }
 
 
-sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices){
+sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* p_config, size_t config_size){
 
-    if(!bbx.Initialize(num_of_neighbors, num_of_vertices)){
+    if(!bbx.Initialize(p_config->num_of_neighbors, p_config->num_of_vertices)){
         ocall_print("bb_re_init - Initialize failed");
         return SGX_ERROR_UNEXPECTED;
     }

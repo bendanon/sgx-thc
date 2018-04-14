@@ -24,8 +24,8 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
-	uint32_t ms_num_of_neighbors;
-	uint32_t ms_num_of_vertices;
+	bb_config_t* ms_config;
+	size_t ms_config_size;
 } ms_bb_init_1_t;
 
 typedef struct ms_bb_init_2_t {
@@ -61,8 +61,8 @@ typedef struct ms_bb_re_init_t {
 	sgx_status_t ms_retval;
 	sgx_sealed_data_t* ms_p_sealed_s;
 	size_t ms_sealed_size;
-	uint32_t ms_num_of_neighbors;
-	uint32_t ms_num_of_vertices;
+	bb_config_t* ms_config;
+	size_t ms_config_size;
 } ms_bb_re_init_t;
 
 typedef struct ms_enclave_init_ra_t {
@@ -232,10 +232,15 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	sgx_ec256_public_t* _tmp_skg_pk = ms->ms_skg_pk;
 	size_t _len_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_skg_pk = NULL;
+	bb_config_t* _tmp_config = ms->ms_config;
+	size_t _tmp_config_size = ms->ms_config_size;
+	size_t _len_config = _tmp_config_size;
+	bb_config_t* _in_config = NULL;
 
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
+	CHECK_UNIQUE_POINTER(_tmp_config, _len_config);
 
 	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
 		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
@@ -262,7 +267,16 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
-	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, ms->ms_num_of_neighbors, ms->ms_num_of_vertices);
+	if (_tmp_config != NULL && _len_config != 0) {
+		_in_config = (bb_config_t*)malloc(_len_config);
+		if (_in_config == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_config, _tmp_config, _len_config);
+	}
+	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_config, _tmp_config_size);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -273,6 +287,7 @@ err:
 		free(_in_bb_pk);
 	}
 	if (_in_skg_pk) free(_in_skg_pk);
+	if (_in_config) free(_in_config);
 
 	return status;
 }
@@ -450,8 +465,13 @@ static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 	size_t _tmp_sealed_size = ms->ms_sealed_size;
 	size_t _len_p_sealed_s = _tmp_sealed_size;
 	sgx_sealed_data_t* _in_p_sealed_s = NULL;
+	bb_config_t* _tmp_config = ms->ms_config;
+	size_t _tmp_config_size = ms->ms_config_size;
+	size_t _len_config = _tmp_config_size;
+	bb_config_t* _in_config = NULL;
 
 	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s, _len_p_sealed_s);
+	CHECK_UNIQUE_POINTER(_tmp_config, _len_config);
 
 	if (_tmp_p_sealed_s != NULL && _len_p_sealed_s != 0) {
 		_in_p_sealed_s = (sgx_sealed_data_t*)malloc(_len_p_sealed_s);
@@ -462,9 +482,19 @@ static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 
 		memcpy(_in_p_sealed_s, _tmp_p_sealed_s, _len_p_sealed_s);
 	}
-	ms->ms_retval = bb_re_init(_in_p_sealed_s, _tmp_sealed_size, ms->ms_num_of_neighbors, ms->ms_num_of_vertices);
+	if (_tmp_config != NULL && _len_config != 0) {
+		_in_config = (bb_config_t*)malloc(_len_config);
+		if (_in_config == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_config, _tmp_config, _len_config);
+	}
+	ms->ms_retval = bb_re_init(_in_p_sealed_s, _tmp_sealed_size, _in_config, _tmp_config_size);
 err:
 	if (_in_p_sealed_s) free(_in_p_sealed_s);
+	if (_in_config) free(_in_config);
 
 	return status;
 }

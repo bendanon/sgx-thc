@@ -1,5 +1,6 @@
 enclave {
     from "../common_enclave/common_enclave.edl" import *;
+    include "../BbConfig.h"
 
     trusted {
 
@@ -7,7 +8,7 @@ enclave {
             [out, size=sealed_size]sgx_sealed_data_t* sealed_data, size_t sealed_size, 
             [out, size=pk_size]sgx_ec256_public_t* bb_pk,
             [in, size=pk_size]sgx_ec256_public_t* skg_pk, size_t pk_size,
-            uint32_t num_of_neighbors, uint32_t num_of_vertices);
+            [in, size=config_size]bb_config_t* config, size_t config_size);
         
         public sgx_status_t bb_init_2(
             [in, size=sealed_size]sgx_sealed_data_t* p_sealed_k,
@@ -26,7 +27,7 @@ enclave {
         
          public sgx_status_t bb_re_init(
             [in, size=sealed_size]sgx_sealed_data_t* p_sealed_s, size_t sealed_size,
-            uint32_t num_of_neighbors, uint32_t num_of_vertices);       
+            [in, size=config_size]bb_config_t* config, size_t config_size);       
         
     };
 };

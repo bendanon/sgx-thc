@@ -33,7 +33,7 @@ public:
 
     sgx_status_t bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                          sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, 
-                         uint32_t num_of_neighbors, uint32_t num_of_vertices);
+                         bb_config_t* p_config, size_t config_size);
 
     
     sgx_status_t bbInit2(sgx_sealed_data_t* p_sealed_k, uint8_t* s_encrypted, 
@@ -49,7 +49,7 @@ public:
 
     sgx_status_t GenerateFirstMessage(uint8_t* B_out, size_t B_out_size);
     
-    sgx_status_t ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, uint32_t num_of_neighbors, uint32_t num_of_vertices);
+    sgx_status_t ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_config_t* p_config, size_t config_size);
 
     virtual sgx_status_t VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
                              unsigned char* chain, size_t chain_size, 
