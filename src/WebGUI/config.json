@@ -1,0 +1,17 @@
+
+{
+    "num_of_nodes":4,
+    "port":4444,
+    "email":"bendanon305@gmail.com",
+    "p0":1,
+    "p1":1,
+    "p2":1,
+    "p3":1,
+    "neighbors":
+    [
+        
+    {"ip":"127.0.0.1", "port":4445},
+
+    {"ip":"127.0.0.1", "port":4446}
+    ]
+}

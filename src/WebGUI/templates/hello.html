@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>Reusable Form Demo</title>
+       <link rel="stylesheet" media="screen" href ="static/bootstrap.min.css">
+       <link rel="stylesheet" href="static/bootstrap-theme.min.css">
+       <meta name="viewport" content = "width=device-width, initial-scale=1.0">
+ 
+    </head>
+    <body>
+ 
+ 
+<div class="container">
+ 
+ 
+  <h2>Anonymatch</h2>
+  <h3>Securely Finding a match using Topology Hiding Computation</h3>
+  <form  action="" method="post" role="form">
+    {{ form.csrf }}
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="text" class="form-control" id="email" name="email" placeholder="Your email will be used to contact you.">
+      <br>
+
+      <label for="nodes">Nodes:</label>
+      <input type="text" class="form-control" id="nodes" name="nodes" placeholder="The total size of the network">
+      <br>
+
+      <label for="port">Port:</label>
+      <input type="text" class="form-control" id="port" name="port" placeholder="The port THC application will use">
+      <br>
+
+      <label for="movie">Choose a Movie:</label>
+      <select class="form-control" id="movie" name="movie">
+        <option value="1">The Shawshank Redemption</option>
+        <option value="2">The Godfather</option>
+        <option value="3">The Dark Knight</option>
+        <option value="4">Pulp Fiction</option>
+        <option value="5">The Lord of the Rings</option>        
+      </select>
+      <br> 
+
+      <label for="genre">Choose a Musical Genre:</label>
+      <select class="form-control" id="genre" name="genre">
+        <option value="1">Jazz</option>
+        <option value="2">Opera</option>
+        <option value="3">Rock</option>
+        <option value="4">Rap & Hip-Hop</option>
+        <option value="5">Classical</option>        
+      </select>
+      <br> 
+
+      <label for="animal">Choose an Animal:</label>
+      <select class="form-control" id="animal" name="animal">
+        <option value="1">Dog</option>
+        <option value="2">Lion</option>
+        <option value="3">Snake</option>
+        <option value="4">Owl</option>
+        <option value="5">Ant</option>        
+      </select>
+      <br> 
+
+      <label for="city">Choose a City:</label>
+      <select class="form-control" id="city" name="city">
+        <option value="1">New-York</option>
+        <option value="2">Jerusalem</option>
+        <option value="3">Beijing</option>
+        <option value="4">New-Delhi</option>
+        <option value="5">Paris</option>        
+      </select>
+      <br>
+
+      <label for="neigh0">Neighbor 1:</label>
+      <input type="text" class="form-control" id="neigh0" name="neigh0" placeholder="neighbor ip:port">
+      <br>
+
+      <label for="neigh1">Neighbor 2:</label>
+      <input type="text" class="form-control" id="neigh1" name="neigh1" placeholder="neighbor ip:port">
+      <br>
+
+      <label for="neigh2">Neighbor 3:</label>
+      <input type="text" class="form-control" id="neigh2" name="neigh2" placeholder="neighbor ip:port">
+      <br>
+
+      <label for="neigh3">Neighbor 4:</label>
+      <input type="text" class="form-control" id="neigh3" name="neigh3" placeholder="neighbor ip:port">
+      <br>
+
+      <label for="neigh4">Neighbor 5:</label>
+      <input type="text" class="form-control" id="neigh4" name="neigh4" placeholder="neighbor ip:port">
+      <br>
+ 
+    </div>
+    <button type="submit" class="btn btn-success">Find a Match!</button>
+  </form>
+ 
+  <br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+ 
+        {% for message in messages %}
+            {% if "Error" not in message[1]: %}
+                <div class="alert alert-info">
+                <strong>Success! </strong> {{ message[1] }}
+                </div>
+            {% endif %}
+ 
+            {% if "Error" in message[1]: %}
+                <div class="alert alert-warning">
+                {{ message[1] }}
+                </div>
+            {% endif %}
+        {% endfor %}
+            {% endif %}
+        {% endwith %}
+ 
+</div>
+<br>            
+</div>
+</div>
+</body>
+</html>
