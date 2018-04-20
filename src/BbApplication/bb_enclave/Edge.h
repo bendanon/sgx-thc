@@ -1,6 +1,6 @@
 #include "../GeneralSettings.h"
 #include "../common_enclave/common_enclave.h"
-#include "bb_enclave_t.h"
+//#include "bb_enclave_t.h"
 #ifndef EDGE_H
 #define EDGE_H
 
@@ -39,7 +39,7 @@ class EdgeIterator
         bool GetNext(Edge& next);
 
         void SetEdges(Edge* edges);
-        void SetLast(uint32_t len);
+        void SetLast(uint32_t last);
 
     private:
         Edge* m_edges;

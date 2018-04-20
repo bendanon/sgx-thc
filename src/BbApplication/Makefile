@@ -103,7 +103,7 @@ Wolfssl_Enclave_Include_Paths := -IInclude -Itrusted $(Wolfssl_Include_Paths)\
 								   -I$(SGX_SDK)/include/stlport
 
 bb_Enclave_Cpp_Files := bb_enclave/PartyId.cpp bb_enclave/Edge.cpp bb_enclave/Graph.cpp bb_enclave/BlackBoxExecuter.cpp bb_enclave/bb_enclave.cpp ../common_enclave/common_enclave.cpp
-Enclave_Include_Paths := -I$(Wolfssl_Enclave_Include_Paths) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/
+Enclave_Include_Paths := -I$(Wolfssl_Enclave_Include_Paths) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I$(SGX_SDK)/include/crypto_px/include -I../Enclave/ -I../ -I../common_enclave/
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -DWOLFSSL_SGX
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -std=c++11 -nostdinc++

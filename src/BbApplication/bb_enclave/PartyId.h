@@ -1,5 +1,8 @@
-#include "../GeneralSettings.h"
-#include "../common_enclave/common_enclave.h"
+#include <GeneralSettings.h>
+#include <common_enclave.h>
+#include <vector>
+#include <queue>
+#include <map>
 
 #ifndef PARTY_ID_H
 #define PARTY_ID_H
@@ -8,6 +11,8 @@ class PartyId
     public: 
         
         PartyId();
+
+        PartyId(char c);
 
         bool FromBuffer(uint8_t** buffer, size_t* len);
 
@@ -27,12 +32,18 @@ class PartyId
 
         bool isValid();
 
+        bool AddNeighbor(PartyId* neighbor);
+
+        bool GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*>& backtrace);
+
     private:
         bool serdes(uint8_t** id, size_t* len, bool fSer);
 
     private:
         uint8_t m_id[PARTY_ID_SIZE_BYTES];
-        PARAM_T m_auxData[APP_NUM_OF_PARAMETERS_SIZE_BYTES];
+        PARAM_T m_params[APP_NUM_OF_PARAMETERS_SIZE_BYTES];
+        char m_email[MAX_EMAIL_SIZE_BYTES];
+        std::vector<PartyId*> m_neighbors;
 };
 
 class VertexIterator
@@ -43,7 +54,7 @@ class VertexIterator
         bool GetNext(PartyId& next);
 
         void SetVertices(PartyId* vertices);
-        void SetLast(uint32_t len);
+        void SetLast(uint32_t last);
 
     private:
         PartyId* m_vertices;

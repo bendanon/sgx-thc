@@ -87,9 +87,9 @@ bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize
         return false;
     }
 
-    configSize = sizeof(bb_config_t) + (num_of_neighbors*
+    configSize = sizeof(bb_config_t); /*+ (num_of_neighbors*
                                          sizeof(PARAM_T)*
-                                         APP_NUM_OF_PARAMETERS_SIZE_BYTES);
+                                         APP_NUM_OF_PARAMETERS_SIZE_BYTES);*/
 
     *ppBbConfig = (bb_config_t*) malloc(configSize);
     (*ppBbConfig)->num_of_neighbors = num_of_neighbors;
@@ -99,6 +99,16 @@ bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize
         return false;
     }
     
+    std:string email = m_config["email"].asString();
+
+    if(email.length() < MIN_EMAIL_SIZE_BYTES || email.length() > MAX_EMAIL_SIZE_BYTES){
+        Log("BbClient::extractConfiguration - invalid email", log::error);
+        return false;
+    }
+
+    memset((*ppBbConfig)->email, 0, sizeof((*ppBbConfig)->email));    
+    memcpy((*ppBbConfig)->email, email.c_str(), email.length());
+
     (*ppBbConfig)->num_of_vertices = m_config["num_of_nodes"].asUInt();
 
     if(0 == (*ppBbConfig)->num_of_vertices){

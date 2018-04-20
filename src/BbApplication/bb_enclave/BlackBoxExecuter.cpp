@@ -1,4 +1,5 @@
 #include "BlackBoxExecuter.h"
+#include <vector>
 
 BlackBoxExecuter::BlackBoxExecuter() : m_fIsInitialized(false),
                         m_fIsSecretSet(false),
@@ -53,7 +54,9 @@ bool BlackBoxExecuter::Initialize(bb_config_t* p_config)
         return false;
     }
 
-    memcpy(bufPtr+PARTY_ID_SIZE_BYTES, p_config->params, APP_PARTY_AUX_SIZE_BYTES);
+    memcpy(bufPtr + PARTY_ID_SIZE_BYTES, p_config->params, APP_PARTY_PARAMS_SIZE_BYTES);
+
+    memcpy(bufPtr + PARTY_ID_SIZE_BYTES + APP_PARTY_PARAMS_SIZE_BYTES, p_config->email, MAX_EMAIL_SIZE_BYTES);
 
     if(!m_localId.FromBuffer(&bufPtr, &localPartySize)) {
         ocall_print("BlackBoxExecuter::Initialize -failed to parse id from buffer");
@@ -419,6 +422,10 @@ bool BlackBoxExecuter::outputResult(uint8_t* B_out, size_t B_out_size){
         ocall_print("BlackBoxExecuter::calculateResult - failed to print result message");
         return false;
     }
+
+    //std::vector<PartyId*> path;
+    //m_pGraph->FindShortestPath
+
     return true;
 }
 

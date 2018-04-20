@@ -68,7 +68,10 @@ bool EdgeIterator::GetNext(Edge& next){
         ocall_print("EdgeIterator::GetNext - iterator not initialized");
         return false;
     }
-    if(m_current >= m_last) {                                       
+    if(0 == m_last){
+        return false;
+    }
+    if(m_current > m_last) {                                       
         return false;
     }
     next = m_edges[m_current++];
@@ -76,4 +79,4 @@ bool EdgeIterator::GetNext(Edge& next){
 }
 
 void EdgeIterator::SetEdges(Edge* edges){ m_edges = edges; }
-void EdgeIterator::SetLast(uint32_t len){ m_last = len; }
+void EdgeIterator::SetLast(uint32_t last){ m_last = last; }

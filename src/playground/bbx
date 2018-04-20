@@ -1,0 +1,1 @@
+g++ bbx.cpp ../BbApplication/bb_enclave/Graph.cpp ../BbApplication/bb_enclave/Edge.cpp ../BbApplication/bb_enclave/PartyId.cpp ../BbApplication/bb_enclave/BlackBoxExecuter.cpp -o app -I../ -I../common_enclave/ -std=c++11 -g

@@ -1,8 +1,17 @@
 #include "PartyId.h"
 
+PartyId::PartyId(char c){
+    memset(m_id, c, sizeof(m_id));
+    memset(m_email, 0, sizeof(m_email));
+    memset(m_params, 0, sizeof(m_params));
+}
+
 PartyId::PartyId(){
     memset(m_id, 0, sizeof(m_id));
+    memset(m_email, 0, sizeof(m_email));
+    memset(m_params, 0, sizeof(m_params));
 }
+
 
 bool PartyId::FromBuffer(uint8_t** buffer, size_t* len){
     return serdes(buffer, len, false);
@@ -14,7 +23,8 @@ bool PartyId::ToBuffer(uint8_t** buffer, size_t* len){
 
 PartyId& PartyId::operator=(const PartyId& rhs){
     memcpy(m_id,rhs.m_id,sizeof(m_id));
-    memcpy(m_auxData,rhs.m_auxData,sizeof(m_auxData));
+    memcpy(m_params,rhs.m_params,sizeof(m_params));
+    memcpy(m_email,rhs.m_email,sizeof(m_email));
     return *this;
 }
 
@@ -45,7 +55,8 @@ bool PartyId::operator!=(const PartyId& other){
 
 void PartyId::Print(){
     print_buffer(m_id, PARTY_ID_SIZE_BYTES);
-    print_buffer(m_auxData, sizeof(m_auxData));
+    print_buffer(m_params, sizeof(m_params));
+    ocall_print(m_email);
 }
 
 bool PartyId::isValid(){
@@ -54,6 +65,29 @@ bool PartyId::isValid(){
             return true;
         }
     }
+}
+
+bool PartyId::AddNeighbor(PartyId* neighbor){
+    if(NULL == neighbor){
+        ocall_print("PartyId::AddNeighbor - input is NULL");
+        return false;
+    }
+
+    m_neighbors.push_back(neighbor);
+
+    return true;
+}
+
+bool PartyId::GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*>& backtrace){
+
+    for(PartyId* n : m_neighbors) {
+        if(backtrace.end() == backtrace.find(n)){
+            o_queue.push(n);
+            backtrace.insert( std::pair<PartyId*,PartyId*>(n, this) );
+        }        
+    }
+
+    return true;
 }
 
 bool PartyId::serdes(uint8_t** buffer, size_t* len, bool fSer){
@@ -67,18 +101,28 @@ bool PartyId::serdes(uint8_t** buffer, size_t* len, bool fSer){
         memcpy(m_id, *buffer, sizeof(m_id));
     }               
 
-    *buffer += PARTY_ID_SIZE_BYTES;
-    *len -= PARTY_ID_SIZE_BYTES;
+    *buffer += sizeof(m_id);
+    *len -= sizeof(m_id);
 
     if(fSer){
-        memcpy(*buffer ,(uint8_t*)m_auxData, sizeof(m_auxData));
+        memcpy(*buffer ,(uint8_t*)m_params, sizeof(m_params));
 
     } else {
-        memcpy((uint8_t*)m_auxData, *buffer, sizeof(m_auxData));
+        memcpy((uint8_t*)m_params, *buffer, sizeof(m_params));
     }
 
-    *buffer += APP_PARTY_AUX_SIZE_BYTES;
-    *len -= APP_PARTY_AUX_SIZE_BYTES;
+    *buffer += sizeof(m_params);
+    *len -= sizeof(m_params);
+
+    if(fSer){
+        memcpy(*buffer ,(uint8_t*)m_email, sizeof(m_email));
+
+    } else {
+        memcpy((uint8_t*)m_email, *buffer, sizeof(m_email));
+    }
+
+    *buffer += sizeof(m_email);
+    *len -= sizeof(m_email);
 
     return true;
 }
@@ -91,7 +135,10 @@ bool VertexIterator::GetNext(PartyId& next){
         ocall_print("VertexIterator::GetNext - iterator not initialized %d", 0);
         return false;
     }
-    if(m_current >= m_last) {                                       
+    if(0 == m_last){
+        return false;
+    }
+    if(m_current > m_last) {                                       
         return false;
     }
     next = m_vertices[m_current++];
@@ -99,4 +146,4 @@ bool VertexIterator::GetNext(PartyId& next){
 }
 
 void VertexIterator::SetVertices(PartyId* vertices){ m_vertices = vertices; }
-void VertexIterator::SetLast(uint32_t len){ m_last = len; }
+void VertexIterator::SetLast(uint32_t last){ m_last = last; }

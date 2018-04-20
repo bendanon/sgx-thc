@@ -1,5 +1,8 @@
 #include "PartyId.h"
 #include "Edge.h"
+#include <queue>
+#include <vector>
+#include <map>
 
 #ifndef GRAPH_H
 #define GRAPH_H
@@ -47,6 +50,11 @@ class Graph {
         bool IsEquivalent(Graph* p_other);        
 
         uint32_t GetDiameter();
+
+        bool FindShortestPath(PartyId& source, PartyId& sink, std::vector<PartyId*>& path);
+
+    private:
+        PartyId* getVertexPtr(PartyId& id);
 
     private:
         uint32_t m_verticesLen;
