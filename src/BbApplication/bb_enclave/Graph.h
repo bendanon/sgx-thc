@@ -51,7 +51,7 @@ class Graph {
 
         uint32_t GetDiameter();
 
-        bool FindShortestPath(PartyId& source, PartyId& sink, std::vector<PartyId*>& path);
+        bool FindClosestMatch(PartyId& source, std::vector<PartyId*>& path);
 
     private:
         PartyId* getVertexPtr(PartyId& id);

@@ -14,6 +14,13 @@ using namespace util;
 #include <fstream>
 #include <jsoncpp/json/json.h> // or jsoncpp/json.h , or json/json.h etc.
 
+#include <string>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+
+using namespace std;
+using namespace boost;
+
 void _ocall_print(const char* str) {
     printf("%s\n", str);
 }
@@ -59,12 +66,13 @@ size_t ocall_send(int sockfd, const void *buf, size_t len, int flags)
     return send(sockfd, buf, len, flags);
 }
 
+
 int Main(int argc, char* argv[]) {
 
     LogBase::Inst();
     
-    if(argc != 2){
-        Log("Usage: ./app <config_file_name>.json", log::error);
+    if(argc != 3){
+        Log("Usage: ./app <config_file_name>.json <output_file_name>.json", log::error);
         return -1;
     }
 
@@ -105,6 +113,28 @@ int Main(int argc, char* argv[]) {
         ret = -1;
     }
 
+    
+    Json::Value main, path;   
+       
+    string text((char*)outbuf, outbufSize);
+
+    char_separator<char> sep(", ");
+    tokenizer<char_separator<char>> tokens(text, sep);
+    int position = 0;
+    
+    for (const auto& t : tokens) {
+        if (!boost::starts_with(t, "RESULT") && t.find("@") != std::string::npos){
+            path[position++]["email"] = t;
+            cout << t << "." << endl;
+        }
+    }
+
+    main["match"] = path[0]["email"];
+    main["path"] = path;
+
+    std::ofstream ofs (argv[2], std::ofstream::out);
+    ofs << main.toStyledString();
+    ofs.close();    
 
     delete outbuf;
     delete bb_enclave;

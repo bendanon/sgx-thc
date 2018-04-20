@@ -75,7 +75,7 @@ int main(){
 
     graph.AddEdge(mid7, sink);
 
-    graph.FindShortestPath(source, sink, path);
+    graph.FindClosestMatch(source, path);
 
     for(PartyId* n : path) {
         n->Print();

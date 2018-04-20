@@ -26,16 +26,15 @@ PartyId* Graph::getVertexPtr(PartyId& id){
     return &m_vertices[idx];
 }
 
-bool Graph::FindShortestPath(PartyId& source, PartyId& sink, std::vector<PartyId*>& path){
+bool Graph::FindClosestMatch(PartyId& source, std::vector<PartyId*>& path){
 
     std::queue<PartyId*> Q;
     std::map<PartyId*,PartyId*> backtrace;
     
     PartyId* pSource = getVertexPtr(source);
-    PartyId* pSink = getVertexPtr(sink);
 
-    if(NULL == pSource || NULL == pSink){
-        ocall_print("FindShortestPath - pSource or pSink are NULL");
+    if(NULL == pSource){
+        ocall_print("FindShortestPath - pSource is NULL");
         return false;
     }
 
@@ -45,7 +44,7 @@ bool Graph::FindShortestPath(PartyId& source, PartyId& sink, std::vector<PartyId
         PartyId* current = Q.front();
         Q.pop();
         
-        if(current == pSink){
+        if(current->Matches(pSource)){
 
             path.push_back(current);
 

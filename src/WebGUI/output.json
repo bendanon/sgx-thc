@@ -1,0 +1,11 @@
+{
+   "match" : "bendanon305@gmail.com",
+   "path" : [
+      {
+         "email" : "bendanon305@gmail.com"
+      },
+      {
+         "email" : "bendanon307@gmail.com"
+      }
+   ]
+}

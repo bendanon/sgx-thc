@@ -90,6 +90,27 @@ bool PartyId::GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,Part
     return true;
 }
 
+bool PartyId::Matches(PartyId* other){
+    if(*this == *other){
+        return false;
+    }
+    return true;
+}
+
+bool PartyId::GetEmail(uint8_t** buffer, size_t* len){
+     if(*len < (MAX_EMAIL_SIZE_BYTES)){
+        ocall_print("PartyId::serdes failed, buffer too small, %d", *len);
+        return false;
+    }
+    
+    size_t printed = snprintf((char*)*buffer, MAX_EMAIL_SIZE_BYTES, "%s", m_email);
+
+    *buffer += printed;
+    *len -= printed;
+
+    return true;
+}
+
 bool PartyId::serdes(uint8_t** buffer, size_t* len, bool fSer){
     if(*len < (APP_PARTY_FULL_SIZE_BYTES)){
         ocall_print("PartyId::serdes failed, buffer too small, %d", *len);

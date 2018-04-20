@@ -17,11 +17,11 @@ class ReusableForm(Form):
     genre = TextField('Choose a Genre:', validators=[validators.required()])
     animal = TextField('Choose an Animal:', validators=[validators.required()])
     city = TextField('Choose a City:', validators=[validators.required()])
-    neigh1 = TextField('Neighbor 1:', validators=[validators.required()])
-    neigh2 = TextField('Neighbor 2:', validators=[])
-    neigh3 = TextField('Neighbor 3:', validators=[])
-    neigh4 = TextField('Neighbor 4:', validators=[])
-    neigh5 = TextField('Neighbor 5:', validators=[])
+    neigh0 = TextField('Neighbor 1:', validators=[validators.required()])
+    neigh1 = TextField('Neighbor 2:', validators=[])
+    neigh2 = TextField('Neighbor 3:', validators=[])
+    neigh3 = TextField('Neighbor 4:', validators=[])
+    neigh4 = TextField('Neighbor 5:', validators=[])
  
 
 fmt="""
@@ -47,6 +47,7 @@ neighborLineFmt = """
 thcInputFileName = "config.json"
 
 def createThcInput(numOfNodes, port, email, movie, genre, animal, city, neighbors):
+    print "creating input"
     neighborsString = ""
 
     if len(neighbors) < 1:
@@ -96,16 +97,19 @@ def hello():
             # Save the comment here.
             flash('Running THC... ')
 
-            os.system(("./app %s" % thcInputFileName))            
+            os.system(("./app %s %s" % (thcInputFileName, "output.json")))            
 
             output = json.load(open('output.json'))
 
-            if len(output["matches"]) == 0:
+            if len(output["match"]) == 0:
                 flash('No matches found...')
             else:
-                matches = "Your matches are: "
-                for match in output["matches"]:
-                    matches += (match["email"], ", ")
+                match = ("Your match is: %s" % output["match"])
+                path = "The path to your match is: "
+                for element in output["path"]:
+                    path += (element["email"] + ", ")
+
+            flash(match + "\n" + path)    
         else:
             flash('Error: All the form fields are required.')
  

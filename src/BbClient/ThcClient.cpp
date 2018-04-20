@@ -173,7 +173,7 @@ bool ThcClient::thcFinished(uint8_t* outbuf, size_t outbuf_len){
         return true;               
     }
 
-    if(0==memcmp(DEBUG_RESULT_MESSAGE, outbuf, sizeof(DEBUG_RESULT_MESSAGE))){
+    if(0==memcmp(RESULT_CANARY, outbuf, strlen(RESULT_CANARY))){
         Log("BbClient::thcFinished %d got result", m_config["port"].asUInt());        
         return true;               
     }

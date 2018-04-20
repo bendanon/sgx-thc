@@ -36,6 +36,10 @@ class PartyId
 
         bool GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*>& backtrace);
 
+        bool Matches(PartyId* other);
+        
+        bool GetEmail(uint8_t** buffer, size_t* len);
+
     private:
         bool serdes(uint8_t** id, size_t* len, bool fSer);
 

@@ -414,17 +414,45 @@ bool BlackBoxExecuter::outputAbort(uint8_t* B_out, size_t B_out_size){
 }
 
 bool BlackBoxExecuter::outputResult(uint8_t* B_out, size_t B_out_size){
-    if(sizeof(DEBUG_RESULT_MESSAGE) > B_out_size){
+    
+    if(sizeof(RESULT_CANARY) > B_out_size){
         ocall_print("BlackBoxExecuter::calculateResult - B_out_size smaller than result message, %d", B_out_size);
         return false;
     }
-    if(sizeof(DEBUG_RESULT_MESSAGE)-1 != snprintf((char*)B_out, sizeof(DEBUG_RESULT_MESSAGE), "%s", DEBUG_RESULT_MESSAGE)){
+    if(sizeof(RESULT_CANARY)-1 != snprintf((char*)B_out, sizeof(RESULT_CANARY), "%s", RESULT_CANARY)){
         ocall_print("BlackBoxExecuter::calculateResult - failed to print result message");
         return false;
     }
 
-    //std::vector<PartyId*> path;
-    //m_pGraph->FindShortestPath
+    B_out += strlen(RESULT_CANARY);
+    B_out_size -= strlen(RESULT_CANARY);
+    
+    std::vector<PartyId*> path;
+
+    if(!m_pGraph->FindClosestMatch(m_localId, path)){
+        if(sizeof(NO_MATCH_STRING) > B_out_size){
+            ocall_print("BlackBoxExecuter::calculateResult - B_out_size smaller than result message, %d", B_out_size);
+            return false;
+        }
+        if(sizeof(NO_MATCH_STRING)-1 != snprintf((char*)B_out, sizeof(NO_MATCH_STRING)+1, " %s", NO_MATCH_STRING)){
+            ocall_print("BlackBoxExecuter::calculateResult - failed to print result message");
+            return false;
+        }
+
+        return true;
+    }
+    
+    uint8_t* outPtr = B_out;
+    for(PartyId* p : path){
+
+        if(!p->GetEmail(&outPtr, &B_out_size)){
+            ocall_print("BlackBoxExecuter::outputResult - GetEmail failed");
+            return false;
+        }
+
+        memcpy(outPtr, REAULT_EMAIL_DELIMITER, strlen(REAULT_EMAIL_DELIMITER));        
+        outPtr += strlen(REAULT_EMAIL_DELIMITER);
+    }
 
     return true;
 }
