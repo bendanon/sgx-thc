@@ -179,7 +179,7 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave*
     }
 
     /*Extract pk to verify it against quote body*/
-    /*sgx_ec256_public_t pkToVerify;
+    sgx_ec256_public_t pkToVerify;
 
     for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
         pkToVerify.gx[i] = certMsg.gx(i);
@@ -188,13 +188,13 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave*
 
     if(SGX_SUCCESS != pEnclave->VerifyPeer((unsigned char*) m_full_response.c_str(), m_full_response.length(), 
                                            (unsigned char*) m_x_iasreport_signing_certificate.c_str(), m_x_iasreport_signing_certificate.length(), 
-                                           (unsigned char*) m_x_iasreport_signature.c_str(), m_x_iasreport_signature.length(),
+                                           (unsigned char*) Base64decode(m_x_iasreport_signature).c_str(), SIGNATURE_LENGTH_BYTES,
                                            &pkToVerify, &m_ga, sizeof(m_ga)))
     {
         Log("VerificationReport::fromCertMsg - VerifyPeer failed", log::error);
         return false;
-    }*/
-
+    }
+    #if 0
     /*Verify the IAS response*/    
     if(!verifyCertificateChain()){
         Log("VerificationReport::fromResult - verifyCertificateChain failed");
@@ -232,6 +232,7 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave*
         Log("VerificationReport::fromCertMsg - failed to verify pk");
         return false;
     }
+    #endif
 
     Log("VerificationReport::fromCertMsg - success");
     return true;

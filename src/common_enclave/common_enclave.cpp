@@ -491,10 +491,10 @@ sgx_status_t _verify_peer(unsigned char* reportBody, size_t reportBody_size,
     wolfSSL_CertManagerFree(cm);
 
     /*By now we know the report is valid*/
-
     sgx_quote_t quote_body;
     string isvEnclaveQuoteBody = extractQuoteBody((char*)reportBody);
     memcpy(&quote_body, base64_decode(isvEnclaveQuoteBody).c_str(), sizeof(quote_body));
+    
 
     if(0!=memcmp(Settings::mrsigner, 
                  base64_encode((uint8_t*)&quote_body.report_body.mr_signer, sizeof(quote_body.report_body.mr_signer)).c_str(),
@@ -510,10 +510,9 @@ sgx_status_t _verify_peer(unsigned char* reportBody, size_t reportBody_size,
         ocall_print("verify public key failed %d", 0);
         return SGX_ERROR_UNEXPECTED;
     }
-
+    
     wolfSSL_EVP_PKEY_free(pubKeyTmp);
     wolfSSL_X509_free(cert);
-    wolfSSL_CertManagerFree(cm);
 
     return SGX_SUCCESS;    
 }
