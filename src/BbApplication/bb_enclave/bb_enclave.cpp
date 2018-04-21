@@ -119,6 +119,7 @@ uint32_t* graph_ids = NULL;
 ***/
 sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size, 
                        sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,
+                       verification_report_t* p_report, size_t report_size,
                        bb_config_t* p_config, size_t config_size) {
 
 
@@ -127,12 +128,15 @@ sgx_status_t bb_init_1(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
         ocall_print("bb_init_1 - bbx failed to initialize");
         return status;
     }
-
-    bb_config_t bbc;
-
-    printf("fg");
     
     memset(k, 0, sizeof(k));
+
+    status = verify_peer(p_report, p_skg_pk);
+
+    if(status){
+        ocall_print("verify_peer failed");
+        return status;
+    }
 
     //Compute k=DH(bbsk, pk) the shared DH key of skg and bb
     sgx_ecc_state_handle_t handle;
@@ -263,17 +267,6 @@ sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size, bb_co
     return SGX_SUCCESS;
 }
 
-
-sgx_status_t bb_get_result(uint8_t* B_out, size_t B_out_size) {
-
-    /*if(!bbx.GetResult(B_out, B_out_size)){
-        ocall_print("bb_get_result - failed to get result");
-        return SGX_ERROR_UNEXPECTED;        
-    }*/
-
-    return SGX_SUCCESS;
-}
-
 sgx_status_t bb_generate_first_msg(uint8_t* B_out, size_t B_out_size) {
 
     if(!bbx.IsReady()){
@@ -287,10 +280,6 @@ sgx_status_t bb_generate_first_msg(uint8_t* B_out, size_t B_out_size) {
     }
 
     return SGX_SUCCESS;
-}
-
-sgx_status_t bb_re_init(sgx_sealed_data_t* p_sealed_s, size_t sealed_size){
-
 }
 
 /*
@@ -325,12 +314,4 @@ sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size,
 
     return _derive_smk(p_pk, pk_size, p_smk,smk_size, &bb_priv_key);
 
-}
-
-sgx_status_t verify_peer(unsigned char* reportBody, size_t reportBody_size, 
-                          unsigned char* chain, size_t chain_size, 
-                          unsigned char* signature, size_t signature_size,
-                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
-{
-    return _verify_peer(reportBody, reportBody_size, chain, chain_size, signature, signature_size, peer_pk, unusable_pk, pk_size);
 }

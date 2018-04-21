@@ -176,7 +176,8 @@ bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg,
 
     //Extract attestation report, verify its signature and verify bb pk with it
     VerificationReport bbReport;
-    if(!bbReport.fromCertMsg(certMsg, m_pEnclave)){
+    verification_report_t enclaveBbReport;
+    if(!bbReport.fromCertMsg(certMsg, enclaveBbReport)){
         Log("BbClient::processPkResponse - failed to verify bb verification report");
         return false;
     }
@@ -196,6 +197,7 @@ bool SkgServer::processGetSecretRequest(Messages::CertificateMSG& certMsg,
 
 
     status = m_pEnclave->skgExec(&bb_pk, p_skg_pk, sizeof(sgx_ec256_public_t),
+                                 &enclaveBbReport, sizeof(enclaveBbReport),
                                  this->p_sealed_s_sk, SKG_DATA_SEALED_SIZE_BYTES,
                                  s_encrypted, SECRET_KEY_ENCRYPTED_SIZE_BYTES);
     

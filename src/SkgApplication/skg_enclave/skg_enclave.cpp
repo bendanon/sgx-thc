@@ -139,6 +139,7 @@ sgx_status_t skg_init(sgx_sealed_data_t* p_sealed_data, size_t sealed_size,
 4. Compute and output c'=E_k(s) --- the (symmetric) encryption of s under k
 ***/
 sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,  //in (bbpk, pk)
+                      verification_report_t* p_report, size_t report_size,
                       sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, //in (Seal(s,sk))                                            
                       uint8_t* s_encrypted, size_t s_encrypted_size)         //out (c')
 {
@@ -164,6 +165,13 @@ sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk,
     //extract sk 
     sgx_ec256_private_t sk;
     memcpy(&sk, s_sk_unsealed + SECRET_KEY_SIZE_BYTES, sizeof(sgx_ec256_private_t));
+
+    status = verify_peer(p_report, p_bb_pk);
+
+    if(status){
+        ocall_print("verify_peer failed");
+        return status;
+    }
 
     //TODO - verify that pk matches sk
     
@@ -203,12 +211,4 @@ sgx_status_t derive_smk(sgx_ec256_public_t* p_pk, size_t pk_size,
 
    return _derive_smk(p_pk, pk_size, p_smk,smk_size, &skg_priv_key);
 
-}
-
-sgx_status_t verify_peer(unsigned char* reportBody, size_t reportBody_size, 
-                          unsigned char* chain, size_t chain_size, 
-                          unsigned char* signature, size_t signature_size,
-                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
-{
-    return _verify_peer(reportBody, reportBody_size, chain, chain_size, signature, signature_size, peer_pk, unusable_pk, pk_size);
 }

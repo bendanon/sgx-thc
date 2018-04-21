@@ -42,7 +42,7 @@ public:
     virtual ~VerificationReport();
 
     bool isValid();    
-    bool fromCertMsg(Messages::CertificateMSG& certMsg, Enclave* pEnclave);
+    bool fromCertMsg(Messages::CertificateMSG& certMsg, verification_report_t& report);
     bool toCertMsg(sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg);
     bool fromResult(vector<pair<string, string>> result);
     bool setGa(sgx_ec256_public_t* p_ga);
@@ -54,9 +54,6 @@ public:
 private:
     bool verifySignature(); 
     bool verifyCertificateChain();
-    bool verifyPublicKey(sgx_ec256_public_t* p_gb);
-    bool verifyMrEnclave();
-    bool verifyMrSigner();
     bool insertIASCertificate(Messages::CertificateMSG& certMsg);
     bool insertIASSignature(Messages::CertificateMSG& certMsg);
     bool insertIASFullResponse(Messages::CertificateMSG& certMsg);

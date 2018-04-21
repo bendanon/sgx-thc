@@ -16,13 +16,6 @@ enclave {
          public sgx_status_t derive_smk(             
             [in, size=pk_size]sgx_ec256_public_t* pk,size_t pk_size,
             [out, size=smk_size]sgx_ec_key_128bit_t* smk,size_t smk_size);
-
-        public sgx_status_t verify_peer(
-                            [in, size=reportBody_size]unsigned char* reportBody, size_t reportBody_size, 
-                            [in, size=chain_size]unsigned char* chain, size_t chain_size, 
-                            [in, size=signature_size]unsigned char* signature, size_t signature_size,
-                            [in, size=pk_size]sgx_ec256_public_t* peer_pk, 
-                            [in, size=pk_size]sgx_ec256_public_t* unusable_pk, size_t pk_size);
         
     };
 

@@ -100,20 +100,18 @@ sgx_status_t SkgEnclave::skgInit(sgx_sealed_data_t* sealed_data, size_t sealed_s
     return this->status;
 }
 
-sgx_status_t SkgEnclave::skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, 
-                              size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, 
-                              size_t sealed_size, uint8_t* s_encrypted, 
-                              size_t s_encrypted_size) {
+sgx_status_t SkgEnclave::skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size,
+                                 verification_report_t* p_report, size_t report_size,
+                                 sgx_sealed_data_t* p_sealed_s_sk, 
+                                 size_t sealed_size, uint8_t* s_encrypted, 
+                                 size_t s_encrypted_size) {
 
     skg_exec(this->enclave_id,
              &this->status, 
-             p_bb_pk, 
-             p_skg_pk, 
-             pk_size, 
-             p_sealed_s_sk,
-             sealed_size,
-             s_encrypted,
-             s_encrypted_size);
+             p_bb_pk, p_skg_pk, pk_size,
+             p_report, report_size,
+             p_sealed_s_sk, sealed_size,
+             s_encrypted, s_encrypted_size);
 
     Log("skg_exec retval is %d", this->status);
 
@@ -134,26 +132,6 @@ sgx_status_t SkgEnclave::deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size,
 
     return this->status;
 }
-
-sgx_status_t SkgEnclave::VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
-                                  unsigned char* chain, size_t chain_size, 
-                                  unsigned char* signature, size_t signature_size,
-                                  sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
-{
-    verify_peer(this->enclave_id,
-                        &this->status,
-                        reportBody, reportBody_size,
-                        chain, chain_size,
-                        signature, signature_size,
-                        peer_pk, unusable_pk, pk_size);
-    
-    if(SGX_SUCCESS != this->status){
-        Log("enclave_verify_peer failed, status is %d", this->status);
-    }
-
-    return this->status;
-}
-
 
 
 

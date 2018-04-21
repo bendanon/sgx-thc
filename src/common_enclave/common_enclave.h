@@ -69,10 +69,7 @@ sgx_status_t encrypt(uint8_t* plaintext, size_t plaintext_size,
 sgx_status_t decrypt(uint8_t* plaintext, size_t plaintext_size,
                          uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]);
 
-sgx_status_t _verify_peer(unsigned char* reportBody, size_t reportBody_size,
-                          unsigned char* chain, size_t chain_size, 
-                          unsigned char* signature, size_t signature_size,
-                          sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size);
+sgx_status_t verify_peer(verification_report_t* p_report, sgx_ec256_public_t* peer_pk);
 
 sgx_status_t _derive_smk(sgx_ec256_public_t* p_pk, 
                          size_t pk_size, 

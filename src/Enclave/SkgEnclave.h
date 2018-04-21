@@ -35,18 +35,14 @@ public:
     sgx_status_t skgInit(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                          sgx_ec256_public_t* pk, size_t pk_size);
 
-    sgx_status_t skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, 
-                         size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, 
+    sgx_status_t skgExec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size, 
+                         verification_report_t* p_report, size_t report_size,
+                         sgx_sealed_data_t* p_sealed_s_sk, 
                          size_t sealed_size, uint8_t* s_encrypted, 
                          size_t s_encrypted_size);
 
     virtual sgx_status_t deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size,
                                    sgx_ec_key_128bit_t* p_smk, size_t smk_size);
-
-    virtual sgx_status_t VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
-                             unsigned char* chain, size_t chain_size, 
-                             unsigned char* signature, size_t signature_size,
-                             sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size);
 
 };
 

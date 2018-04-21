@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cmath>
-#include "BbConfig.h"
+#include "thc_ecall_types.h"
 
 #ifndef TRUE
 # define TRUE 1

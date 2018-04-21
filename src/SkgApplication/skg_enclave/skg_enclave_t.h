@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include "sgx_edger8r.h" /* for sgx_ocall etc. */
 
+#include "../thc_ecall_types.h"
 #include "sgx_tseal.h"
 #include "sgx_key_exchange.h"
 #include "sgx_trts.h"
@@ -23,11 +24,10 @@ extern "C" {
 
 
 sgx_status_t skg_init(sgx_sealed_data_t* sealed_data, size_t sealed_size, sgx_ec256_public_t* pk, size_t pk_size);
-sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size, sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, uint8_t* s_encrypted, size_t s_encrypted_size);
+sgx_status_t skg_exec(sgx_ec256_public_t* p_bb_pk, sgx_ec256_public_t* p_skg_pk, size_t pk_size, verification_report_t* p_report, size_t report_size, sgx_sealed_data_t* p_sealed_s_sk, size_t sealed_size, uint8_t* s_encrypted, size_t s_encrypted_size);
 sgx_status_t enclave_init_ra(int b_pse, sgx_ra_context_t* p_context);
 sgx_status_t enclave_ra_close(sgx_ra_context_t context);
 sgx_status_t derive_smk(sgx_ec256_public_t* pk, size_t pk_size, sgx_ec_key_128bit_t* smk, size_t smk_size);
-sgx_status_t verify_peer(unsigned char* reportBody, size_t reportBody_size, unsigned char* chain, size_t chain_size, unsigned char* signature, size_t signature_size, sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size);
 sgx_status_t sgx_ra_get_ga(sgx_ra_context_t context, sgx_ec256_public_t* g_a);
 sgx_status_t sgx_ra_proc_msg2_trusted(sgx_ra_context_t context, const sgx_ra_msg2_t* p_msg2, const sgx_target_info_t* p_qe_target, sgx_report_t* p_report, sgx_quote_nonce_t* p_nonce);
 sgx_status_t sgx_ra_get_msg3_trusted(sgx_ra_context_t context, uint32_t quote_size, sgx_report_t* qe_report, sgx_ra_msg3_t* p_msg3, uint32_t msg3_size);

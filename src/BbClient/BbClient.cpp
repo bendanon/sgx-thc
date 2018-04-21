@@ -199,7 +199,8 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
 
     //Extract attestation report, verify its signature and verify skg pk with it
     VerificationReport skgReport;
-    if(!skgReport.fromCertMsg(skgCertMsg, m_pEnclave)){
+    verification_report_t enclaveSkgReport;
+    if(!skgReport.fromCertMsg(skgCertMsg, enclaveSkgReport)){
         Log("BbClient::processPkResponse - failed to verify skg verification report");
         return false;
     }
@@ -235,6 +236,7 @@ bool BbClient::processPkResponse(Messages::CertificateMSG& skgCertMsg,
     sgx_status_t status;
     status = m_pEnclave->bbInit1(this->p_sealed_k, SECRET_KEY_SEALED_SIZE_BYTES, 
                                  this->p_bb_pk, &skg_pk, pk_size, 
+                                 &enclaveSkgReport, sizeof(enclaveSkgReport),
                                  pBbConfig,                                 
                                  configSize);
 

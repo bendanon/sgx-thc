@@ -21,61 +21,6 @@ bool VerificationReport::setGa(sgx_ec256_public_t* p_ga){
     return true;
 }
 
-bool VerificationReport::verifyPublicKey(sgx_ec256_public_t* p_gb){
-
-    if(!m_isValid){
-        Log("VerificationReport::verifyPublicKey - report is not valid");
-        return false;
-    }
-
-    sgx_report_data_t report_data = {0};
-    sgx_sha_state_handle_t sha_handle = NULL;
-
-    // Verify the report_data in the Quote matches the expected value.
-    // The first 32 bytes of report_data are SHA256 HASH of {ga|gb|vk}.
-    // The second 32 bytes of report_data are set to zero.
-    sample_status_t sample_ret = sample_sha256_init(&sha_handle);
-    if (sample_ret != SAMPLE_SUCCESS) {
-        Log("Error, init hash failed", log::error);
-        return false;
-    }
-
-    sample_ret = sample_sha256_update((uint8_t *)&m_ga, sizeof(sgx_ec256_public_t), sha_handle);
-    if (sample_ret != SAMPLE_SUCCESS) {
-        Log("Error, udpate hash failed", log::error);
-        return false;
-    }
-
-    sample_ret = sample_sha256_update((uint8_t *)p_gb, sizeof(sgx_ec256_public_t), sha_handle);
-    if (sample_ret != SAMPLE_SUCCESS) {
-        Log("Error, udpate hash failed", log::error);
-        return false;
-    }
-
-    Log("vk is %s", Base64encodeUint8((uint8_t*)Settings::const_vk, sizeof(Settings::const_vk)));
-
-    sample_ret = sample_sha256_update(Settings::const_vk, sizeof(Settings::const_vk), sha_handle);
-    if (sample_ret != SAMPLE_SUCCESS) {
-        Log("Error, udpate hash failed", log::error);
-        return false;
-    }
-
-    sample_ret = sample_sha256_get_hash(sha_handle, (sgx_sha256_hash_t *)&report_data);
-    if (sample_ret != SAMPLE_SUCCESS) {
-        Log("Error, Get hash failed", log::error);
-        return false;
-    }
-
-    if (memcmp((uint8_t *)&report_data, (uint8_t *)&(m_quote_body.report_body.report_data), sizeof(report_data))) {
-        Log("Error, verify hash failed", log::error);
-        return false;
-    }
-
-    Log("VerificationReport::verifyPublicKey - success");
-    return true;
-}
-
-
 bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_gb, Messages::CertificateMSG& certMsg){ 
 
     if(!m_isValid) {
@@ -113,52 +58,14 @@ bool VerificationReport::toCertMsg(sgx_ec256_public_t* p_gb, Messages::Certifica
     return true;
 }
 
-bool VerificationReport::verifyMrEnclave(){
-    Log("mrenclave is %s", Base64encodeUint8((uint8_t*)&m_quote_body.report_body.mr_enclave, sizeof(m_quote_body.report_body.mr_enclave)));
-    return true; //TODO - compare to either skg mrenclave or bb mrenclave
-}
 
-bool VerificationReport::verifyMrSigner(){
-    if(0!=memcmp(Settings::mrsigner, 
-                 Base64encodeUint8((uint8_t*)&m_quote_body.report_body.mr_signer, sizeof(m_quote_body.report_body.mr_signer)).c_str(),
-                 strlen(Settings::mrsigner)))
-    {
-        return false;
-    }
-
-    Log("VerificationReport::verifyMrSigner - success");
-    return true;
-}
-
-std::string extractQuoteBody(const char* report_buf){
-    char *tok = strstr(const_cast<char*>(report_buf), "isvEnclaveQuoteBody");
-    int counter = 0;
-    while ((tok = strtok(tok, "\"")) != NULL)
-    {
-        if(2 == counter) {
-            std::string quoteBody(tok);
-            return quoteBody;
-        }        
-        tok = NULL;
-        counter++;
-    }
-    return "";
-}
-
-bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave* pEnclave) {
+bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, verification_report_t& report) {
 
 
     if(m_isValid) {
         Log("VerificationReport::fromCertMsg - already valid", log::error);
         return false;
     }
-
-    if(NULL == pEnclave){
-        Log("VerificationReport::fromCertMsg - pEnclave is NULL", log::error);
-        return false;
-    }
-
-    /*Extract fields for certificate chain and signature verification*/
 
     if(!extractIASCertificate(certMsg)){
         Log("VerificationReport::fromCertMsg - extractIASCertificate failed", log::error);
@@ -178,61 +85,14 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, Enclave*
         return false;
     }
 
-    /*Extract pk to verify it against quote body*/
-    sgx_ec256_public_t pkToVerify;
-
-    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
-        pkToVerify.gx[i] = certMsg.gx(i);
-        pkToVerify.gy[i] = certMsg.gy(i);
-    }
-
-    if(SGX_SUCCESS != pEnclave->VerifyPeer((unsigned char*) m_full_response.c_str(), m_full_response.length(), 
-                                           (unsigned char*) m_x_iasreport_signing_certificate.c_str(), m_x_iasreport_signing_certificate.length(), 
-                                           (unsigned char*) Base64decode(m_x_iasreport_signature).c_str(), SIGNATURE_LENGTH_BYTES,
-                                           &pkToVerify, &m_ga, sizeof(m_ga)))
-    {
-        Log("VerificationReport::fromCertMsg - VerifyPeer failed", log::error);
-        return false;
-    }
-    #if 0
-    /*Verify the IAS response*/    
-    if(!verifyCertificateChain()){
-        Log("VerificationReport::fromResult - verifyCertificateChain failed");
-        return false;
-    }
-
-    if(!verifySignature()) {
-        Log("VerificationReport::fromResult - verifySignature failed");
-        return false;
-    }
-
-    /*Extract isvEnclaveQuoteBody from the report*/
-    string isvEnclaveQuoteBody = extractQuoteBody(m_full_response.c_str());
-    memcpy(&m_quote_body, Base64decode(isvEnclaveQuoteBody).c_str(), sizeof(m_quote_body));
-
-    if(!verifyMrSigner()){
-        Log("VerificationReport::fromCertMsg - failed to mrsigner");
-        return false;
-    }
-
-    if(!verifyMrEnclave()){
-        Log("VerificationReport::fromCertMsg - failed to mrenclave");
-        return false;
-    }
-
-    /*Extract pk to verify it against quote body*/
-    sgx_ec256_public_t pkToVerify;
-
-    for (int i=0; i< SGX_ECP256_KEY_SIZE; i++) {
-        pkToVerify.gx[i] = certMsg.gx(i);
-        pkToVerify.gy[i] = certMsg.gy(i);
-    }
-
-    if(!verifyPublicKey(&pkToVerify)){
-        Log("VerificationReport::fromCertMsg - failed to verify pk");
-        return false;
-    }
-    #endif
+    report.response_body_size = m_full_response.length();
+    memcpy(report.response_body, m_full_response.c_str(), report.response_body_size);
+    
+    report.cert_chain_size = m_x_iasreport_signing_certificate.length();
+    memcpy(report.cert_chain, m_x_iasreport_signing_certificate.c_str(), report.cert_chain_size);
+    
+    memcpy(report.signature, Base64decode(m_x_iasreport_signature).c_str(), RA_SIGNATURE_SIZE_BYTES);
+    memcpy(report.unusable_pk, &m_ga, RA_PUBLIC_KEY_SIZE_BYTES);
 
     Log("VerificationReport::fromCertMsg - success");
     return true;

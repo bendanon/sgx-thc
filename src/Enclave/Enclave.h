@@ -44,10 +44,6 @@ public:
     sgx_enclave_id_t getID();
     sgx_status_t getStatus();
     sgx_ra_context_t getContext();
-    virtual sgx_status_t VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
-                             unsigned char* chain, size_t chain_size, 
-                             unsigned char* signature, size_t signature_size,
-                             sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size) = 0;
 
     virtual sgx_status_t deriveSmk(sgx_ec256_public_t* p_pk, size_t pk_size, 
                            sgx_ec_key_128bit_t* p_smk, size_t smk_size) = 0;

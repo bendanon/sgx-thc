@@ -88,6 +88,7 @@ sgx_status_t BbEnclave::closeRa(){
 
 sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_size, 
                                 sgx_ec256_public_t* bb_pk, sgx_ec256_public_t* skg_pk, size_t pk_size, 
+                                verification_report_t* p_report, size_t report_size,
                                 bb_config_t* p_config, size_t config_size) {
 
     bb_init_1(this->enclave_id,
@@ -97,8 +98,8 @@ sgx_status_t BbEnclave::bbInit1(sgx_sealed_data_t* sealed_data, size_t sealed_si
              bb_pk,
              skg_pk, 
              pk_size,
-             p_config,
-             config_size);
+             p_report, report_size,
+             p_config, config_size);
 
     if(SGX_SUCCESS != this->status) {
         Log("bb_init_1 failed, retval is %d", this->status, log::error);
@@ -179,20 +180,6 @@ sgx_status_t BbEnclave::ReInit(sgx_sealed_data_t* p_sealed_s, size_t sealed_size
     return this->status;
 }
 
-sgx_status_t BbEnclave::GetResult(uint8_t* result, size_t result_size){
-
-    bb_get_result(this->enclave_id,
-                  &this->status, 
-                  result, 
-                  result_size);
-
-    if(SGX_SUCCESS != this->status){
-        Log("BbEnclave::GetResult failed, retval is %d", this->status, log::error);
-    }
-
-    return this->status;
-}
-
 sgx_status_t BbEnclave::GenerateFirstMessage(uint8_t* B_out, size_t B_out_size){
 
     bb_generate_first_msg(this->enclave_id,
@@ -202,25 +189,6 @@ sgx_status_t BbEnclave::GenerateFirstMessage(uint8_t* B_out, size_t B_out_size){
 
     if(SGX_SUCCESS != this->status){
         Log("BbEnclave::GenerateFirstMessage failed, retval is %d", this->status, log::error);
-    }
-
-    return this->status;
-}
-
-sgx_status_t BbEnclave::VerifyPeer(unsigned char* reportBody, size_t reportBody_size, 
-                                  unsigned char* chain, size_t chain_size, 
-                                  unsigned char* signature, size_t signature_size,
-                                  sgx_ec256_public_t* peer_pk, sgx_ec256_public_t* unusable_pk, size_t pk_size)
-{
-    verify_peer(this->enclave_id,
-                        &this->status,
-                        reportBody, reportBody_size,
-                        chain, chain_size,
-                        signature, signature_size,
-                        peer_pk, unusable_pk, pk_size);
-    
-    if(SGX_SUCCESS != this->status){
-        Log("enclave_verify_peer failed, status is %d", this->status);
     }
 
     return this->status;

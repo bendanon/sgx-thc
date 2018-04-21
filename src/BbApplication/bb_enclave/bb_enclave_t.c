@@ -24,6 +24,8 @@ typedef struct ms_bb_init_1_t {
 	sgx_ec256_public_t* ms_bb_pk;
 	sgx_ec256_public_t* ms_skg_pk;
 	size_t ms_pk_size;
+	verification_report_t* ms_p_report;
+	size_t ms_report_size;
 	bb_config_t* ms_config;
 	size_t ms_config_size;
 } ms_bb_init_1_t;
@@ -51,12 +53,6 @@ typedef struct ms_bb_generate_first_msg_t {
 	size_t ms_B_out_size;
 } ms_bb_generate_first_msg_t;
 
-typedef struct ms_bb_get_result_t {
-	sgx_status_t ms_retval;
-	uint8_t* ms_B_out;
-	size_t ms_B_out_size;
-} ms_bb_get_result_t;
-
 typedef struct ms_bb_re_init_t {
 	sgx_status_t ms_retval;
 	sgx_sealed_data_t* ms_p_sealed_s;
@@ -83,19 +79,6 @@ typedef struct ms_derive_smk_t {
 	sgx_ec_key_128bit_t* ms_smk;
 	size_t ms_smk_size;
 } ms_derive_smk_t;
-
-typedef struct ms_verify_peer_t {
-	sgx_status_t ms_retval;
-	unsigned char* ms_reportBody;
-	size_t ms_reportBody_size;
-	unsigned char* ms_chain;
-	size_t ms_chain_size;
-	unsigned char* ms_signature;
-	size_t ms_signature_size;
-	sgx_ec256_public_t* ms_peer_pk;
-	sgx_ec256_public_t* ms_unusable_pk;
-	size_t ms_pk_size;
-} ms_verify_peer_t;
 
 typedef struct ms_sgx_ra_get_ga_t {
 	sgx_status_t ms_retval;
@@ -232,6 +215,10 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	sgx_ec256_public_t* _tmp_skg_pk = ms->ms_skg_pk;
 	size_t _len_skg_pk = _tmp_pk_size;
 	sgx_ec256_public_t* _in_skg_pk = NULL;
+	verification_report_t* _tmp_p_report = ms->ms_p_report;
+	size_t _tmp_report_size = ms->ms_report_size;
+	size_t _len_p_report = _tmp_report_size;
+	verification_report_t* _in_p_report = NULL;
 	bb_config_t* _tmp_config = ms->ms_config;
 	size_t _tmp_config_size = ms->ms_config_size;
 	size_t _len_config = _tmp_config_size;
@@ -240,6 +227,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
+	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 	CHECK_UNIQUE_POINTER(_tmp_config, _len_config);
 
 	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
@@ -267,6 +255,15 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
+	if (_tmp_p_report != NULL && _len_p_report != 0) {
+		_in_p_report = (verification_report_t*)malloc(_len_p_report);
+		if (_in_p_report == NULL) {
+			status = SGX_ERROR_OUT_OF_MEMORY;
+			goto err;
+		}
+
+		memcpy(_in_p_report, _tmp_p_report, _len_p_report);
+	}
 	if (_tmp_config != NULL && _len_config != 0) {
 		_in_config = (bb_config_t*)malloc(_len_config);
 		if (_in_config == NULL) {
@@ -276,7 +273,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_config, _tmp_config, _len_config);
 	}
-	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_config, _tmp_config_size);
+	ms->ms_retval = bb_init_1(_in_sealed_data, _tmp_sealed_size, _in_bb_pk, _in_skg_pk, _tmp_pk_size, _in_p_report, _tmp_report_size, _in_config, _tmp_config_size);
 err:
 	if (_in_sealed_data) {
 		memcpy(_tmp_sealed_data, _in_sealed_data, _len_sealed_data);
@@ -287,6 +284,7 @@ err:
 		free(_in_bb_pk);
 	}
 	if (_in_skg_pk) free(_in_skg_pk);
+	if (_in_p_report) free(_in_p_report);
 	if (_in_config) free(_in_config);
 
 	return status;
@@ -426,36 +424,6 @@ err:
 	return status;
 }
 
-static sgx_status_t SGX_CDECL sgx_bb_get_result(void* pms)
-{
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_get_result_t));
-	ms_bb_get_result_t* ms = SGX_CAST(ms_bb_get_result_t*, pms);
-	sgx_status_t status = SGX_SUCCESS;
-	uint8_t* _tmp_B_out = ms->ms_B_out;
-	size_t _tmp_B_out_size = ms->ms_B_out_size;
-	size_t _len_B_out = _tmp_B_out_size;
-	uint8_t* _in_B_out = NULL;
-
-	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
-
-	if (_tmp_B_out != NULL && _len_B_out != 0) {
-		if ((_in_B_out = (uint8_t*)malloc(_len_B_out)) == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memset((void*)_in_B_out, 0, _len_B_out);
-	}
-	ms->ms_retval = bb_get_result(_in_B_out, _tmp_B_out_size);
-err:
-	if (_in_B_out) {
-		memcpy(_tmp_B_out, _in_B_out, _len_B_out);
-		free(_in_B_out);
-	}
-
-	return status;
-}
-
 static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 {
 	CHECK_REF_POINTER(pms, sizeof(ms_bb_re_init_t));
@@ -582,93 +550,6 @@ err:
 		memcpy(_tmp_smk, _in_smk, _len_smk);
 		free(_in_smk);
 	}
-
-	return status;
-}
-
-static sgx_status_t SGX_CDECL sgx_verify_peer(void* pms)
-{
-	CHECK_REF_POINTER(pms, sizeof(ms_verify_peer_t));
-	ms_verify_peer_t* ms = SGX_CAST(ms_verify_peer_t*, pms);
-	sgx_status_t status = SGX_SUCCESS;
-	unsigned char* _tmp_reportBody = ms->ms_reportBody;
-	size_t _tmp_reportBody_size = ms->ms_reportBody_size;
-	size_t _len_reportBody = _tmp_reportBody_size;
-	unsigned char* _in_reportBody = NULL;
-	unsigned char* _tmp_chain = ms->ms_chain;
-	size_t _tmp_chain_size = ms->ms_chain_size;
-	size_t _len_chain = _tmp_chain_size;
-	unsigned char* _in_chain = NULL;
-	unsigned char* _tmp_signature = ms->ms_signature;
-	size_t _tmp_signature_size = ms->ms_signature_size;
-	size_t _len_signature = _tmp_signature_size;
-	unsigned char* _in_signature = NULL;
-	sgx_ec256_public_t* _tmp_peer_pk = ms->ms_peer_pk;
-	size_t _tmp_pk_size = ms->ms_pk_size;
-	size_t _len_peer_pk = _tmp_pk_size;
-	sgx_ec256_public_t* _in_peer_pk = NULL;
-	sgx_ec256_public_t* _tmp_unusable_pk = ms->ms_unusable_pk;
-	size_t _len_unusable_pk = _tmp_pk_size;
-	sgx_ec256_public_t* _in_unusable_pk = NULL;
-
-	CHECK_UNIQUE_POINTER(_tmp_reportBody, _len_reportBody);
-	CHECK_UNIQUE_POINTER(_tmp_chain, _len_chain);
-	CHECK_UNIQUE_POINTER(_tmp_signature, _len_signature);
-	CHECK_UNIQUE_POINTER(_tmp_peer_pk, _len_peer_pk);
-	CHECK_UNIQUE_POINTER(_tmp_unusable_pk, _len_unusable_pk);
-
-	if (_tmp_reportBody != NULL && _len_reportBody != 0) {
-		_in_reportBody = (unsigned char*)malloc(_len_reportBody);
-		if (_in_reportBody == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_reportBody, _tmp_reportBody, _len_reportBody);
-	}
-	if (_tmp_chain != NULL && _len_chain != 0) {
-		_in_chain = (unsigned char*)malloc(_len_chain);
-		if (_in_chain == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_chain, _tmp_chain, _len_chain);
-	}
-	if (_tmp_signature != NULL && _len_signature != 0) {
-		_in_signature = (unsigned char*)malloc(_len_signature);
-		if (_in_signature == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_signature, _tmp_signature, _len_signature);
-	}
-	if (_tmp_peer_pk != NULL && _len_peer_pk != 0) {
-		_in_peer_pk = (sgx_ec256_public_t*)malloc(_len_peer_pk);
-		if (_in_peer_pk == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_peer_pk, _tmp_peer_pk, _len_peer_pk);
-	}
-	if (_tmp_unusable_pk != NULL && _len_unusable_pk != 0) {
-		_in_unusable_pk = (sgx_ec256_public_t*)malloc(_len_unusable_pk);
-		if (_in_unusable_pk == NULL) {
-			status = SGX_ERROR_OUT_OF_MEMORY;
-			goto err;
-		}
-
-		memcpy(_in_unusable_pk, _tmp_unusable_pk, _len_unusable_pk);
-	}
-	ms->ms_retval = verify_peer(_in_reportBody, _tmp_reportBody_size, _in_chain, _tmp_chain_size, _in_signature, _tmp_signature_size, _in_peer_pk, _in_unusable_pk, _tmp_pk_size);
-err:
-	if (_in_reportBody) free(_in_reportBody);
-	if (_in_chain) free(_in_chain);
-	if (_in_signature) free(_in_signature);
-	if (_in_peer_pk) free(_in_peer_pk);
-	if (_in_unusable_pk) free(_in_unusable_pk);
 
 	return status;
 }
@@ -805,20 +686,18 @@ err:
 
 SGX_EXTERNC const struct {
 	size_t nr_ecall;
-	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[13];
+	struct {void* ecall_addr; uint8_t is_priv;} ecall_table[11];
 } g_ecall_table = {
-	13,
+	11,
 	{
 		{(void*)(uintptr_t)sgx_bb_init_1, 0},
 		{(void*)(uintptr_t)sgx_bb_init_2, 0},
 		{(void*)(uintptr_t)sgx_bb_exec, 0},
 		{(void*)(uintptr_t)sgx_bb_generate_first_msg, 0},
-		{(void*)(uintptr_t)sgx_bb_get_result, 0},
 		{(void*)(uintptr_t)sgx_bb_re_init, 0},
 		{(void*)(uintptr_t)sgx_enclave_init_ra, 0},
 		{(void*)(uintptr_t)sgx_enclave_ra_close, 0},
 		{(void*)(uintptr_t)sgx_derive_smk, 0},
-		{(void*)(uintptr_t)sgx_verify_peer, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_get_ga, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_proc_msg2_trusted, 0},
 		{(void*)(uintptr_t)sgx_sgx_ra_get_msg3_trusted, 0},
@@ -827,25 +706,25 @@ SGX_EXTERNC const struct {
 
 SGX_EXTERNC const struct {
 	size_t nr_ocall;
-	uint8_t entry_table[15][13];
+	uint8_t entry_table[15][11];
 } g_dyn_entry_table = {
 	15,
 	{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
 	}
 };
 
