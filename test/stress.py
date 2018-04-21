@@ -13,6 +13,7 @@ fmt="""
 {
     "num_of_nodes":%d,
     "port":%d,
+    "email":"bendanon@gmail.com",
     "p0":%d,
     "p1":%d,
     "p2":%d,
@@ -29,6 +30,7 @@ edgeFmt="""
 {
     "num_of_nodes":%d,
     "port":%d,
+    "email":"bendanon@gmail.com",
     "p0":%d,
     "p1":%d,
     "p2":%d,
@@ -65,6 +67,6 @@ if not schizzo:
 
 for i in range(startPort, lastNodePort+1):
 	#print "./app config_" + str(i) + ".json"
-	os.system("./app config_" + str(i) + ".json &")
+	os.system("./app config_" + str(i) + ".json output_" + str(i) + ".json &")
 
 

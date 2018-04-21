@@ -146,12 +146,12 @@ int main() {
 
         for(int j = 0; j < NUM_OF_BBX; j++){
 
-            if(0==memcmp(ABORT_MESSAGE, MSG(ptr[j], i+1), sizeof(ABORT_MESSAGE))){
+            if(0==memcmp(ABORT_MESSAGE, MSG(ptr[j], i+1), strlen(ABORT_MESSAGE))){
                 printf("abort recieved from %d\n", j);
                 fDone = true;               
             }
 
-            if(0==memcmp(RESULT_CANARY, MSG(ptr[j], i+1), sizeof(RESULT_CANARY))){
+            if(0==memcmp(RESULT_CANARY, MSG(ptr[j], i+1), strlen(RESULT_CANARY))){
                printf("result recieved from %d\n", j);
                fDone = true;               
             }
