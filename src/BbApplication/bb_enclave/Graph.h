@@ -63,6 +63,7 @@ class Graph {
         Edge* m_edges;
         uint32_t m_edgesLen;
         uint32_t m_edgesOpenSpot;
+        std::priority_queue<PartyId*> m_q;
 };
 
 #endif //GRAPH_H

@@ -56,22 +56,29 @@ void print_buffer(uint8_t* buffer, size_t len){
 }
 
 
-#define NUM_OF_BBX (10)
+#define NUM_OF_BBX (20)
 #define MSG_SIZE (THC_ENCRYPTED_MSG_SIZE_BYTES(NUM_OF_BBX))
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
 #define EMAIL "bendanon@gmail.com"
 int main() {
     
+    
+    printf("MAX_EDGES is %d\n", MAX_EDGES(NUM_OF_BBX));
+
     BlackBoxExecuter bbx[NUM_OF_BBX];
-    uint32_t source[NUM_OF_BBX][NUM_OF_BBX-1];
+    uint32_t source[NUM_OF_BBX][MAX_NEIGHBORS(NUM_OF_BBX)];
     uint32_t numTargets[NUM_OF_BBX]; //= {1,3,2,1,2,2};
 
     for (int i = 0; i < NUM_OF_BBX; i++){
-        numTargets[i] = NUM_OF_BBX - 1;
-        for (int j = 0; j < NUM_OF_BBX - 1; j++){
+        numTargets[i] = MAX_NEIGHBORS(NUM_OF_BBX); 
+        for (int j = 0; j < MAX_NEIGHBORS(NUM_OF_BBX); j++){
             if(j < i) source[i][j] = j;
             else source[i][j] = j+1;            
         }
+    }
+    
+    for (int i = MAX_NEIGHBORS(NUM_OF_BBX); i < NUM_OF_BBX-1; i++){
+        source[i][0] = i+1;
     }
 
     /*source[0][0] = 1;
@@ -97,7 +104,7 @@ int main() {
    bb_config_t config;
    config.num_of_vertices = NUM_OF_BBX;
    memcpy(config.email,EMAIL,sizeof(EMAIL));
-   sgx_read_rand(config.params, APP_NUM_OF_PARAMETERS_SIZE_BYTES);
+   sgx_read_rand(config.params, APP_NUM_OF_PARAMETERS);
 
    for (int i = 0; i < NUM_OF_BBX; i++){
 
@@ -147,12 +154,10 @@ int main() {
         for(int j = 0; j < NUM_OF_BBX; j++){
 
             if(0==memcmp(ABORT_MESSAGE, MSG(ptr[j], i+1), strlen(ABORT_MESSAGE))){
-                printf("abort recieved from %d\n", j);
+                printf("abort recieved from %d: %s\n", j, MSG(ptr[j], i+1));
                 fDone = true;               
-            }
-
-            if(0==memcmp(RESULT_CANARY, MSG(ptr[j], i+1), strlen(RESULT_CANARY))){
-               printf("result recieved from %d\n", j);
+            } else if(0==memcmp(RESULT_CANARY, MSG(ptr[j], i+1), strlen(RESULT_CANARY))){
+               printf("result recieved from %d: %s\n", j, MSG(ptr[j], i+1));
                fDone = true;               
             }
         }
@@ -166,10 +171,9 @@ int main() {
                 }
             }
 
-            for(int j = 0; j < NUM_OF_BBX; j++){
+            for(int j = 0; j < 1; j++){
                 printf("========bbx[%d]'s final state is:=========\n", j);
-                bbx[j].Print();
-                getchar();
+                //bbx[j].Print();
             }
             return 0;
         }

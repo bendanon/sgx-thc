@@ -6,7 +6,7 @@
 
 Graph::Graph() : m_verticesLen(0), m_edgesLen(0), m_verticesOpenSpot(0), m_edgesOpenSpot(0), m_vertices(NULL), m_edges(NULL){ }
 
-Graph::Graph(uint32_t len) : m_verticesLen(len), m_edgesLen(len*len), m_verticesOpenSpot(0), m_edgesOpenSpot(0){            
+Graph::Graph(uint32_t len) : m_verticesLen(len), m_edgesLen(MAX_EDGES(len)), m_verticesOpenSpot(0), m_edgesOpenSpot(0){            
     m_vertices = new PartyId[m_verticesLen];
     m_edges = new Edge[m_edgesLen];
 }
@@ -34,7 +34,7 @@ bool Graph::FindClosestMatch(PartyId& source, std::vector<PartyId*>& path){
     PartyId* pSource = getVertexPtr(source);
 
     if(NULL == pSource){
-        ocall_print("FindShortestPath - pSource is NULL");
+        ocall_print("Graph::FindClosestMatch - pSource is NULL");
         return false;
     }
 
@@ -206,14 +206,14 @@ bool Graph::GetEdgeIterator(EdgeIterator& iter){
 
 uint32_t Graph::IndexOf(PartyId& pid){
     if(m_vertices == NULL){
-        ocall_print("Graph::Contains - graph is not initialized");
+        ocall_print("Graph::IndexOf - graph is not initialized");
         return MAX_UINT32;
     }
 
     VertexIterator iter;
 
     if(!GetVertexIterator(iter)){
-        ocall_print("Graph::Contains - failed to get iterator");
+        ocall_print("Graph::IndexOf - failed to get iterator");
         return MAX_UINT32;
     }
 
@@ -231,14 +231,14 @@ uint32_t Graph::IndexOf(PartyId& pid){
 
 uint32_t Graph::IndexOf(Edge& edge){
     if(m_vertices == NULL){
-        ocall_print("Graph::Contains - graph is not initialized");
+        ocall_print("Graph::IndexOf - graph is not initialized");
         return MAX_UINT32;
     }
 
     EdgeIterator iter;
 
     if(!GetEdgeIterator(iter)){
-        ocall_print("Graph::Contains - failed to get iterator");
+        ocall_print("Graph::IndexOf - failed to get iterator");
         return MAX_UINT32;
     }
 
@@ -336,9 +336,6 @@ bool Graph::FromBuffer(uint8_t** buffer, size_t* len) {
         ocall_print("Graph::FromBuffer - m_edgesOpenSpot != m_edgesLen");
         return false;
     }
-
-    ocall_print("Graph::FromBuffer - m_edgesLen is %d", m_edgesLen);
-    ocall_print("Graph::FromBuffer - m_verticesLen is %d", m_verticesLen);
 
     return true;
 }

@@ -36,7 +36,7 @@
 #define THC_ACK_MSG_STRING "ACK"
 #define MAX_UINT32 ((uint32_t) 0-1)
 #define PARTY_ID_SIZE_BYTES (128 / 8)
-#define APP_PARTY_PARAMS_SIZE_BYTES (sizeof(APP_PARAMETER_DATA_TYPE)*APP_NUM_OF_PARAMETERS_SIZE_BYTES)
+#define APP_PARTY_PARAMS_SIZE_BYTES (sizeof(APP_PARAMETER_DATA_TYPE)*APP_NUM_OF_PARAMETERS)
 #define APP_PARTY_FULL_SIZE_BYTES (PARTY_ID_SIZE_BYTES+APP_PARTY_PARAMS_SIZE_BYTES+MAX_EMAIL_SIZE_BYTES)
 #define EDGE_SIZE_BYTES (sizeof(uint32_t)*2)
 #define THC_MAX_NUMBER_OF_ROUNDS(GRAPH_SIZE) (GRAPH_SIZE + GRAPH_SIZE*GRAPH_SIZE)
@@ -44,8 +44,22 @@
 #define VERTICES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define EDGES_LEN_SIZE_BYTES sizeof(uint32_t)
 #define THC_MSG_TYPE_SIZE_BYTES sizeof(uint32_t)
-#define MAX_NEIGHBORS(V) 5 /*(V-1)/2*/
-#define MAX_EDGES(V) (V*MAX_NEIGHBORS(V)) 
+
+/*
+V <= MAX_NEIGHBORS(V) ---> MAX_EDGES(V) = V(V-1)/2
+V > MAX_NEIGHBORS(V) ---> MAX_EDGES(V) = MAX_NEIGHBORS(V)*V
+
+In the second case there might be a tighter bound, 
+therefore if MAX_NEIGHBORS(V) is O(V) you might want to change MAX_EDGES to V(V-1)/2 or to a tighter bound
+
+MAX_EDGES(V) = MIN(V(V-1)/2, MAX_NEIGHBORS(V)*V)
+*/
+
+#define MAX_NEIGHBORS(V) (5) 
+constexpr int MAX_EDGES(int V)
+{
+    return (V*(V-1)/2) <= (MAX_NEIGHBORS(V)*V) ? (V*(V-1)/2) : (MAX_NEIGHBORS(V)*V);
+}
 #define THC_PLAIN_MSG_SIZE_BYTES(GRAPH_SIZE) (THC_MSG_TYPE_SIZE_BYTES + \
                                   THC_ROUND_NUMBER_SIZE_BYTES + \
                                   APP_PARTY_FULL_SIZE_BYTES + \
@@ -53,7 +67,8 @@
                                   (GRAPH_SIZE*(APP_PARTY_FULL_SIZE_BYTES)) + \
                                   EDGES_LEN_SIZE_BYTES + \
                                   (MAX_EDGES(GRAPH_SIZE)*EDGE_SIZE_BYTES))
-#define ABORT_MESSAGE "ABORT"
+
+#define ABORT_MESSAGE RESULT_CANARY NO_MATCH_STRING
 #define RESULT_CANARY "RESULT,"
 #define NO_MATCH_STRING "NO MATCH"
 #define REAULT_EMAIL_DELIMITER ", "
@@ -78,7 +93,7 @@
 #define SIGNATURE_LENGTH_BYTES 256
 #define MAX_CERT_SIZE 16384
 
-#define THC_DEBUG_PRINTS
-#define SCHIZZO_TEST
+//#define THC_DEBUG_PRINTS
+//#define SCHIZZO_TEST
 
 #endif //TH_DEFINES_H

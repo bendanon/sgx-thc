@@ -1,8 +1,8 @@
 #include <GeneralSettings.h>
 #include <common_enclave.h>
-#include <vector>
-#include <queue>
 #include <map>
+#include <queue>
+#include <set>
 
 #ifndef PARTY_ID_H
 #define PARTY_ID_H
@@ -45,9 +45,9 @@ class PartyId
 
     private:
         uint8_t m_id[PARTY_ID_SIZE_BYTES];
-        PARAM_T m_params[APP_NUM_OF_PARAMETERS_SIZE_BYTES];
+        PARAM_T m_params[APP_NUM_OF_PARAMETERS];
         char m_email[MAX_EMAIL_SIZE_BYTES];
-        std::vector<PartyId*> m_neighbors;
+        std::set<PartyId*> m_neighbors;
 };
 
 class VertexIterator

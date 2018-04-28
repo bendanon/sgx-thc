@@ -89,7 +89,7 @@ bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize
 
     configSize = sizeof(bb_config_t); /*+ (num_of_neighbors*
                                          sizeof(PARAM_T)*
-                                         APP_NUM_OF_PARAMETERS_SIZE_BYTES);*/
+                                         APP_NUM_OF_PARAMETERS);*/
 
     *ppBbConfig = (bb_config_t*) malloc(configSize);
     (*ppBbConfig)->num_of_neighbors = num_of_neighbors;
@@ -116,14 +116,14 @@ bool BbClient::extractConfiguration(bb_config_t** ppBbConfig, size_t& configSize
         return false;
     }
 
-    for(int i = 0; i < APP_NUM_OF_PARAMETERS_SIZE_BYTES; i++){
+    for(int i = 0; i < APP_NUM_OF_PARAMETERS; i++){
         (*ppBbConfig)->params[i] = (uint8_t)m_config["p"+std::to_string(i)].asUInt();
     }
 
     /*const Json::Value& neighConfig = m_config["neighbors"];
 
     for(int i = 0; i < num_of_neighbors; i++){
-        for(int j = 0; j < APP_NUM_OF_PARAMETERS_SIZE_BYTES; j++){
+        for(int j = 0; j < APP_NUM_OF_PARAMETERS; j++){
             (*ppBbConfig)->neighbor_params[i][j] = (uint8_t)neighConfig[i]["p"+std::to_string(j)].asUInt();
         }
     }*/

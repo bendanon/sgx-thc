@@ -72,6 +72,7 @@ bool BlackBoxExecuter::Initialize(bb_config_t* p_config)
 
     m_pGraph->AddVertex(m_localId);
 
+    #if 0
     //+1 because we also store the local is in the neighbors graph
     m_pNeighbors = new Graph(m_numOfNeighbors + 1);
 
@@ -79,8 +80,9 @@ bool BlackBoxExecuter::Initialize(bb_config_t* p_config)
         ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_pNeighbors");
         return false;
     }
+    #endif
 
-    m_pNeighbors->AddVertex(m_localId);
+    m_pGraph->AddVertex(m_localId);
 
     m_pRoundChecklist = new Graph(m_numOfNeighbors);
 
@@ -310,16 +312,14 @@ bool BlackBoxExecuter::CompareGraph(BlackBoxExecuter& other){
 
 bool BlackBoxExecuter::generateOutput(uint8_t* B_out, size_t B_out_size){
 
-        ocall_print("BlackBoxExecuter::generateOutput - start");
-        if(!IsReady()){
+    if(!IsReady()){
         ocall_print("BlackBoxExecuter::generateOutput - not ready");
         return false;
-        }
+    }
 
     //This means we are in the last round of consistency checking
     if(m_ctrRound >= m_numOfVertices + m_numOfVertices*m_pGraph->GetDiameter()){
 
-        ocall_print("BlackBoxExecuter::generateOutput - result");
         if(!calculateResult(B_out, B_out_size)){
             ocall_print("BlackBoxExeuter::generateOutput - failed to calculate result");
             return false;
@@ -327,7 +327,6 @@ bool BlackBoxExecuter::generateOutput(uint8_t* B_out, size_t B_out_size){
 
     } else if(m_ctrRound < m_pGraph->GetDiameter()) { 
     //This means we are in the graph collection phase
-        ocall_print("BlackBoxExecuter::generateOutput - collection");
         if(!generateCollectionMessage(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::generateOutput - failed to generate collection message");
             return false;
@@ -335,14 +334,11 @@ bool BlackBoxExecuter::generateOutput(uint8_t* B_out, size_t B_out_size){
 
     } else {
     //This means we are in the consistency checking phase
-        ocall_print("BlackBoxExecuter::generateOutput - consisntency");
         if(!generateConsistencyMessage(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::generateOutput - failed to generate consistency message");
             return false;
         }
     }
-
-    ocall_print("BlackBoxExecuter::generateOutput - done");
 
     return true;
 }
@@ -434,7 +430,7 @@ bool BlackBoxExecuter::outputResult(uint8_t* B_out, size_t B_out_size){
             ocall_print("BlackBoxExecuter::calculateResult - B_out_size smaller than result message, %d", B_out_size);
             return false;
         }
-        if(sizeof(NO_MATCH_STRING)-1 != snprintf((char*)B_out, sizeof(NO_MATCH_STRING)+1, " %s", NO_MATCH_STRING)){
+        if(sizeof(NO_MATCH_STRING)-1 != snprintf((char*)B_out, sizeof(NO_MATCH_STRING)+1, "%s", NO_MATCH_STRING)){
             ocall_print("BlackBoxExecuter::calculateResult - failed to print result message");
             return false;
         }
@@ -459,8 +455,6 @@ bool BlackBoxExecuter::outputResult(uint8_t* B_out, size_t B_out_size){
 
 bool BlackBoxExecuter::calculateResult(uint8_t* B_out, size_t B_out_size)
 {
-
-    ocall_print("calculate result");
     if(!IsReady()){
         ocall_print("BlackBoxExecuter::calculateResult - not ready");
         return false;
@@ -673,6 +667,17 @@ bool BlackBoxExecuter::consumePartyId(uint8_t** msg, size_t* len) {
         return false;
     }
 
+    if(!m_pGraph->AddVertex(neighborId)){
+        ocall_print("BlackBoxExecuter::consumePartyId - failed to add vertex for neighbor");
+        return false;
+    }
+
+    if(!m_pGraph->AddEdge(m_localId, neighborId)){
+        ocall_print("BlackBoxExecuter::consumePartyId - failed to add edge to neighbor");
+        return false;
+    }
+
+    #if 0
     if(!m_pNeighbors->AddVertex(neighborId)){
         ocall_print("BlackBoxExecuter::consumePartyId - failed to add vertex for neighbor");
         return false;
@@ -681,12 +686,13 @@ bool BlackBoxExecuter::consumePartyId(uint8_t** msg, size_t* len) {
     if(!m_pNeighbors->AddEdge(m_localId, neighborId)){
         ocall_print("BlackBoxExecuter::consumePartyId - failed to add edge to neighbor");
         return false;
-    }
+    }   
 
     if(!updateGraph(*m_pNeighbors)){
         ocall_print("BlackBoxExecuter::consumePartyId - failed to update graph");
         return false;
     }
+    #endif
 
     if(!m_pRoundChecklist->AddVertex(neighborId)){
         ocall_print("BlackBoxExecuter::consumePartyId - failed to add vertex for neighbor to checklist");

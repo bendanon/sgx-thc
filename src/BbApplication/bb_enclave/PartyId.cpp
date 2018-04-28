@@ -72,8 +72,20 @@ bool PartyId::AddNeighbor(PartyId* neighbor){
         ocall_print("PartyId::AddNeighbor - input is NULL");
         return false;
     }
+    
+    if(MAX_NEIGHBORS(MAX_GRAPH_SIZE) < m_neighbors.size()){
+        ocall_print("PartyId::AddNeighbor - The following node has too many (%d) neighbors", m_neighbors.size());
+        this->Print();
+        return false;
+    }
 
-    m_neighbors.push_back(neighbor);
+    if(m_neighbors.find(neighbor) != m_neighbors.end()){
+        ocall_print("PartyId::AddNeighbor - neighbor is already inserted");
+        this->Print();
+        return false;
+    }
+
+    m_neighbors.insert(neighbor);
 
     return true;
 }
@@ -94,7 +106,14 @@ bool PartyId::Matches(PartyId* other){
     if(*this == *other){
         return false;
     }
-    return true;
+
+    int matchCounter = 0;
+    for(int i = 0; i < APP_NUM_OF_PARAMETERS; i++){
+        if(m_params[i] == other->m_params[i]){
+            matchCounter++;
+        }
+    }
+    return matchCounter == APP_NUM_OF_PARAMETERS;
 }
 
 bool PartyId::GetEmail(uint8_t** buffer, size_t* len){

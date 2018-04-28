@@ -104,7 +104,9 @@ int Main(int argc, char* argv[]) {
     }
 
     size_t outbufSize = THC_ENCRYPTED_MSG_SIZE_BYTES(graphSize);
+    Log("MAX_EDGES is %d", MAX_EDGES(graphSize));
     Log("graphSize is %d, THC_ENCRYPTED_MSG_SIZE_BYTES(graphSize) is %d", graphSize, outbufSize);
+
     uint8_t* outbuf = new uint8_t[outbufSize];
 
     //This shouldn't terminate
