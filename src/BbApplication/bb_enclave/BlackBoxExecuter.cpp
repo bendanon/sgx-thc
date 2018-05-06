@@ -10,8 +10,6 @@ BlackBoxExecuter::BlackBoxExecuter() : m_fIsInitialized(false),
                         m_abortCounter(0),
                         //m_ctrNeighbor(0),
                         m_pGraph(NULL),
-                        m_pNeighbors(NULL),
-                        m_pRoundChecklist(NULL),
                         m_decrypted(NULL),
                         m_decryptedSize(0),
                         m_encryptedSize(0)
@@ -25,8 +23,6 @@ BlackBoxExecuter::~BlackBoxExecuter()
 {
     memset(m_s, 0, sizeof(m_s));
     delete m_pGraph;
-    delete m_pNeighbors;
-    delete m_pRoundChecklist;
     delete m_decrypted;
 }
 
@@ -70,24 +66,8 @@ bool BlackBoxExecuter::Initialize(bb_config_t* p_config)
 
     m_pGraph = new Graph(m_numOfVertices);
 
-    m_pGraph->AddVertex(m_localId);
-
-    #if 0
-    //+1 because we also store the local is in the neighbors graph
-    m_pNeighbors = new Graph(m_numOfNeighbors + 1);
-
-    if(NULL == m_pNeighbors){
-        ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_pNeighbors");
-        return false;
-    }
-    #endif
-
-    m_pGraph->AddVertex(m_localId);
-
-    m_pRoundChecklist = new Graph(m_numOfNeighbors);
-
-    if(NULL == m_pRoundChecklist){
-        ocall_print("BlackBoxExecuter::Initialize - failed to allocate m_pRoundChecklist");
+    if(!m_pGraph->AddVertex(m_localId)){
+        ocall_print("BlackBoxExecuter::Initialize - failed to add local id to graph");
         return false;
     }
 
@@ -159,10 +139,9 @@ bool BlackBoxExecuter::processAbort(uint8_t* B_out, size_t B_out_size){
     m_abortCounter++;
 
     ocall_print("m_abortCounter = %d", m_abortCounter);
-    ocall_print("m_pRoundChecklist->GetSize() = %d", m_pRoundChecklist->GetSize());
     ocall_print("m_numOfNeighbors = %d", m_numOfNeighbors);
 
-    if(m_abortCounter + m_pRoundChecklist->GetSize() == m_numOfNeighbors){
+    if(m_abortCounter + m_roundCheckList.size() == m_numOfNeighbors){
         if(!incrementRound(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::updateAbort - failed to increment round");
             return false;
@@ -257,7 +236,7 @@ bool BlackBoxExecuter::Execute(uint8_t* B_in, size_t B_in_size, uint8_t* B_out, 
     }
 
     //This means we just recieved a message from the last neighbor of this round
-    if(m_abortCounter + m_pRoundChecklist->GetSize() == m_numOfNeighbors){
+    if(m_abortCounter + m_roundCheckList.size() == m_numOfNeighbors){
 
         if(!incrementRound(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::Execute - incrementRound failed");
@@ -274,8 +253,8 @@ bool BlackBoxExecuter::incrementRound(uint8_t* B_out, size_t B_out_size){
     m_ctrRound++;
 
     m_abortCounter = 0;        
-    delete m_pRoundChecklist;
-    m_pRoundChecklist = new Graph(m_numOfNeighbors);
+    
+    m_roundCheckList.clear();
 
     if(!generateOutput(B_out, B_out_size)){
         ocall_print("BlackBoxExecuter::Execute - Failed to generate output");
@@ -303,7 +282,7 @@ void BlackBoxExecuter::Print(){
     }        
     ocall_print("m_numOfNeighbors = %d", m_numOfNeighbors);
     ocall_print("m_ctrRound = %d", m_ctrRound);
-    ocall_print("m_pRoundChecklist->GetSize() = %d", m_pRoundChecklist->GetSize());
+    ocall_print("m_roundCheckList.size() = %d", m_roundCheckList.size());
 }
 
 bool BlackBoxExecuter::CompareGraph(BlackBoxExecuter& other){
@@ -336,59 +315,6 @@ bool BlackBoxExecuter::generateOutput(uint8_t* B_out, size_t B_out_size){
     //This means we are in the consistency checking phase
         if(!generateConsistencyMessage(B_out, B_out_size)){
             ocall_print("BlackBoxExecuter::generateOutput - failed to generate consistency message");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool BlackBoxExecuter::updateGraph(Graph& graph){
-
-    if(!IsReady()){
-        ocall_print("BlackBoxExecuter::updateGraph - not ready");
-        return false;
-    }
-
-    VertexIterator vi;
-    PartyId pid;
-
-    if(!graph.GetVertexIterator(vi)){
-        ocall_print("BlackBoxExecuter::UpdateGraph - failed to get iterator for graph in message");
-        return false;
-    }
-
-    //Add all new vertices
-    while(vi.GetNext(pid)) {
-        if(!m_pGraph->AddVertex(pid)){
-            ocall_print("BlackBoxExecuter::updateGraph - failed to insert vertex");
-            return false;
-        }
-    }
-
-    EdgeIterator ei;
-    Edge e;
-
-    if(!graph.GetEdgeIterator(ei)){
-        ocall_print("BlackBoxExecuter::UpdateGraph - failed to get iterator for graph in message");
-        return false;
-    }
-
-    PartyId srcPid, sinkPid;
-
-    //Add all new edges
-    while(ei.GetNext(e)){
-        if(!graph.VertexAt(e.GetSrc(), srcPid)){
-            ocall_print("BlackBoxExecuter::updateGraph - failed to find src vertex at %d", e.GetSrc());
-            return false;
-        }
-        if(!graph.VertexAt(e.GetSink(), sinkPid)){
-            ocall_print("BlackBoxExecuter::updateGraph - failed to find sink vertex at %d", e.GetSink());
-            return false;
-        }
-
-        if(!m_pGraph->AddEdge(srcPid, sinkPid)){
-            ocall_print("BlackBoxExecuter::updateGraph - failed to add edge");
             return false;
         }
     }
@@ -472,7 +398,7 @@ bool BlackBoxExecuter::calculateResult(uint8_t* B_out, size_t B_out_size)
     //i being our index.
     uint32_t consistencyCheckingRounds = m_abortedRound - m_pGraph->GetDiameter();
     uint32_t subphase = (consistencyCheckingRounds + 1) / m_numOfVertices;
-    uint32_t i = m_pGraph->IndexOf(m_localId);
+    uint32_t i = m_pGraph->IndexOf(&m_localId);
 
     ocall_print("BlackBoxExecuter::calculateResult - subphase is %d", subphase);
     ocall_print("BlackBoxExecuter::calculateResult - i is %d", i);
@@ -662,7 +588,8 @@ bool BlackBoxExecuter::consumePartyId(uint8_t** msg, size_t* len) {
         return false;
     }
 
-    if(m_pRoundChecklist->Contains(neighborId)){
+    auto findResult = m_roundCheckList.find(neighborId);
+    if(m_roundCheckList.end() != findResult){
         ocall_print("BlackBoxExecuter::consumePartyId - already received a message fom this neighbor in this round");
         return false;
     }
@@ -677,24 +604,8 @@ bool BlackBoxExecuter::consumePartyId(uint8_t** msg, size_t* len) {
         return false;
     }
 
-    #if 0
-    if(!m_pNeighbors->AddVertex(neighborId)){
-        ocall_print("BlackBoxExecuter::consumePartyId - failed to add vertex for neighbor");
-        return false;
-    }
-
-    if(!m_pNeighbors->AddEdge(m_localId, neighborId)){
-        ocall_print("BlackBoxExecuter::consumePartyId - failed to add edge to neighbor");
-        return false;
-    }   
-
-    if(!updateGraph(*m_pNeighbors)){
-        ocall_print("BlackBoxExecuter::consumePartyId - failed to update graph");
-        return false;
-    }
-    #endif
-
-    if(!m_pRoundChecklist->AddVertex(neighborId)){
+    auto insertResult = m_roundCheckList.insert(neighborId);
+    if(!insertResult.second){
         ocall_print("BlackBoxExecuter::consumePartyId - failed to add vertex for neighbor to checklist");
         return false;
     }
@@ -732,7 +643,7 @@ bool BlackBoxExecuter::consumeGraph(uint8_t** msg, size_t* len){
         return false;
     }
 
-    if(!updateGraph(graph)){
+    if(!m_pGraph->AddGraph(graph)){
             ocall_print("failed to update graph");
             return false;
     }

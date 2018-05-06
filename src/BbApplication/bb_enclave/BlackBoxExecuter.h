@@ -50,8 +50,6 @@ private:
 
     bool generateOutput(uint8_t* B_out, size_t B_out_size);
 
-    bool updateGraph(Graph& graph);
-
     bool outputAbort(uint8_t* B_out, size_t B_out_size);
 
     bool outputResult(uint8_t* B_out, size_t B_out_size);
@@ -86,13 +84,12 @@ private:
     PartyId m_localId;
     uint32_t m_numOfVertices;
     Graph* m_pGraph;
-    Graph* m_pNeighbors;
-    Graph* m_pRoundChecklist;
+    std::set<PartyId> m_roundCheckList;
     size_t m_numOfNeighbors;
     uint32_t m_ctrRound;
     uint32_t m_abortCounter;
     uint8_t* m_decrypted;
     size_t m_decryptedSize;
     size_t m_encryptedSize;
-    //uint32_t m_ctrNeighbor;
+
 };

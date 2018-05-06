@@ -6,13 +6,22 @@
 
 #ifndef PARTY_ID_H
 #define PARTY_ID_H
+
 class PartyId 
 { 
+
+    public:
+        typedef PartyId* ptr;
+        struct comp {
+            bool operator() (const ptr& lhs, const ptr& rhs) const
+                {return *lhs<*rhs;}
+        };
+
     public: 
         
         PartyId();
 
-        PartyId(char c);
+        PartyId(char c, char p);
 
         bool FromBuffer(uint8_t** buffer, size_t* len);
 
@@ -20,7 +29,7 @@ class PartyId
 
         PartyId& operator=(const PartyId& rhs);
 
-        bool operator< (const PartyId& rhs);
+        bool operator< (const PartyId& rhs) const;
 
         bool operator<= (const PartyId& rhs);
 
@@ -34,7 +43,11 @@ class PartyId
 
         bool AddNeighbor(PartyId* neighbor);
 
-        bool GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*>& backtrace);
+        bool GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*,PartyId::comp>& backtrace);
+        
+        bool GetNeighbors(std::queue<PartyId*>& o_queue);
+        
+        bool IsNeighborOf(PartyId* other);
 
         bool Matches(PartyId* other);
         
@@ -47,7 +60,7 @@ class PartyId
         uint8_t m_id[PARTY_ID_SIZE_BYTES];
         PARAM_T m_params[APP_NUM_OF_PARAMETERS];
         char m_email[MAX_EMAIL_SIZE_BYTES];
-        std::set<PartyId*> m_neighbors;
+        std::set<PartyId*, comp> m_neighbors;
 };
 
 class VertexIterator
@@ -65,4 +78,5 @@ class VertexIterator
         uint32_t m_current;
         uint32_t m_last;        
 };
+
 #endif //PARTY_ID_H

@@ -1,9 +1,9 @@
 #include "PartyId.h"
 
-PartyId::PartyId(char c){
+PartyId::PartyId(char c, char p){
     memset(m_id, c, sizeof(m_id));
     memset(m_email, 0, sizeof(m_email));
-    memset(m_params, 0, sizeof(m_params));
+    memset(m_params, p, sizeof(m_params));
 }
 
 PartyId::PartyId(){
@@ -25,20 +25,12 @@ PartyId& PartyId::operator=(const PartyId& rhs){
     memcpy(m_id,rhs.m_id,sizeof(m_id));
     memcpy(m_params,rhs.m_params,sizeof(m_params));
     memcpy(m_email,rhs.m_email,sizeof(m_email));
+    //m_neighbors = rhs.m_neighbors;
     return *this;
 }
 
-bool PartyId::operator< (const PartyId& rhs){
-    for(int i = 0; i < sizeof(m_id); i++){
-
-        if(m_id[i] < rhs.m_id[i]){
-            return true;
-        } else if (m_id[i] > rhs.m_id[i]){
-            return false;
-        }
-    }
-
-    return false;
+bool PartyId::operator< (const PartyId& rhs) const{
+    return  memcmp(m_id, rhs.m_id, sizeof(m_id)) < 0;
 }
 
 bool PartyId::operator<= (const PartyId& rhs){                
@@ -73,24 +65,44 @@ bool PartyId::AddNeighbor(PartyId* neighbor){
         return false;
     }
     
-    if(MAX_NEIGHBORS(MAX_GRAPH_SIZE) < m_neighbors.size()){
-        ocall_print("PartyId::AddNeighbor - The following node has too many (%d) neighbors", m_neighbors.size());
-        this->Print();
-        return false;
+    //This means the neighbor is already in
+    auto search = m_neighbors.find(neighbor);
+    if(search != m_neighbors.end()){
+        return true;
     }
 
-    if(m_neighbors.find(neighbor) != m_neighbors.end()){
-        ocall_print("PartyId::AddNeighbor - neighbor is already inserted");
-        this->Print();
+    if(MAX_NEIGHBORS(MAX_GRAPH_SIZE) <= m_neighbors.size()){
+        ocall_print("PartyId::AddNeighbor - too many (%d) neighbors", m_neighbors.size());
+        ocall_print("***********");
+        neighbor->Print();
+        ocall_print("***********");
+        for(PartyId* n : m_neighbors){
+            n->Print();
+        }        
+        ocall_print("***********");
+        return false;
+    }    
+
+    //TODO - verify insertion
+    auto res = m_neighbors.insert(neighbor);
+    if(!res.second){
+        ocall_print("PartyId::AddNeighbor - insertion failed");
         return false;
     }
-
-    m_neighbors.insert(neighbor);
 
     return true;
 }
 
-bool PartyId::GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*>& backtrace){
+
+bool PartyId::GetNeighbors(std::queue<PartyId*>& o_queue){
+    for(PartyId* n : m_neighbors) {
+        o_queue.push(n);
+    }
+
+    return true;
+}
+
+bool PartyId::GetNeighbors(std::queue<PartyId*>& o_queue, std::map<PartyId*,PartyId*,PartyId::comp>& backtrace){
 
     for(PartyId* n : m_neighbors) {
         if(backtrace.end() == backtrace.find(n)){
@@ -114,6 +126,11 @@ bool PartyId::Matches(PartyId* other){
         }
     }
     return matchCounter == APP_NUM_OF_PARAMETERS;
+}
+
+bool PartyId::IsNeighborOf(PartyId* other){
+    auto search = m_neighbors.find(other);
+    return m_neighbors.end() != search;
 }
 
 bool PartyId::GetEmail(uint8_t** buffer, size_t* len){

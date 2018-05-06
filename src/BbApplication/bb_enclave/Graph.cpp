@@ -4,39 +4,27 @@
 #include "Graph.h"
 //#include "bb_enclave_t.h"
 
-Graph::Graph() : m_verticesLen(0), m_edgesLen(0), m_verticesOpenSpot(0), m_edgesOpenSpot(0), m_vertices(NULL), m_edges(NULL){ }
+Graph::Graph() : m_verticesLen(0), m_verticesOpenSpot(0), m_edgesOpenSpot(0), m_vertices(NULL){ }
 
-Graph::Graph(uint32_t len) : m_verticesLen(len), m_edgesLen(MAX_EDGES(len)), m_verticesOpenSpot(0), m_edgesOpenSpot(0){            
+Graph::Graph(uint32_t len) : m_verticesLen(len), m_verticesOpenSpot(0), m_edgesOpenSpot(0){            
     m_vertices = new PartyId[m_verticesLen];
-    m_edges = new Edge[m_edgesLen];
 }
 Graph::~Graph(){
     delete[] m_vertices;
-    delete[] m_edges;
-}
-
-PartyId* Graph::getVertexPtr(PartyId& id){
-    uint32_t idx = IndexOf(id);
-
-    if(MAX_UINT32 == idx){
-        ocall_print("Graph::GetVertexPtr - id not found");
-        return NULL;        
-    }
-
-    return &m_vertices[idx];
 }
 
 bool Graph::FindClosestMatch(PartyId& source, std::vector<PartyId*>& path){
 
     std::queue<PartyId*> Q;
-    std::map<PartyId*,PartyId*> backtrace;
-    
-    PartyId* pSource = getVertexPtr(source);
+    std::map<PartyId*,PartyId*, PartyId::comp> backtrace;
 
-    if(NULL == pSource){
-        ocall_print("Graph::FindClosestMatch - pSource is NULL");
+    auto it = m_verticesSet.find(&source);
+    if(m_verticesSet.end() == it){
+        ocall_print("Graph::FindClosestMatch - failed to find source");
         return false;
     }
+    
+    PartyId* pSource = *it;
 
     Q.push(pSource);    
 
@@ -49,7 +37,12 @@ bool Graph::FindClosestMatch(PartyId& source, std::vector<PartyId*>& path){
             path.push_back(current);
 
             while(current != pSource){
-                current = backtrace.find(current)->second;
+                auto next = backtrace.find(current);
+                if(backtrace.end() == next){
+                    ocall_print("Graph::FindClosestMatch - failed to find backtrace");
+                    return false;
+                }
+                current = next->second;
                 path.push_back(current);
             }           
 
@@ -67,68 +60,53 @@ bool Graph::FindClosestMatch(PartyId& source, std::vector<PartyId*>& path){
 
 bool Graph::AddEdge(PartyId& idSrc, PartyId& idSink){
 
-        //Add vertex only works when the graph is initialized
-    if(m_edges == NULL || m_edgesLen == 0){
-        ocall_print("Graph::AddEdge - graph is not initialized");
+    //Add edge only works when the graph is initialized
+    if(m_vertices == NULL || m_verticesLen == 0){
+        ocall_print("Graph::AddVertex - graph is not initialized");
         return false;
     }
 
-    uint32_t idSrcIdx = this->IndexOf(idSrc);
-    if(MAX_UINT32 == idSrcIdx){
-        ocall_print("Graph::AddEdge - edge src does not exist");
+    auto src = m_verticesSet.find(&idSrc);
+    if(m_verticesSet.end() == src){
+        ocall_print("Graph::AddEdge - idSrc is not contained in m_verticesSet");
         return false;
     }
 
-    uint32_t idSinkIdx = this->IndexOf(idSink);
-    if(MAX_UINT32 == idSinkIdx){
-        ocall_print("Graph::AddEdge - edge sink does not exist");
+    auto sink = m_verticesSet.find(&idSink);
+    if(m_verticesSet.end() == sink){
+        ocall_print("Graph::AddEdge - idDst is not contained in m_verticesSet");
         return false;
     }
 
-    Edge e(idSrcIdx, idSinkIdx);
+    if((*src)->IsNeighborOf(*sink)){
+        if(!(*sink)->IsNeighborOf(*src)){
+            ocall_print("Graph::AddEdge - src is neighbor of sink but not the other way around...");
+            return false;
+        }
+        return true;
+    }
 
-    //Edge already in list
-    if(this->Contains(e)) return true;
-
-    //Here we know that an edge needs to be added. Is there any room?
-    if(m_edgesOpenSpot >= m_edgesLen) {
+    if(m_edgesOpenSpot >= MAX_EDGES(m_verticesLen)) {
         ocall_print("Graph::AddEdge - graph is full");
         return false;
-    }
+    }    
 
-    if(!m_vertices[idSrcIdx].AddNeighbor(&m_vertices[idSinkIdx])){
+    if(!(*src)->AddNeighbor(*sink)){
         ocall_print("Graph::AddEdge - failed to add neighbor");
         return false;
     }
 
-    if(!m_vertices[idSinkIdx].AddNeighbor(&m_vertices[idSrcIdx])){
+    if(!(*sink)->AddNeighbor(*src)){
         ocall_print("Graph::AddEdge - failed to add neighbor");
         return false;
     }
 
-    m_edges[m_edgesOpenSpot++] = e;    
+    m_edgesOpenSpot++;
 
     return true;
 }
 
-bool Graph::VertexAt(uint32_t idx, PartyId& pid){
-    if(m_vertices == NULL || m_verticesLen == 0){
-        ocall_print("Graph::VertexAt - graph is not initialized");
-        return false;
-    }
-
-    if(idx >= m_verticesOpenSpot){
-        ocall_print("Graph::VertexAt - invalid index %d", idx);
-        return false;
-    }
-
-    pid = m_vertices[idx];
-
-    return true;
-}
-
-//Inserts id in its ordered position position, keeping the list sorted
-bool Graph::AddVertex(PartyId& id){
+bool Graph::AddVertex(PartyId& vertex){
 
     //Add vertex only works when the graph is initialized
     if(m_vertices == NULL || m_verticesLen == 0){
@@ -136,91 +114,92 @@ bool Graph::AddVertex(PartyId& id){
         return false;
     }
 
-    //Find the position of the first element larger than id
-    int position = 0;
-    for(; position < m_verticesOpenSpot && id < m_vertices[position]; position++);
+    auto search = m_verticesSet.find(&vertex);
 
-    //id is already in list
-    if(id == m_vertices[position]) return true;
+    //This means the vertex is already in the graph
+    if(m_verticesSet.end() != search) return true; 
 
-    //Here we know that a vertex needs to be added. Is there any room?
-    if(m_verticesOpenSpot >= m_verticesLen) {
-        id.Print();
+    if(m_verticesLen == m_verticesOpenSpot){
         ocall_print("Graph::AddVertex - graph is full");
-        for(int i = 0; i < m_verticesLen; i++){
-            m_vertices[i].Print();
-        }
         return false;
     }
+    
+    //copy into internal graph memory
+    m_vertices[m_verticesOpenSpot] = vertex;
 
-    //If the first position is the open spot at the end of the list,
-    //we just got the largest id so we put it last
-    if(position == m_verticesOpenSpot) {
-        m_vertices[m_verticesOpenSpot++] = id;
-        return true;
-    }
+    auto res = m_verticesSet.insert(&m_vertices[m_verticesOpenSpot]);
 
-    //id should be inserted in an already taken place so we shift
-    //all elements from the taken place to the end of the list
-    for(int i = m_verticesOpenSpot; i > position; i--){
-        m_vertices[i] = m_vertices[i-1];
-        
-        //Update edges that touch vertices which changed their index
-        for(int j = 0; j < m_edgesOpenSpot; j++){
-            if(m_edges[j].GetSrc() == i-1) m_edges[j].SetSrc(i);
-            if(m_edges[j].GetSink() == i-1) m_edges[j].SetSink(i);                                              
-        }
+    if(!res.second){
+        ocall_print("Graph::AddVertex - failed to insert vertex");
+        return false;
     }
 
     m_verticesOpenSpot++;
-    m_vertices[position] = id;
-    
+
     return true;
 }
 
-bool Graph::GetVertexIterator(VertexIterator& iter){
+bool Graph::AddGraph(Graph& other){
 
-    if(m_vertices == NULL){
-        ocall_print("Graph::GetVertexIterator - graph is not initialized");
+    if(!IsInitialized()){
+        ocall_print("Graph::AddGraph - graph is not initialized");
         return false;
     }
 
-    iter.SetVertices(m_vertices);
-    iter.SetLast(m_verticesOpenSpot == 0 ? 0 : m_verticesOpenSpot-1);
+    //We first add the vertices of the other graph to this graph
+    for(PartyId* vertex : other.m_verticesSet){
 
-    return true;
-}
-
-bool Graph::GetEdgeIterator(EdgeIterator& iter){
-
-    if(m_vertices == NULL){
-        ocall_print("Graph::GetEdgeIterator - graph is not initialized");
-        return false;
+        if(!this->AddVertex(*vertex)){
+            ocall_print("Graph::AddGraph - failed to add vertex");
+            return false;
+        }
     }
 
-    iter.SetEdges(m_edges);
-    iter.SetLast(m_edgesOpenSpot == 0 ? 0 : m_edgesOpenSpot-1);
+    //Then we add edges
+    for(PartyId* vertex : other.m_verticesSet){
+
+         auto src = m_verticesSet.find(vertex);
+         if(m_verticesSet.end() == src){
+             ocall_print("Graph::AddGraph - failed to find src in graph");
+             return false;
+         }
+
+        std::queue<PartyId*> neighbors;
+        
+        if(!vertex->GetNeighbors(neighbors)){
+            ocall_print("Graph::AddGraph - failed to get neighbors");
+            return false;
+        }
+
+        while(!neighbors.empty()){
+            auto sink = m_verticesSet.find(neighbors.front());
+            if(m_verticesSet.end() == sink){
+                ocall_print("Graph::AddGraph - failed to find sink in graph");
+                return false;
+            }
+            if(!this->AddEdge(**src, **sink)){
+                ocall_print("Graph::AddGraph - failed to add edge");
+                return false;
+            }
+            neighbors.pop();
+        }
+        
+    }
 
     return true;
 }
 
-uint32_t Graph::IndexOf(PartyId& pid){
-    if(m_vertices == NULL){
+uint32_t Graph::IndexOf(PartyId* vertex){
+
+    if(!IsInitialized()){
         ocall_print("Graph::IndexOf - graph is not initialized");
-        return MAX_UINT32;
+        return false;
     }
-
-    VertexIterator iter;
-
-    if(!GetVertexIterator(iter)){
-        ocall_print("Graph::IndexOf - failed to get iterator");
-        return MAX_UINT32;
-    }
-
-    PartyId currId;
     uint32_t position = 0;
-    while(iter.GetNext(currId)){                                        
-        if(currId == pid){
+
+    for(PartyId* curr : m_verticesSet){                                        
+
+        if(*curr == *vertex){
             return position;
         }
         position++;
@@ -229,37 +208,24 @@ uint32_t Graph::IndexOf(PartyId& pid){
     return MAX_UINT32;
 }
 
-uint32_t Graph::IndexOf(Edge& edge){
-    if(m_vertices == NULL){
-        ocall_print("Graph::IndexOf - graph is not initialized");
-        return MAX_UINT32;
+bool Graph::Contains(PartyId* src, PartyId* sink){                
+
+    auto it = m_verticesSet.find(src);
+    if(m_verticesSet.end() == it){
+        ocall_print("Graph::Contains - failed to find source");
+        return false;
     }
 
-    EdgeIterator iter;
-
-    if(!GetEdgeIterator(iter)){
-        ocall_print("Graph::IndexOf - failed to get iterator");
-        return MAX_UINT32;
+    if(!(*it)->IsNeighborOf(sink)){
+       return false;
     }
 
-    Edge currId;
-    uint32_t position = 0;
-    while(iter.GetNext(currId)){                                        
-        if(currId == edge){
-            return position;
-        }
-        position++;
-    }
-
-    return MAX_UINT32;
+    return true;
 }
 
-bool Graph::Contains(Edge& e){                
-    return MAX_UINT32 != IndexOf(e);
-}
-
-bool Graph::Contains(PartyId& pid){                
-    return MAX_UINT32 != IndexOf(pid);
+bool Graph::Contains(PartyId* vertex){                
+    auto it = m_verticesSet.find(vertex);
+    return m_verticesSet.end() != it;
 }
 
 uint32_t Graph::GetSize() const {
@@ -293,62 +259,83 @@ bool Graph::FromBuffer(uint8_t** buffer, size_t* len) {
 
     m_vertices = new PartyId[m_verticesLen];
 
-    //Read m_verticesLen PartyIds from buffer
-    for(;m_verticesOpenSpot < m_verticesLen; m_verticesOpenSpot++) {
-        if(!m_vertices[m_verticesOpenSpot].FromBuffer(buffer, len)){
+    //Read m_verticesLen vertices from buffer
+    for(int i = 0; i < m_verticesLen; i++) {
+        PartyId vertex;
+
+        if(!vertex.FromBuffer(buffer, len)){ //TODO - need to add the vertex to other data structures
             ocall_print("Graph::FromBuffer - failed to get all graph elements");
+            return false;
+        }
+
+        if(!this->AddVertex(vertex)){
+            ocall_print("Graph::FromBuffer - failed to add vertex");
             return false;
         }
     }
 
+    //Sanity
     if(m_verticesOpenSpot != m_verticesLen){
         ocall_print("Graph::FromBuffer - m_verticesOpenSpot != m_verticesLen");
         return false;
     }
 
     if(*len < sizeof(uint32_t)){
-        ocall_print("Graph::FromBuffer::m_edgesLen failed, buffer too short, %d", *len);
+        ocall_print("Graph::FromBuffer- failed, buffer too short, %d", *len);
         return false;
     }
+    
+    uint32_t edgesLen;
 
-    memcpy(&m_edgesLen, *buffer, sizeof(uint32_t));
+    memcpy(&edgesLen, *buffer, sizeof(uint32_t));
     *buffer += sizeof(uint32_t);
     *len -= sizeof(uint32_t);
 
     #ifndef SCHIZZO_TEST
-    if(m_edgesLen > MAX_EDGES(m_verticesLen)){
-        ocall_print("Graph::FromBuffer - bad value for m_edgesLen %d", m_edgesLen);
+    if(edgesLen > MAX_EDGES(m_verticesLen)){
+        ocall_print("Graph::FromBuffer - bad value for edgesLen %d", edgesLen);
         return false;
     }
-    #endif
-
-    m_edges = new Edge[m_edgesLen];
+    #endif    
     
-    //Read m_edgesLen PartyIds from buffer
-    for(;m_edgesOpenSpot < m_edgesLen; m_edgesOpenSpot++) {
-        if(!m_edges[m_edgesOpenSpot].FromBuffer(buffer, len)){
+    //Read edgesLen PartyIds from buffer
+    for(int i = 0; i < edgesLen; i++) {
+        Edge edge;
+
+        if(!edge.FromBuffer(buffer, len)){
             ocall_print("Graph::FromBuffer - failed to get all graph elements");
             return false;
         }
-    }
 
-    if(m_edgesOpenSpot != m_edgesLen){
-        ocall_print("Graph::FromBuffer - m_edgesOpenSpot != m_edgesLen");
+        if((edge.GetSrc() >= m_verticesOpenSpot) || (edge.GetSink() >= m_verticesOpenSpot)){
+            ocall_print("Graph::FromBuffer - src or edge are out of range");
+            return false;
+        }
+
+        //Here I use the fact that the graph arrives sorted
+        if(!this->AddEdge(m_vertices[edge.GetSrc()], m_vertices[edge.GetSink()])){
+            ocall_print("Graph::FromBuffer - failed to add edge");
+            return false;
+        }        
+    }
+    //Sanity
+    if(m_edgesOpenSpot != edgesLen){
+        ocall_print("Graph::FromBuffer - m_edgesOpenSpot != edgesLen");
         return false;
     }
 
     return true;
 }
 
-bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
 
+bool Graph::verticesToBuffer(std::map<PartyId*, int, PartyId::comp>& order, uint8_t** buffer, size_t* len){
     if(!IsInitialized()){
-        ocall_print("Graph::ToBuffer - called on not initialized graph");
+        ocall_print("Graph::verticesToBuffer - called on not initialized graph");
         return false;
     }
 
     if(*len < sizeof(uint32_t)){
-        ocall_print("Graph::ToBuffer - m_verticesOpenSpot failed, buffer too short, %d", *len);
+        ocall_print("Graph::verticesToBuffer - m_verticesOpenSpot failed, buffer too short, %d", *len);
         return false;
     }
     
@@ -357,20 +344,38 @@ bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
     *len -= sizeof(m_verticesOpenSpot);
 
     if(*len < m_verticesOpenSpot*APP_PARTY_FULL_SIZE_BYTES){
-        ocall_print("Graph::ToBuffer - m_vertices failed, buffer too short, %d", *len);
+        ocall_print("Graph::verticesToBuffer - m_vertices failed, buffer too short, %d", *len);
         return false;
     }
 
-    //Read m_verticesOpenSpot PartyIds from buffer
-    for(int i = 0; i < m_verticesOpenSpot; i++) {
-        if(!m_vertices[i].ToBuffer(buffer, len)){
-            ocall_print("Graph::FromBuffer - failed to get all graph elements");
+    int position = 0;
+
+    //Write m_verticesOpenSpot vertices from buffer
+    for(PartyId* vertex : m_verticesSet){
+        if(!vertex->ToBuffer(buffer, len)){
+            ocall_print("Graph::verticesToBuffer - failed to serialize vertex");
+            return false;
+        }
+
+        //TODO - validate insertion everywhere else...
+        auto it = order.insert( std::pair<PartyId*, int>(vertex, position++) );
+        if(!it.second){
+            ocall_print("Graph::verticesToBuffer - failed to insert pair");
             return false;
         }
     }
 
+    return true;
+}
+
+bool Graph::edgesToBuffer(std::map<PartyId*, int, PartyId::comp>& order, uint8_t** buffer, size_t* len){
+    if(!IsInitialized()){
+        ocall_print("Graph::edgesToBuffer - called on not initialized graph");
+        return false;
+    }
+
     if(*len < sizeof(uint32_t)){
-        ocall_print("Graph::ToBuffer - m_edgesOpenSpot failed, buffer too short, %d", *len);
+        ocall_print("Graph::edgesToBuffer - m_edgesOpenSpot failed, buffer too short, %d", *len);
         return false;
     }
     
@@ -379,17 +384,84 @@ bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
     *len -= sizeof(m_edgesOpenSpot);
 
     if(*len < m_edgesOpenSpot*EDGE_SIZE_BYTES){
-        ocall_print("Graph::ToBuffer - m_edges failed, buffer too short, %d", *len);
+        ocall_print("Graph::edgesToBuffer - m_edges failed, buffer too short, %d", *len);
         return false;
     }
 
-    //Read m_edgesOpenSpot Edges from buffer
-    for(int i = 0; i < m_edgesOpenSpot; i++) {
-        if(!m_edges[i].ToBuffer(buffer, len)){
-            ocall_print("Graph::FromBuffer - failed to get all graph elements");
+    //TODO - define a comparison function for edges
+    std::set<Edge> inserted;
+
+    //Write all edges to buffer as indices
+    for(PartyId* vertex : m_verticesSet){
+        
+        std::queue<PartyId*> neighbors;
+        if(!vertex->GetNeighbors(neighbors)){
+            ocall_print("Graph::edgesToBuffer - failed to get neighbors");
             return false;
         }
+
+        Edge edge;
+        auto srcIdx = order.find(vertex);
+
+        if(order.end() == srcIdx){
+            ocall_print("Graph::edgesToBuffer - failed to get index of src");
+            return false;
+        }
+
+        edge.SetSrc(srcIdx->second);
+
+        while(!neighbors.empty()){
+
+            auto sinkIdx = order.find(neighbors.front());
+            if(order.end() == sinkIdx){
+                ocall_print("Graph::edgesToBuffer - failed to get index of sink");
+                return false;
+            }
+
+            edge.SetSink(sinkIdx->second);
+
+            //Serialize without duplicates
+            auto it = inserted.insert(edge);
+            if(it.second){
+
+                if(!edge.ToBuffer(buffer, len)){
+                    ocall_print("Graph::edgesToBuffer - failed to serialize edge");
+                    return false;
+                }
+            }
+
+            neighbors.pop();
+        }
     }
+
+    //TODO - make sure m_edgesOpenSpot is maintained properly
+    if(inserted.size() != m_edgesOpenSpot){
+        ocall_print("Graph::edgesToBuffer - inserted more edges than expected");
+        return false;
+    }
+    
+    return true;
+}
+
+
+bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
+
+    if(!IsInitialized()){
+        ocall_print("Graph::ToBuffer - called on not initialized graph");
+        return false;
+    }
+
+    std::map<PartyId*, int, PartyId::comp> order;
+
+    if(!this->verticesToBuffer(order, buffer, len)){
+        ocall_print("Graph::ToBuffer - verticesToBuffer failed");
+        return false;
+    }
+
+    if(!this->edgesToBuffer(order, buffer, len)){
+        ocall_print("Graph::ToBuffer - edgesToBuffer failed");
+        return false;
+    }    
 
     return true;
 }
@@ -397,27 +469,23 @@ bool Graph::ToBuffer(uint8_t** buffer, size_t* len) {
 void Graph::Print(){
     ocall_print("m_verticesLen: %d", m_verticesLen);
     ocall_print("m_verticesOpenSpot: %d", m_verticesOpenSpot);
-    ocall_print("m_edgesLen: %d", m_edgesLen);
     ocall_print("m_edgesOpenSpot: %d", m_edgesOpenSpot);
-    for(int i = 0; i < m_verticesOpenSpot; i++){
-        ocall_print("===============VERTEX=======================");
-        m_vertices[i].Print();
-        ocall_print("===============EDGES========================");
 
-        for(int j = 0; j < m_edgesOpenSpot; j++){
-            if(m_edges[j].GetSrc() == i){
-                m_vertices[m_edges[j].GetSink()].Print();
-            }
-            if(m_edges[j].GetSink() == i){
-                m_vertices[m_edges[j].GetSrc()].Print();
-            }
+    for(PartyId* vertex : m_verticesSet){
+        ocall_print("===============VERTEX=======================");
+        vertex->Print();
+        ocall_print("===============EDGES========================");
+        std::queue<PartyId*> neighbors;
+        if(!vertex->GetNeighbors(neighbors)){
+            ocall_print("Graph::Print - failed to get neighbors");
+            return;
+        }
+        while(!neighbors.empty()){
+            neighbors.front()->Print();
+            neighbors.pop();
         }
         ocall_print("");
     }
-
-    /*for(int i = 0; i < m_edgesOpenSpot; i++){
-        m_edges[i].Print();
-    }*/
 }
 
 bool Graph::IsEquivalent(Graph* p_other){
@@ -425,24 +493,31 @@ bool Graph::IsEquivalent(Graph* p_other){
 }
 
 bool Graph::Contains(Graph* p_other){
-    VertexIterator vit;
-    EdgeIterator eit;
-    PartyId v;
-    Edge e;
-    if(!p_other->GetVertexIterator(vit) || !p_other->GetEdgeIterator(eit)){
-        ocall_print("Graph::IsEquivalent - failed to get iterator");
-        return false;
-    }
-    while(vit.GetNext(v)){
-        if(!this->Contains(v)){
+    
+    for(PartyId* vertex : m_verticesSet){
+
+        if(!p_other->Contains(vertex)){
+            ocall_print("Graph::Contains - other does not contain vertex");
+            vertex->Print();
             return false;
         }
-    }
-    while(eit.GetNext(e)){
-        if(!this->Contains(e)){
+
+        std::queue<PartyId*> neighbors;
+        if(!vertex->GetNeighbors(neighbors)){
+            ocall_print("Graph::Contains - failed to get neighbors");
             return false;
         }
+
+        while(!neighbors.empty()){
+
+            if(!p_other->Contains(vertex, neighbors.front())){
+                ocall_print("Graph::Contains - other does not contain edge");
+                return false;
+            }
+            neighbors.pop();
+        }        
     }
+
     return true; 
 }
 

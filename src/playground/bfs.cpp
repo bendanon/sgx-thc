@@ -36,18 +36,18 @@ void print_buffer(uint8_t* buffer, size_t len){
 int main(){
     Graph graph(10);
 
-    PartyId source(10);
-    PartyId mid1(1);
-    PartyId mid2(2);
+    PartyId source(10, 1);
+    PartyId mid1(1, 0);
+    PartyId mid2(2, 0);
 
-    PartyId mid3(3);
-    PartyId mid4(4);
-    PartyId mid5(5);
-    PartyId mid6(6);
-    PartyId mid7(7);
-    PartyId mid8(8);
+    PartyId mid3(3, 0);
+    PartyId mid4(4, 0);
+    PartyId mid5(5, 0);
+    PartyId mid6(6, 0);
+    PartyId mid7(7, 0);
+    PartyId mid8(8, 0);
     
-    PartyId sink(9);
+    PartyId sink(9, 1);
 
     std::vector<PartyId*> path;
 
@@ -75,7 +75,10 @@ int main(){
 
     graph.AddEdge(mid7, sink);
 
-    graph.FindClosestMatch(source, path);
+    if(!graph.FindClosestMatch(source, path)){
+        printf("no match found\n");
+        return 0;
+    }
 
     for(PartyId* n : path) {
         n->Print();

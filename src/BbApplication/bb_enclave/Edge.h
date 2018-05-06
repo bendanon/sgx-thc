@@ -18,6 +18,8 @@ class Edge {
         //This means the graph is undirected
         bool operator==(const Edge& other);
 
+        bool operator< (const Edge& rhs) const;
+
         Edge& operator=(const Edge& rhs);
 
         bool FromBuffer(uint8_t** buf, size_t* len);

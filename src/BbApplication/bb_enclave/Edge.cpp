@@ -15,6 +15,13 @@ bool Edge::operator==(const Edge& other){
             (m_idxSrc == other.m_idxSink && m_idxSink == other.m_idxSrc);
 }
 
+bool Edge::operator< (const Edge& rhs) const{
+   uint32_t localLength = max(m_idxSrc, m_idxSink) - min(m_idxSrc, m_idxSink);
+   uint32_t rhsLength = max(rhs.m_idxSrc, rhs.m_idxSink) - min(rhs.m_idxSrc, rhs.m_idxSink);
+   if(localLength == rhsLength) return min(m_idxSrc, m_idxSink) < min(rhs.m_idxSrc, rhs.m_idxSink);
+   return localLength < rhsLength;
+}
+
 Edge& Edge::operator=(const Edge& rhs){
     m_idxSrc = rhs.m_idxSrc;
     m_idxSink = rhs.m_idxSink;

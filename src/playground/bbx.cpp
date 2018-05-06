@@ -56,30 +56,31 @@ void print_buffer(uint8_t* buffer, size_t len){
 }
 
 
-#define NUM_OF_BBX (20)
+#define NUM_OF_BBX (30)
 #define MSG_SIZE (THC_ENCRYPTED_MSG_SIZE_BYTES(NUM_OF_BBX))
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
 #define EMAIL "bendanon@gmail.com"
+
+
 int main() {
-    
     
     printf("MAX_EDGES is %d\n", MAX_EDGES(NUM_OF_BBX));
 
-    BlackBoxExecuter bbx[NUM_OF_BBX];
-    uint32_t source[NUM_OF_BBX][MAX_NEIGHBORS(NUM_OF_BBX)];
-    uint32_t numTargets[NUM_OF_BBX]; //= {1,3,2,1,2,2};
-
-    for (int i = 0; i < NUM_OF_BBX; i++){
-        numTargets[i] = MAX_NEIGHBORS(NUM_OF_BBX); 
-        for (int j = 0; j < MAX_NEIGHBORS(NUM_OF_BBX); j++){
-            if(j < i) source[i][j] = j;
-            else source[i][j] = j+1;            
-        }
-    }
+    BlackBoxExecuter bbx[NUM_OF_BBX];	
+	uint32_t source[NUM_OF_BBX][NUM_OF_BBX-1];
+	uint32_t numTargets[NUM_OF_BBX]; //= {1,3,2,1,2,2};
+		
+	for (int i = 0; i < NUM_OF_BBX; i++){
+	    numTargets[i] = NUM_OF_BBX - 1;
+	    for (int j = 0; j < NUM_OF_BBX - 1; j++){
+	        if(j < i) source[i][j] = j;
+	        else source[i][j] = j+1;
+	    }
+	}
     
-    for (int i = MAX_NEIGHBORS(NUM_OF_BBX); i < NUM_OF_BBX-1; i++){
+/*for (int i = MAX_NEIGHBORS(NUM_OF_BBX); i < NUM_OF_BBX-1; i++){
         source[i][0] = i+1;
-    }
+    }*/
 
     /*source[0][0] = 1;
 
@@ -162,6 +163,7 @@ int main() {
             }
         }
        
+       printf("round %d\n", i);
 
         if(fDone){
 
@@ -169,11 +171,17 @@ int main() {
                 if(bbx[j].CompareGraph(bbx[j-1])){
                     printf("========bbx[%d] and bbx[%d] have equivalent graphs:=========\n", j, j-1);    
                 }
+                else{
+                    for(int i = 1 ; i < 10 ; i++) printf("================\n");
+                    bbx[j-1].Print();
+                    for(int i = 1 ; i < 5 ; i++) printf("================\n");
+                    bbx[j].Print();                    
+                }
             }
 
             for(int j = 0; j < 1; j++){
                 printf("========bbx[%d]'s final state is:=========\n", j);
-                //bbx[j].Print();
+                bbx[j].Print();
             }
             return 0;
         }
