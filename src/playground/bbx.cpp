@@ -56,7 +56,7 @@ void print_buffer(uint8_t* buffer, size_t len){
 }
 
 
-#define NUM_OF_BBX (30)
+#define NUM_OF_BBX (20)
 #define MSG_SIZE (THC_ENCRYPTED_MSG_SIZE_BYTES(NUM_OF_BBX))
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
 #define EMAIL "bendanon@gmail.com"

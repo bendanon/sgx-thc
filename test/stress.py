@@ -13,7 +13,7 @@ fmt="""
 {
     "num_of_nodes":%d,
     "port":%d,
-    "email":"bendanon@gmail.com",
+    "email":"%d@gmail.com",
     "p0":%d,
     "p1":%d,
     "p2":%d,
@@ -30,7 +30,7 @@ edgeFmt="""
 {
     "num_of_nodes":%d,
     "port":%d,
-    "email":"bendanon@gmail.com",
+    "email":"%d@gmail.com",
     "p0":%d,
     "p1":%d,
     "p2":%d,
@@ -50,11 +50,11 @@ def r():
 #Create edge nodes - first and last
 filename = fileNameFmt % (startPort)
 f = open(filename, 'w')
-f.write(edgeFmt % (numOfNodes, startPort,r(),r(),r(),r(),startPort+1))
+f.write(edgeFmt % (numOfNodes, startPort,startPort,1,2,3,4,startPort+1))
 
 filename = fileNameFmt % (lastNodePort)
 f = open(filename, 'w')
-f.write(edgeFmt % (numOfNodes, lastNodePort, r(),r(),r(),r(),lastNodePort-1))
+f.write(edgeFmt % (numOfNodes, lastNodePort, lastNodePort,1,2,3,4,lastNodePort-1))
 
 
 if not schizzo:
@@ -62,7 +62,7 @@ if not schizzo:
 	for currPort in range(startPort+1, lastNodePort):
 		filename = fileNameFmt % (currPort)
 		f = open(filename, 'w')
-		f.write(fmt % (numOfNodes, currPort, r(),r(),r(),r(), currPort-1, currPort+1))
+		f.write(fmt % (numOfNodes, currPort, currPort, r(),r(),r(),r(), currPort-1, currPort+1))
 
 
 for i in range(startPort, lastNodePort+1):

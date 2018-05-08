@@ -1,0 +1,35 @@
+{
+   "match" : "4441@gmail.com",
+   "path" : [
+      {
+         "email" : "4441@gmail.com"
+      },
+      {
+         "email" : "4442@gmail.com"
+      },
+      {
+         "email" : "4443@gmail.com"
+      },
+      {
+         "email" : "4444@gmail.com"
+      },
+      {
+         "email" : "4445@gmail.com"
+      },
+      {
+         "email" : "4446@gmail.com"
+      },
+      {
+         "email" : "4447@gmail.com"
+      },
+      {
+         "email" : "4448@gmail.com"
+      },
+      {
+         "email" : "4449@gmail.com"
+      },
+      {
+         "email" : "4450@gmail.com"
+      }
+   ]
+}

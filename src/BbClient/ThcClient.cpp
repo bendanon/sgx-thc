@@ -173,8 +173,13 @@ bool ThcClient::thcFinished(uint8_t* outbuf, size_t outbuf_len){
         return true;               
     }
 
+    if(0==memcmp(RESULT_CANARY NO_MATCH_STRING, outbuf, strlen(RESULT_CANARY NO_MATCH_STRING))){
+        Log("BbClient::thcFinished %d no match", m_config["port"].asUInt());        
+        return true;               
+    }
+
     if(0==memcmp(RESULT_CANARY, outbuf, strlen(RESULT_CANARY))){
-        Log("BbClient::thcFinished %d got result", m_config["port"].asUInt());        
+        Log("BbClient::thcFinished %d, result is %s", m_config["port"].asUInt(), (char*)outbuf);        
         return true;               
     }
 

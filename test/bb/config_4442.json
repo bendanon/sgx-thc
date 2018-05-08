@@ -1,14 +1,15 @@
 
 {
-    "num_of_nodes":2,
+    "num_of_nodes":10,
     "port":4442,
-    "email":"bendanon@gmail.com",
-    "p0":1,
-    "p1":1,
-    "p2":1,
-    "p3":1,
+    "email":"4442@gmail.com",
+    "p0":230,
+    "p1":132,
+    "p2":194,
+    "p3":58,
     "neighbors":
     [
-        {"ip":"127.0.0.1", "port":4441}
+        {"ip":"127.0.0.1", "port":4441},
+	{"ip":"127.0.0.1", "port":4443}
     ]
 }

@@ -68,7 +68,7 @@ constexpr int MAX_EDGES(int V)
                                   EDGES_LEN_SIZE_BYTES + \
                                   (MAX_EDGES(GRAPH_SIZE)*EDGE_SIZE_BYTES))
 
-#define ABORT_MESSAGE RESULT_CANARY NO_MATCH_STRING
+#define ABORT_MESSAGE "ABORT"
 #define RESULT_CANARY "RESULT,"
 #define NO_MATCH_STRING "NO MATCH"
 #define REAULT_EMAIL_DELIMITER ", "
@@ -94,6 +94,6 @@ constexpr int MAX_EDGES(int V)
 #define MAX_CERT_SIZE 16384
 
 //#define THC_DEBUG_PRINTS
-//#define SCHIZZO_TEST
+#define SCHIZZO_TEST
 
 #endif //TH_DEFINES_H
