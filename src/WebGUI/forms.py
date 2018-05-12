@@ -1,5 +1,5 @@
 # pythonspot.com
-import os
+import os,sys
 from flask import Flask, render_template, flash, request, json
 from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
  
@@ -44,7 +44,9 @@ neighborLineFmt = """
     {"ip":"%s", "port":%d},
 """
 
-thcInputFileName = "config.json"
+thcInputFileFmt = "config_%d.json"
+thcOutputFileFmt = "output_%d.json"
+
 
 def createThcInput(numOfNodes, port, email, movie, genre, animal, city, neighbors):
     print "creating input"
@@ -62,6 +64,8 @@ def createThcInput(numOfNodes, port, email, movie, genre, animal, city, neighbor
     
     neighborsString = neighborsString[:len(neighborsString)-2] #remove the last ,
     print neighborsString
+
+    thcInputFileName = (thcInputFileFmt % int(port))
 
     f = open(thcInputFileName, 'w')
     print numOfNodes, " ",port, " ",email, " ",movie, " ",genre, " ",animal, " ",city, " ",neighborsString
@@ -97,23 +101,26 @@ def hello():
             # Save the comment here.
             flash('Running THC... ')
 
-            os.system(("./app %s %s" % (thcInputFileName, "output.json")))            
+            thcInputFileName = (thcInputFileFmt % int(port))
+            thcOutputFileName = (thcOutputFileFmt % int(port))
 
-            output = json.load(open('output.json'))
+            os.system(("./app %s %s" % (thcInputFileName, thcOutputFileName)))           
 
-            if len(output["match"]) == 0:
+            output = json.load(open(thcOutputFileName))
+
+            if None == output["match"] or len(output["match"]) == 0:
                 flash('No matches found...')
             else:
                 match = ("Your match is: %s" % output["match"])
                 path = "The path to your match is: "
                 for element in output["path"]:
                     path += (element["email"] + ", ")
-
-            flash(match + "\n" + path)    
+                    
+                flash(match + "\n" + path)              
         else:
             flash('Error: All the form fields are required.')
  
     return render_template('hello.html', form=form)
  
 if __name__ == "__main__":
-    app.run()
+    app.run(host='127.0.0.1', port=int(sys.argv[1]))
