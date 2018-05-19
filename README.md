@@ -1,5 +1,4 @@
-# Linux SGX remote attestation
-Example of a remote attestation with Intel's SGX including the communication with IAS.
+# Topology Hiding Computation implemeted over Intel SGX
 
 The code requires the installation of Intel SGX [here](https://github.com/01org/linux-sgx) and 
 the SGX driver [here](https://github.com/01org/linux-sgx-driver). Furthermore, also a developer account
@@ -7,7 +6,8 @@ for the usage of IAS has be registered [Deverloper account](https://software.int
 After the registration with a certificate (can be self-signed for development purposes), Intel will
 respond with a SPID which is needed to communicate with IAS. 
 
-The code consists of two separate programs, the ServiceProvider and the Application.
+The code consists of two separate programs, the SkgApplication and the BbApplication.
+For a single topology, there should be a single SkgApplication instance and multiple interconnected BbApplication instances. There is a Flask based GUI for users running BbApplication.
 The message exchange over the network is performed using Google Protocol Buffers. 
 
 ## Installation
@@ -33,3 +33,13 @@ After the installation of those dependencies, the code can be compiled with the 
 ```make```<br />
 ```cd ../Application```<br />
 ```make SGX_MODE=HW SGX_PRERELEASE=1```
+
+## Notes
+The SGX driver might have problems starting after reboot. You would recognize this problem when either SKG or BB applications output
+```ERROR  : Error, call sgx_create_enclave fail``` <br \>
+```INFO  : sgx_create_enclave() needs the AE service to get a launch token``` <br \>
+```INFO  : createEnclave failed``` <br \>
+To solve this problem, got into the linux-sgx-driver source directory, type
+```make clean``` <br />
+and follow the steps specified in linux-sgx-driver/README.md file. Then type:
+```$ sudo aesmd service start```

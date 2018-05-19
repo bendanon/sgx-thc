@@ -33,3 +33,5 @@
 
 # Test environment
 **/test/bb
+**/SkgApplication/assets
+**/BbApplication/assets
