@@ -65,6 +65,11 @@ bool BbClient::hasSecret() {
 
 bool BbClient::writeSecret()
 {
+    if(!createDirectory(Settings::assets_path)){
+        Log("BbClient::writeSecret createDirectory failed");
+        return false;
+    }
+    
     if(!writeToFile(Settings::assets_path + BbClient::secret_file_name, 
                    (uint8_t*)this->p_sealed_s, 
                    SECRET_KEY_SEALED_SIZE_BYTES))

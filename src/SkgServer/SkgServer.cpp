@@ -17,6 +17,11 @@ SkgServer::~SkgServer(){
 
 bool SkgServer::writeAssets()
 {
+    if(!createDirectory(Settings::assets_path)){
+        Log("SkgServer::writeSecret createDirectory failed");
+        return false;
+    }    
+
     if(!writeToFile(Settings::assets_path + SkgServer::secrets_file_name, 
                    (uint8_t*)this->p_sealed_s_sk, 
                    SKG_DATA_SEALED_SIZE_BYTES))

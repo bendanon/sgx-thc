@@ -1,4 +1,5 @@
 #include "UtilityFunctions.h"
+#include <sys/stat.h>
 
 using namespace util;
 
@@ -7,6 +8,16 @@ void SafeFree(void *ptr) {
         free(ptr);
         ptr = NULL;
     }
+}
+
+bool createDirectory(string dir){
+    const int dir_err = mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+    if (-1 == dir_err) {
+        Log("createDirectory failed");
+        return false;
+    }
+    return true;
 }
 
 bool writeToFile(string file, uint8_t* i_buf, size_t bufsize)
@@ -23,8 +34,7 @@ bool writeToFile(string file, uint8_t* i_buf, size_t bufsize)
         Log("writeToFile failed to write %d bytes", bufsize);
         return false;
     }
-
-    Log("writeToFile success");
+    close(fd);
     return true;
 }
 
@@ -43,8 +53,7 @@ bool readFromFile(string file, uint8_t* o_buf, size_t bufsize) {
        Log("read %d bytes instead of %d", read_size, bufsize);
        return false;
     }
-
-    Log("readFromFile succeeded");
+    close(fd);
     return true;
 }
 

@@ -62,6 +62,7 @@ string Base64encodeUint8(uint8_t *val, uint32_t len);
 
 bool readFromFile(string file, uint8_t* o_buf, size_t bufsize);
 bool writeToFile(string file, uint8_t* i_buf, size_t bufsize);
+bool createDirectory(string dir);
 
 #endif
 
