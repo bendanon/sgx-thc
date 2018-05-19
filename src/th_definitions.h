@@ -55,7 +55,7 @@ therefore if MAX_NEIGHBORS(V) is O(V) you might want to change MAX_EDGES to V(V-
 MAX_EDGES(V) = MIN(V(V-1)/2, MAX_NEIGHBORS(V)*V)
 */
 
-#define MAX_NEIGHBORS(V) (V-1) 
+#define MAX_NEIGHBORS(V) 5 
 constexpr int MAX_EDGES(int V)
 {
     return (V*(V-1)/2) <= (MAX_NEIGHBORS(V)*V) ? (V*(V-1)/2) : (MAX_NEIGHBORS(V)*V);
