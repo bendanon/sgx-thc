@@ -14,7 +14,7 @@
 #include <string.h>
 #include "Messages.pb.h"
 #include "UtilityFunctions.h"
-#include "../ServiceProvider/service_provider/ias_ra.h"
+#include "../ServiceProvider/ias_ra.h"
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
