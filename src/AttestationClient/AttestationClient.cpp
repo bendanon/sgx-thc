@@ -24,7 +24,7 @@ int AttestationClient::init() {
     this->ws->init();
 }
 
-bool AttestationClient::sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
+bool AttestationClient::handleMSG1(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2) {
     ra_samp_response_header_t **pp_msg2;
     bool func_ret = true;
     ra_samp_response_header_t* p_msg2_full = NULL;
@@ -221,7 +221,7 @@ sgx_ra_msg3_t* AttestationClient::assembleMSG3(Messages::MessageMSG3 msg){
     return p_msg3;
 }
 
-bool AttestationClient::sp_ra_proc_msg3_req(Messages::MessageMSG3 msg){
+bool AttestationClient::handleMSG3(Messages::MessageMSG3 msg){
 
     bool func_ret = true;
     sgx_ra_msg3_t *p_msg3 = NULL;
@@ -262,9 +262,15 @@ void AttestationClient::start() {
         return;
     }
 
+    /**
+    * Here we simulate an attestation client / server protocol.
+    * In our implementation Everything is done at client side for security reasons.
+    * Further explanations can be found in the project report.
+    **/
+
     bool ret = false;
 
-    /*MSG1 client-->server*/
+    //MSG1, in the intended architecture should be from client to server
     string msg1_str = generateMSG1();
     Messages::MessageMSG1 msg1;
     ret = msg1.ParseFromString(msg1_str);
@@ -274,14 +280,14 @@ void AttestationClient::start() {
         return;
     }
 
-    /*MSG2 server-->client*/
+    //MSG2, in the intended architecture should be from server to client
     Messages::MessageMSG2 msg2;
-    if(!sp_ra_proc_msg1_req(msg1, &msg2)){
+    if(!handleMSG1(msg1, &msg2)){
         Log("failed to generate MSG2");
         return;
     }
 
-    /*MSG3 client-->server*/
+    //MSG1, in the intended architecture should be from client to server
     Messages::MessageMSG3 msg3;
     string msg3_str = handleMSG2(msg2);
 
@@ -292,7 +298,7 @@ void AttestationClient::start() {
         return;
     }
 
-    if(!sp_ra_proc_msg3_req(msg3)){
+    if(!handleMSG3(msg3)){
         Log("failed to process MSG3");
         return;
     }
@@ -316,25 +322,6 @@ uint32_t AttestationClient::getExtendedEPID_GID(uint32_t *extended_epid_group_id
         Log("Call sgx_get_extended_epid_group_id success");
 
     return ret;
-}
-
-
-string AttestationClient::generateMSG0() {
-    Log("Call MSG0 generate");
-    string s;
-    uint32_t extended_epid_group_id;
-    int ret = this->getExtendedEPID_GID(&extended_epid_group_id);
-
-    Messages::MessageMsg0 msg;
-    msg.set_type(RA_MSG0);
-
-    if (ret == SGX_SUCCESS) {
-        msg.set_epid(extended_epid_group_id);
-    } else {
-        msg.set_status(TYPE_TERMINATE);
-        msg.set_epid(0);
-    }
-    return msg.SerializeToString(&s) ? s : "";
 }
 
 
@@ -510,95 +497,6 @@ string AttestationClient::handleMSG2(Messages::MessageMSG2 msg) {
 
     return "";
 }
-
-string AttestationClient::handleMSG0Response(Messages::MessageMsg0 msg) {
-    Log("MSG0 response received");
-
-    if (msg.status() == TYPE_OK) {
-        sgx_status_t ret = m_pEnclave->initRa();
-
-        if (SGX_SUCCESS != ret || this->getEnclaveStatus()) {
-            Log("Error, call enclave_init_ra fail", log::error);
-        } else {
-            Log("Call enclave_init_ra success");
-            Log("Sending msg1 to remote attestation service provider. Expecting msg2 back");
-
-            auto ret = this->generateMSG1();
-
-            return ret;
-        }
-
-    } else {
-        Log("MSG0 response status was not OK", log::error);
-    }
-
-    return "";
-}
-
-
-void AttestationClient::restart(){
-    m_pEnclave->closeRa();
-}
-
-vector<string> AttestationClient::incomingHandler(string v, int type) {
-    vector<string> res;
-    string s;
-    bool ret;
-
-    if(type == RA_FAILED_READ)
-    {
-        Log("AttestationClient::incomingHandler - Failed read, restarting");
-        restart();
-        return res;
-    }
-
-    if (!v.empty()) {
-        
-        switch (type) {        
-        case RA_MSG0: {		//MSG0 Response
-            Messages::MessageMsg0 msg0;
-            ret = msg0.ParseFromString(v);
-            if (ret && (msg0.type() == RA_MSG0)) {
-                s = this->handleMSG0Response(msg0);
-                res.push_back(to_string(RA_MSG1));
-            }
-        }
-        break;
-        case RA_MSG2: {		//MSG2
-            Messages::MessageMSG2 msg2;
-            ret = msg2.ParseFromString(v);
-            if (ret && (msg2.type() == RA_MSG2)) {
-                s = this->handleMSG2(msg2);
-                res.push_back(to_string(RA_MSG3));
-            }
-        }
-        break;
-        case RA_ATT_RESULT: {	//MSG4
-            Messages::MessageMSG4 att_msg;
-            ret = att_msg.ParseFromString(v);
-            if (ret && att_msg.type() == RA_ATT_RESULT) {
-                //s = this->handleAttestationResult(att_msg);
-                //s = this->handleMSG4(att_msg);
-                res.push_back(to_string(RA_APP_ATT_OK));
-            }
-        }
-        break;
-        default:
-            Log("Unknown type: %d", type, log::error);
-            break;
-        }
-    } else {
-        s = this->generateMSG0();
-        res.push_back(to_string(RA_MSG0));      
-    }
-
-    res.push_back(s);
-
-    return res;
-}
-
-
-
 
 
 

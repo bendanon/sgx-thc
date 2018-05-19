@@ -45,16 +45,10 @@ private:
 
     void assembleMSG2(Messages::MessageMSG2 msg, sgx_ra_msg2_t **pp_msg2);
     string handleMSG2(Messages::MessageMSG2 msg);
-    string handleMSG0Response(Messages::MessageMsg0 msg);
     string generateMSG1();
-    bool sp_ra_proc_msg1_req(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2);
-    bool sp_ra_proc_msg3_req(Messages::MessageMSG3 msg);
+    bool handleMSG1(Messages::MessageMSG1 msg1, Messages::MessageMSG2 *msg2);
+    bool handleMSG3(Messages::MessageMSG3 msg);
     sgx_ra_msg3_t* assembleMSG3(Messages::MessageMSG3 msg);
-
-
-    string generateMSG0();
-    //string createInitMsg(int type, string msg);
-    void restart();
 
 protected:
     Enclave *m_pEnclave = NULL;
