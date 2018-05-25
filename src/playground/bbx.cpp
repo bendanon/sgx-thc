@@ -2,11 +2,6 @@
 #include "../BbApplication/bb_enclave/BlackBoxExecuter.h"
 #include <iostream>
 
-//typedef unsigned int sgx_status_t;
-
-//#define SGX_AESGCM_KEY_SIZE 32
-//#define SGX_SUCCESS 0
-
 sgx_status_t sgx_read_rand(unsigned char *randbuf, size_t length_in_bytes){
 
     for(int i = 0; i < length_in_bytes; i++){
@@ -179,10 +174,10 @@ int main() {
                 }
             }
 
-            for(int j = 0; j < 1; j++){
+            /*for(int j = 0; j < 1; j++){
                 printf("========bbx[%d]'s final state is:=========\n", j);
                 bbx[j].Print();
-            }
+            }*/ 
             return 0;
         }
    }

@@ -13,7 +13,7 @@ void SafeFree(void *ptr) {
 bool createDirectory(string dir){
     const int dir_err = mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-    if (-1 == dir_err) {
+    if (-1 == dir_err && errno != EEXIST) {
         Log("createDirectory failed");
         return false;
     }

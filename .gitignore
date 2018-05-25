@@ -35,3 +35,12 @@
 **/test/bb
 **/SkgApplication/assets
 **/BbApplication/assets
+
+# UT environment generated files
+**/CMakeFiles
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/bb_enclave/test/Makefile
+**/runTests
+
+

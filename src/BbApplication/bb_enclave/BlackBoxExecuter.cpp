@@ -297,7 +297,7 @@ bool BlackBoxExecuter::generateOutput(uint8_t* B_out, size_t B_out_size){
     }
 
     //This means we are in the last round of consistency checking
-    if(m_ctrRound >= m_numOfVertices + m_numOfVertices*m_pGraph->GetDiameter()){
+    if(m_ctrRound > m_numOfVertices + m_numOfVertices*m_pGraph->GetDiameter()){
 
         if(!calculateResult(B_out, B_out_size)){
             ocall_print("BlackBoxExeuter::generateOutput - failed to calculate result");

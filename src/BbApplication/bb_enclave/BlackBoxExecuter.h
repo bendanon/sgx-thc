@@ -1,5 +1,5 @@
-#include "../GeneralSettings.h"
-#include "../common_enclave/common_enclave.h"
+#include <GeneralSettings.h>
+#include <common_enclave.h>
 #include "PartyId.h"
 #include "Graph.h"
 #include "Edge.h"
