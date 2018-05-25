@@ -58,8 +58,6 @@ bool BlackBoxExecuter::Initialize(bb_config_t* p_config)
         ocall_print("BlackBoxExecuter::Initialize -failed to parse id from buffer");
         return false;
     }
-    
-    m_localId.Print();
 
     m_numOfVertices = p_config->num_of_vertices;
     m_numOfNeighbors = p_config->num_of_neighbors;
