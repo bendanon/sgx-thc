@@ -1,9 +1,5 @@
 #include "../BbApplication/bb_enclave/Graph.h"
 #include <iostream>
-#include <vector>
-#include <queue>
-#include <set>
-#include <map>
 
 void ocall_print(const char* format, uint32_t number){
     char output[500];

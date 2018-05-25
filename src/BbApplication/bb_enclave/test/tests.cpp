@@ -1,4 +1,6 @@
 #include "../BlackBoxExecuter.h"
+#include "../Graph.h"
+
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -119,6 +121,57 @@ TEST(bbxTest, FullMesh_10){
 	for(int j = 0; j < NUM_OF_BBX; j++){
 		ASSERT_EQ(0, memcmp(desired_result, MSG(ptr[j], (NUM_OF_BBX*NUM_OF_BBX)), strlen(desired_result)));
 	}
+}
+
+TEST(graphTest, bfs_10){
+	Graph graph(10);
+
+    PartyId source(10, 1);
+    PartyId mid1(1, 0);
+    PartyId mid2(2, 0);
+
+    PartyId mid3(3, 0);
+    PartyId mid4(4, 0);
+    PartyId mid5(5, 0);
+    PartyId mid6(6, 0);
+    PartyId mid7(7, 0);
+    PartyId mid8(8, 0);
+    
+    PartyId sink(9, 1);
+
+    std::vector<PartyId*> path;
+
+    ASSERT_TRUE(graph.AddVertex(source));
+    ASSERT_TRUE(graph.AddVertex(mid1));
+    ASSERT_TRUE(graph.AddVertex(mid2));
+    ASSERT_TRUE(graph.AddVertex(mid3));
+    ASSERT_TRUE(graph.AddVertex(mid4));
+    ASSERT_TRUE(graph.AddVertex(mid5));
+    ASSERT_TRUE(graph.AddVertex(mid6));
+    ASSERT_TRUE(graph.AddVertex(mid7));
+    ASSERT_TRUE(graph.AddVertex(mid8));
+    ASSERT_TRUE(graph.AddVertex(sink));
+
+    ASSERT_TRUE(graph.AddEdge(source, mid1));
+    ASSERT_TRUE(graph.AddEdge(source, mid2));
+
+    ASSERT_TRUE(graph.AddEdge(mid1, mid3));
+    ASSERT_TRUE(graph.AddEdge(mid1, mid4));
+    ASSERT_TRUE(graph.AddEdge(mid2, mid5));
+    ASSERT_TRUE(graph.AddEdge(mid2, mid6));
+
+    ASSERT_TRUE(graph.AddEdge(mid5, mid7));
+    ASSERT_TRUE(graph.AddEdge(mid5, mid8));
+
+    ASSERT_TRUE(graph.AddEdge(mid7, sink));
+
+    ASSERT_TRUE(graph.FindClosestMatch(source, path));	
+
+    ASSERT_TRUE(*path[0] == sink);
+	ASSERT_TRUE(*path[1] == mid7);
+	ASSERT_TRUE(*path[2] == mid5);
+	ASSERT_TRUE(*path[3] == mid2);
+	ASSERT_TRUE(*path[4] == source);
 }
 
 int main(int argc, char **argv){
