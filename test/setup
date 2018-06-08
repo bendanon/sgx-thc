@@ -4,4 +4,8 @@ mkdir bb
 mkdir bb/assets
 cp ../src/BbApplication/app bb/ ; cp ../src/BbApplication/bb_enclave.signed.so bb/
 cp stress.py bb/
+cp ../src/WebGUI/* bb/ -r
 
+mkdir skg
+mkdir skg/assets
+cp ../src/SkgApplication/app skg/ ; cp ../src/SkgApplication/skg_enclave.signed.so skg/
