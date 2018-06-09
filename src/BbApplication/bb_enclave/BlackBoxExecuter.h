@@ -46,6 +46,8 @@ public:
 
     bool CompareGraph(BlackBoxExecuter& other);
 
+    uint32_t GetLocalIndex();
+
 private:
 
     bool generateOutput(uint8_t* B_out, size_t B_out_size);

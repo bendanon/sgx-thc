@@ -133,11 +133,7 @@ bool BlackBoxExecuter::processAbort(uint8_t* B_out, size_t B_out_size){
         m_abortedRound = m_ctrRound;
     }
     
-    ocall_print("ABORT!!!!");
     m_abortCounter++;
-
-    ocall_print("m_abortCounter = %d", m_abortCounter);
-    ocall_print("m_numOfNeighbors = %d", m_numOfNeighbors);
 
     if(m_abortCounter + m_roundCheckList.size() == m_numOfNeighbors){
         if(!incrementRound(B_out, B_out_size)){
@@ -283,7 +279,26 @@ void BlackBoxExecuter::Print(){
     ocall_print("m_roundCheckList.size() = %d", m_roundCheckList.size());
 }
 
+uint32_t BlackBoxExecuter::GetLocalIndex(){
+    if(NULL == m_pGraph){
+        ocall_print("BlackBoxExecuter::GetLocalIndex - m_pGraph is NULL");
+        return MAX_UINT32;
+    }
+
+    if(m_ctrRound < m_numOfVertices){
+        ocall_print("BlackBoxExecuter::GetLocalIndex - called before graph collection finished");
+        return MAX_UINT32;
+    }
+
+    return m_pGraph->IndexOf(&m_localId);
+}
+
 bool BlackBoxExecuter::CompareGraph(BlackBoxExecuter& other){
+    if(NULL == m_pGraph){
+        ocall_print("BlackBoxExecuter::CompareGraph - m_pGraph is NULL");
+        return false;
+    }
+
     return m_pGraph->IsEquivalent(other.m_pGraph);
 }
 
@@ -398,10 +413,7 @@ bool BlackBoxExecuter::calculateResult(uint8_t* B_out, size_t B_out_size)
     uint32_t subphase = (consistencyCheckingRounds + 1) / m_numOfVertices;
     uint32_t i = m_pGraph->IndexOf(&m_localId);
 
-    ocall_print("BlackBoxExecuter::calculateResult - subphase is %d", subphase);
-    ocall_print("BlackBoxExecuter::calculateResult - i is %d", i);
-
-    if(i < subphase){            
+    if(subphase < i){            
         return outputResult(B_out, B_out_size);
     }
 

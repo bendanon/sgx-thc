@@ -56,38 +56,56 @@ void print_buffer(uint8_t* buffer, size_t len){
 #define MSG_SIZE (THC_ENCRYPTED_MSG_SIZE_BYTES(NUM_OF_BBX))
 #define MSG(bufPtr, msgNumber) (bufPtr + ((msgNumber)%2)*MSG_SIZE)
 #define EMAIL "bendanon@gmail.com"
+#define NUM_OF_BBX 10
 
-TEST(bbxTest, FullMesh_10){
+class BbxSetupFixture: public ::testing::Test { 
+public: 
+    BbxSetupFixture( ) { 
+    // initialization code here
+    } 
 
-	int NUM_OF_BBX = 10;
-    BlackBoxExecuter bbx[NUM_OF_BBX];	
-	uint32_t source[NUM_OF_BBX][NUM_OF_BBX-1];
-	uint32_t numTargets[NUM_OF_BBX]; //= {1,3,2,1,2,2};
-		
-	for (int i = 0; i < NUM_OF_BBX; i++){
-	    numTargets[i] = NUM_OF_BBX - 1;
-	    for (int j = 0; j < NUM_OF_BBX - 1; j++){
-	        if(j < i) source[i][j] = j;
-	        else source[i][j] = j+1;
+    void SetUp( ) { 
+        for (int i = 0; i < NUM_OF_BBX; i++){
+            numNeighbors[i] = NUM_OF_BBX - 1;
+            for (int j = 0; j < NUM_OF_BBX - 1; j++){
+                if(j < i) source[i][j] = j;
+                else source[i][j] = j+1;
+            }
+        }
+
+        sgx_read_rand(secret, SECRET_KEY_SIZE_BYTES);
+    
+	    config.num_of_vertices = NUM_OF_BBX;
+	    memcpy(config.email,EMAIL,sizeof(EMAIL));
+	    sgx_read_rand(config.params, APP_NUM_OF_PARAMETERS);
+
+        for (int i = 0; i < NUM_OF_BBX; i++){
+		    config.num_of_neighbors = numNeighbors[i];
+		    ASSERT_TRUE(bbx[i].Initialize(&config));
+		    ASSERT_TRUE(bbx[i].SetSecret(secret, SECRET_KEY_SIZE_BYTES));
 	    }
-	}
+    }
 
-	uint8_t secret[SECRET_KEY_SIZE_BYTES];
-	sgx_read_rand(secret, SECRET_KEY_SIZE_BYTES);
+    void TearDown( ) { 
+    // code here will be called just after the test completes
+    // ok to through exceptions from here if need be
+    }
 
-	bb_config_t config;
-	config.num_of_vertices = NUM_OF_BBX;
-	memcpy(config.email,EMAIL,sizeof(EMAIL));
-	sgx_read_rand(config.params, APP_NUM_OF_PARAMETERS);
+    ~BbxSetupFixture( )  { 
+    // cleanup any pending stuff, but no exceptions allowed
+    }
 
-	for (int i = 0; i < NUM_OF_BBX; i++){
-		config.num_of_neighbors = numTargets[i];
-		ASSERT_TRUE(bbx[i].Initialize(&config));
-		ASSERT_TRUE(bbx[i].SetSecret(secret, SECRET_KEY_SIZE_BYTES));
-	}
+    BlackBoxExecuter bbx[NUM_OF_BBX];	
+    uint32_t source[NUM_OF_BBX][NUM_OF_BBX-1];
+    uint32_t numNeighbors[NUM_OF_BBX]; 
+    uint8_t secret[SECRET_KEY_SIZE_BYTES];
+    bb_config_t config;
 
-   uint8_t bbxMsg[NUM_OF_BBX][MSG_SIZE*2];
-   uint8_t* ptr[NUM_OF_BBX];
+    uint8_t bbxMsg[NUM_OF_BBX][MSG_SIZE*2];
+    uint8_t* ptr[NUM_OF_BBX];
+};
+
+TEST_F(BbxSetupFixture, FullMesh_10_HappyPath){	  
 
     for (int i = 0; i < NUM_OF_BBX; i++){
         ptr[i] = bbxMsg[i];        
@@ -97,7 +115,7 @@ TEST(bbxTest, FullMesh_10){
 	/*Graph collection phash*/
 	for(int i = 0; i < NUM_OF_BBX; i++){
 		for(int j = 0; j < NUM_OF_BBX; j++){
-			for(int k = 0; k < numTargets[j]; k++){
+			for(int k = 0; k < numNeighbors[j]; k++){
 				ASSERT_TRUE(bbx[j].Execute(MSG(ptr[source[j][k]], i), MSG_SIZE, MSG(ptr[j], i+1), MSG_SIZE));
 			}
 		}
@@ -111,7 +129,7 @@ TEST(bbxTest, FullMesh_10){
 	/*Consistency checking phash*/
 	for(int i = 0; i < NUM_OF_BBX*NUM_OF_BBX; i++){
 		for(int j = 0; j < NUM_OF_BBX; j++){
-			for(int k = 0; k < numTargets[j]; k++){
+			for(int k = 0; k < numNeighbors[j]; k++){
 				ASSERT_TRUE(bbx[j].Execute(MSG(ptr[source[j][k]], i), MSG_SIZE, MSG(ptr[j], i+1), MSG_SIZE));
 			}
 		}
@@ -120,6 +138,135 @@ TEST(bbxTest, FullMesh_10){
 	const char desired_result[] = "RESULT," EMAIL ", " EMAIL;
 	for(int j = 0; j < NUM_OF_BBX; j++){
 		ASSERT_EQ(0, memcmp(desired_result, MSG(ptr[j], (NUM_OF_BBX*NUM_OF_BBX)), strlen(desired_result)));
+	}
+}
+
+TEST_F(BbxSetupFixture, FullMesh_10_AbortDuringGraphCollection){
+
+    for (int i = 0; i < NUM_OF_BBX; i++){
+        ptr[i] = bbxMsg[i];        
+        ASSERT_TRUE(bbx[i].GenerateFirstMessage(MSG(ptr[i], 0), MSG_SIZE));
+    }
+
+	/*First half of Graph collection phash - happy path*/
+	for(int roundNumber = 0; roundNumber < NUM_OF_BBX / 2; roundNumber++){
+		for(int j = 0; j < NUM_OF_BBX; j++){
+			for(int k = 0; k < numNeighbors[j]; k++){
+				ASSERT_TRUE(bbx[j].Execute(MSG(ptr[source[j][k]], roundNumber), MSG_SIZE, MSG(ptr[j], roundNumber+1), MSG_SIZE));
+			}
+		}
+	}
+
+    //At this stage bbx[0] "dies", so it stops communicating and its neighbors get abort
+
+    /*Second half of Graph collection phash + Consistency checking phase*/
+	for(int roundNumber = NUM_OF_BBX / 2; roundNumber < NUM_OF_BBX + NUM_OF_BBX*NUM_OF_BBX; roundNumber++){
+
+		//bbx[0] doesn't recieve any more messages, so we start with bbx[1]
+        for(int receiverIdx = 1; receiverIdx < NUM_OF_BBX; receiverIdx++){
+
+			for(int senderIdx = 0; senderIdx < numNeighbors[receiverIdx]; senderIdx++){
+
+                //Since bbx[0] is dead the untrusted code will pass NULL, 0 instead of a message
+                if(senderIdx == 0){
+
+                    ASSERT_TRUE(bbx[receiverIdx].Execute(NULL, 0, 
+                                                         MSG(ptr[receiverIdx], roundNumber+1), MSG_SIZE));
+                }
+                else {
+                    
+                    ASSERT_TRUE(bbx[receiverIdx].Execute(MSG(ptr[source[receiverIdx][senderIdx]], roundNumber), MSG_SIZE, 
+                                                         MSG(ptr[receiverIdx], roundNumber+1), MSG_SIZE));
+                }
+				
+			}
+		}
+	}
+	
+	const char desired_result[] = ABORT_MESSAGE;
+	for(int j = 1; j < NUM_OF_BBX; j++){
+		ASSERT_EQ(0, memcmp(desired_result, MSG(ptr[j], (NUM_OF_BBX*NUM_OF_BBX)), strlen(desired_result)));
+	}
+}
+
+TEST_F(BbxSetupFixture, FullMesh_10_AbortDuringConsistencyChecking){
+
+    for (int i = 0; i < NUM_OF_BBX; i++){
+        ptr[i] = bbxMsg[i];        
+        ASSERT_TRUE(bbx[i].GenerateFirstMessage(MSG(ptr[i], 0), MSG_SIZE));
+    }
+
+	/*Graph collection phash - happy path*/
+	for(int roundNumber = 0; roundNumber < NUM_OF_BBX; roundNumber++){
+		for(int j = 0; j < NUM_OF_BBX; j++){
+			for(int k = 0; k < numNeighbors[j]; k++){
+				ASSERT_TRUE(bbx[j].Execute(MSG(ptr[source[j][k]], roundNumber), MSG_SIZE, MSG(ptr[j], roundNumber+1), MSG_SIZE));
+			}
+		}
+	}
+
+    uint32_t bbxIndex[NUM_OF_BBX];
+    uint32_t middleBbx = MAX_UINT32;
+    for(int i = 0; i < NUM_OF_BBX; i++){
+        bbxIndex[i] = bbx[i].GetLocalIndex();
+        ASSERT_FALSE(MAX_UINT32 == bbxIndex[i]);
+        if(bbxIndex[i] == NUM_OF_BBX / 2) middleBbx = i;
+    }
+
+    //middleBbx will abort if it receives abort before subphase NUM_OF_BBX / 2
+    uint32_t roundToAbort = NUM_OF_BBX + NUM_OF_BBX*((NUM_OF_BBX/2)-1);
+
+    /*Consistency checking phase - up until subphase NUM_OF_BBX/2-1*/
+	for(int roundNumber = 0; roundNumber < roundToAbort; roundNumber++){
+
+        for(int receiverIdx = 0; receiverIdx < NUM_OF_BBX; receiverIdx++){
+
+			for(int senderIdx = 0; senderIdx < numNeighbors[receiverIdx]; senderIdx++){
+                
+                ASSERT_TRUE(bbx[receiverIdx].Execute(MSG(ptr[source[receiverIdx][senderIdx]], roundNumber), MSG_SIZE, 
+                                                        MSG(ptr[receiverIdx], roundNumber+1), MSG_SIZE));          
+				
+			}
+		}
+	}
+
+     //At this stage bbx[0] "dies", so it stops communicating and its neighbors get abort
+
+    for(int roundNumber = roundToAbort; roundNumber < NUM_OF_BBX*NUM_OF_BBX; roundNumber++){
+
+		//bbx[0] doesn't recieve any more messages, so we start with bbx[1]
+        for(int receiverIdx = 1; receiverIdx < NUM_OF_BBX; receiverIdx++){
+
+			for(int senderIdx = 0; senderIdx < numNeighbors[receiverIdx]; senderIdx++){
+
+                //Since bbx[0] is dead the untrusted code will pass NULL, 0 instead of a message
+                if(senderIdx == 0){
+
+                    ASSERT_TRUE(bbx[receiverIdx].Execute(NULL, 0, 
+                                                         MSG(ptr[receiverIdx], roundNumber+1), MSG_SIZE));
+                }
+                else {
+                    
+                    ASSERT_TRUE(bbx[receiverIdx].Execute(MSG(ptr[source[receiverIdx][senderIdx]], roundNumber), MSG_SIZE, 
+                                                         MSG(ptr[receiverIdx], roundNumber+1), MSG_SIZE));
+                }
+				
+			}
+		}
+	}
+	
+    const char result_output[] = "RESULT," EMAIL ", " EMAIL;
+	const char abort_output[] = ABORT_MESSAGE;
+
+    //bbx with index <= the subphase in which they saw abort will return abort. The rest will return a result
+	for(int j = 1; j < NUM_OF_BBX; j++){
+
+        if(bbxIndex[j] <= bbxIndex[middleBbx]){
+            ASSERT_EQ(0, memcmp(abort_output, MSG(ptr[j], (NUM_OF_BBX*NUM_OF_BBX)), strlen(abort_output)));
+        }
+        else{
+            ASSERT_EQ(0, memcmp(result_output, MSG(ptr[j], (NUM_OF_BBX*NUM_OF_BBX)), strlen(result_output)));            
+        }		
 	}
 }
 
