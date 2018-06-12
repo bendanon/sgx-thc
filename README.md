@@ -38,7 +38,7 @@ After the installation of those dependencies, the code can be compiled with the 
 
 IMPORTANT - make sure that if you make changes to the skg enclave, you need to run it once, look for a debug print such as
 ```INFO  : skg mrenclave is h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=```
-And hard-code the mrenclave value (h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=) into the variable "skg_mrenclave" inside the skg_enclave.cpp file, then recompile the bb_enclave
+And hard-code the mrenclave value (h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=) into the variable "skg_mrenclave" inside the bb_enclave.cpp file, then recompile the bb_enclave
 
 ## Notes
 The SGX driver might have problems starting after reboot. You would recognize this problem when either SKG or BB applications output
