@@ -27,6 +27,8 @@ To be able to run the above code some external libraries are needed:
 All other required libraries can be installed with the following command
 ```sudo apt-get install libboost-thread-dev libboost-system-dev curl libcurl4-openssl-dev libssl-dev liblog4cpp5-dev libjsoncpp-dev```
 
+Also, you need to clone the wolfssl repo:
+```cd ../ ; git clone https://github.com/wolfSSL/wolfssl.git```
 
 After the installation of those dependencies, the code can be compiled with the following commands:<br/>
 ```cd SkgApplication```
