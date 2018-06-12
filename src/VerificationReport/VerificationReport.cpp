@@ -161,6 +161,8 @@ bool VerificationReport::fromCertMsg(Messages::CertificateMSG& certMsg, verifica
         return false;
     }
 
+    Log("skg mrenclave is %s", base64_encode((uint8_t*)&m_quote_body.report_body.mr_enclave, sizeof(m_quote_body.report_body.mr_enclave)).c_str());
+
     if(!writeToFile(file + "ga.skg", (uint8_t*)&this->m_ga, sizeof(sgx_ec256_public_t))) {
         Log("VerificationReport::write ga failed");
         return false;

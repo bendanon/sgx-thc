@@ -69,7 +69,9 @@ sgx_status_t encrypt(uint8_t* plaintext, size_t plaintext_size,
 sgx_status_t decrypt(uint8_t* plaintext, size_t plaintext_size,
                          uint8_t* ciphertext, uint8_t key[SGX_AESGCM_KEY_SIZE]);
 
-sgx_status_t verify_peer(verification_report_t* p_report, sgx_ec256_public_t* peer_pk);
+sgx_status_t verify_report(verification_report_t* p_report);
+bool verify_public_key(sgx_ec256_public_t* p_gb, sgx_ec256_public_t* p_ga, sgx_quote_t* p_quote_body);
+std::string extract_quote_body(const char* report_buf);
 
 sgx_status_t _derive_smk(sgx_ec256_public_t* p_pk, 
                          size_t pk_size, 

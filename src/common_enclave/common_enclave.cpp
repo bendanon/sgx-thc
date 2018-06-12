@@ -8,7 +8,6 @@
 #include <wolfssl/wolfcrypt/signature.h>
 
 #include <string>
-#include "Base64_enclave.h"
 
 #ifdef SUPPLIED_KEY_DERIVATION
 
@@ -332,9 +331,8 @@ bool verify_public_key(sgx_ec256_public_t* p_gb, sgx_ec256_public_t* p_ga, sgx_q
     return true;
 }
 
-sgx_status_t verify_peer(verification_report_t* p_report, sgx_ec256_public_t* peer_pk){
-
-    int ret;
+sgx_status_t verify_report(verification_report_t* p_report){
+        int ret;
     WOLFSSL_CERT_MANAGER* cm = 0;
     byte  derCert[MAX_CERT_SIZE];
     RsaKey pubKey;
@@ -427,29 +425,8 @@ sgx_status_t verify_peer(verification_report_t* p_report, sgx_ec256_public_t* pe
 
     wolfSSL_CertManagerFree(cm);
 
-    /*By now we know the report is valid*/
-    sgx_quote_t quote_body;
-    string isvEnclaveQuoteBody = extract_quote_body((char*)p_report->response_body);
-    memcpy(&quote_body, base64_decode(isvEnclaveQuoteBody).c_str(), sizeof(quote_body));
-    
-
-    if(0!=memcmp(Settings::mrsigner, 
-                 base64_encode((uint8_t*)&quote_body.report_body.mr_signer, sizeof(quote_body.report_body.mr_signer)).c_str(),
-                 strlen(Settings::mrsigner)))
-    {
-        ocall_print("mrsigner is invealid %d", 0);
-        return SGX_ERROR_UNEXPECTED;
-    }
-
-    //TODO - MRENCLAVE Base64encodeUint8((uint8_t*)&m_quote_body.report_body.mr_enclave, sizeof(m_quote_body.report_body.mr_enclave)
-
-    if(!verify_public_key(peer_pk, (sgx_ec256_public_t*)p_report->unusable_pk, &quote_body)){
-        ocall_print("verify public key failed %d", 0);
-        return SGX_ERROR_UNEXPECTED;
-    }
-    
     wolfSSL_EVP_PKEY_free(pubKeyTmp);
     wolfSSL_X509_free(cert);
 
-    return SGX_SUCCESS;    
+    return SGX_SUCCESS;
 }
