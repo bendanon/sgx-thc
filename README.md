@@ -46,7 +46,6 @@ The SGX driver might have problems starting after reboot. You would recognize th
 ```INFO  : sgx_create_enclave() needs the AE service to get a launch token``` <br \>
 ```INFO  : createEnclave failed``` <br \>
 To solve this problem, got into the linux-sgx-driver source directory, type
-```make clean``` <br />
-and follow the steps specified in linux-sgx-driver/README.md file. Then type:
+```make clean``` and follow the steps specified in linux-sgx-driver/README.md file. Then type:
 ```$ sudo aesmd service start```
 
