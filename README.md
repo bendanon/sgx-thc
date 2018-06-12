@@ -34,7 +34,7 @@ After the installation of those dependencies, the code can be compiled with the 
 ```cd SkgApplication```
 ```./makerelease```
 ```cd ../BbApplication```
-```./makerelease``` <br \>
+```./makerelease```
 
 IMPORTANT - make sure that if you make changes to the skg enclave, you need to run it once, look for a debug print such as
 ```INFO  : skg mrenclave is h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=```
