@@ -27,9 +27,7 @@ To be able to run the above code some external libraries are needed:
 All other required libraries can be installed with the following command
 ```sudo apt-get install libboost-thread-dev libboost-system-dev curl libcurl4-openssl-dev libssl-dev liblog4cpp5-dev libjsoncpp-dev```
 
-Also, you need to clone the wolfssl repo:
-```cd ../ ; git clone https://github.com/wolfSSL/wolfssl.git```
-
+## Compilation
 After the installation of those dependencies, the code can be compiled with the following commands:<br/>
 ```cd SkgApplication```
 ```./makerelease```
@@ -39,6 +37,29 @@ After the installation of those dependencies, the code can be compiled with the 
 IMPORTANT - make sure that if you make changes to the skg enclave, you need to run it once, look for a debug print such as
 ```INFO  : skg mrenclave is h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=```
 And hard-code the mrenclave value (h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=) into the variable "skg_mrenclave" inside the bb_enclave.cpp file, then recompile the bb_enclave
+
+## Test
+There is a system test environment under the sgx-thc/test. After compilation of both SkgApplication and BbApplication run:
+```./setup```
+This will create two directories:
+```sgx-thc/test/bb``` and ```sgx-thc/test/skg```
+To run the Secret Key Generation Sever:
+```cd skg```
+```./app```
+To run Black Box clients:
+```cd bb```
+```python stress.py <num_of_nodes>```
+To run the Anonymatch application:
+```cd bb```
+```python guy.py <port>```
+
+Also, there are tests for the black box logic under:
+```src/BbApplication/bb_enclave/test```
+To compile the tests run:
+```cmake cmake CMakeLists.txt```
+```make```
+And then run the tests:
+```./runTests```
 
 ## Notes
 The SGX driver might have problems starting after reboot. You would recognize this problem when either SKG or BB applications output
