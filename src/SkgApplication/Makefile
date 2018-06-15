@@ -3,7 +3,7 @@ SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= SIM
 SGX_ARCH ?= x64
 SGX_WOLFSSL_LIB ?= ../libwolfssl/
-WOLFSSL_ROOT ?= ../../../wolfssl
+WOLFSSL_ROOT ?= ../wolfssl
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86

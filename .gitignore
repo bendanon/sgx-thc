@@ -33,6 +33,7 @@
 
 # Test environment
 **/test/bb
+**/test/skg
 **/SkgApplication/assets
 **/BbApplication/assets
 

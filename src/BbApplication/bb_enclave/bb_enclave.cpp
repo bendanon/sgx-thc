@@ -110,7 +110,7 @@ sgx_ec256_private_t bb_priv_key;
 BlackBoxExecuter bbx;
 uint32_t* graph_ids = NULL;
 
-static const char* skg_mrenclave = "h39gowM7F0Au0m6JfC1DoMO6K1GImzd3MXHK9HAwsP8=";
+static const char* skg_mrenclave = "3TaAfyhZcIn1JA8CaMimTvluDlPmqwZFyZp4ryVMWEQ=";
 
 sgx_status_t verify_skg(verification_report_t* p_report, sgx_ec256_public_t* peer_pk){
 
