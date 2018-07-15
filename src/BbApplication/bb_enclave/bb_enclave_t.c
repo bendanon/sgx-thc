@@ -201,6 +201,7 @@ typedef struct ms_sgx_thread_set_multiple_untrusted_events_ocall_t {
 
 static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_init_1_t));
 	ms_bb_init_1_t* ms = SGX_CAST(ms_bb_init_1_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_sealed_data_t* _tmp_sealed_data = ms->ms_sealed_data;
@@ -223,14 +224,13 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 	size_t _len_config = _tmp_config_size;
 	bb_config_t* _in_config = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_init_1_t));
 	CHECK_UNIQUE_POINTER(_tmp_sealed_data, _len_sealed_data);
 	CHECK_UNIQUE_POINTER(_tmp_bb_pk, _len_bb_pk);
 	CHECK_UNIQUE_POINTER(_tmp_skg_pk, _len_skg_pk);
 	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 	CHECK_UNIQUE_POINTER(_tmp_config, _len_config);
 
-	if (_tmp_sealed_data != NULL) {
+	if (_tmp_sealed_data != NULL && _len_sealed_data != 0) {
 		if ((_in_sealed_data = (sgx_sealed_data_t*)malloc(_len_sealed_data)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -238,7 +238,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memset((void*)_in_sealed_data, 0, _len_sealed_data);
 	}
-	if (_tmp_bb_pk != NULL) {
+	if (_tmp_bb_pk != NULL && _len_bb_pk != 0) {
 		if ((_in_bb_pk = (sgx_ec256_public_t*)malloc(_len_bb_pk)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -246,7 +246,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memset((void*)_in_bb_pk, 0, _len_bb_pk);
 	}
-	if (_tmp_skg_pk != NULL) {
+	if (_tmp_skg_pk != NULL && _len_skg_pk != 0) {
 		_in_skg_pk = (sgx_ec256_public_t*)malloc(_len_skg_pk);
 		if (_in_skg_pk == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -255,7 +255,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_skg_pk, _tmp_skg_pk, _len_skg_pk);
 	}
-	if (_tmp_p_report != NULL) {
+	if (_tmp_p_report != NULL && _len_p_report != 0) {
 		_in_p_report = (verification_report_t*)malloc(_len_p_report);
 		if (_in_p_report == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -264,7 +264,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_1(void* pms)
 
 		memcpy(_in_p_report, _tmp_p_report, _len_p_report);
 	}
-	if (_tmp_config != NULL) {
+	if (_tmp_config != NULL && _len_config != 0) {
 		_in_config = (bb_config_t*)malloc(_len_config);
 		if (_in_config == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -292,6 +292,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_bb_init_2(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_init_2_t));
 	ms_bb_init_2_t* ms = SGX_CAST(ms_bb_init_2_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_sealed_data_t* _tmp_p_sealed_k = ms->ms_p_sealed_k;
@@ -306,12 +307,11 @@ static sgx_status_t SGX_CDECL sgx_bb_init_2(void* pms)
 	size_t _len_p_sealed_s = _tmp_sealed_size;
 	sgx_sealed_data_t* _in_p_sealed_s = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_init_2_t));
 	CHECK_UNIQUE_POINTER(_tmp_p_sealed_k, _len_p_sealed_k);
 	CHECK_UNIQUE_POINTER(_tmp_s_encrypted, _len_s_encrypted);
 	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s, _len_p_sealed_s);
 
-	if (_tmp_p_sealed_k != NULL) {
+	if (_tmp_p_sealed_k != NULL && _len_p_sealed_k != 0) {
 		_in_p_sealed_k = (sgx_sealed_data_t*)malloc(_len_p_sealed_k);
 		if (_in_p_sealed_k == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -320,7 +320,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_2(void* pms)
 
 		memcpy(_in_p_sealed_k, _tmp_p_sealed_k, _len_p_sealed_k);
 	}
-	if (_tmp_s_encrypted != NULL) {
+	if (_tmp_s_encrypted != NULL && _len_s_encrypted != 0) {
 		_in_s_encrypted = (uint8_t*)malloc(_len_s_encrypted);
 		if (_in_s_encrypted == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -329,7 +329,7 @@ static sgx_status_t SGX_CDECL sgx_bb_init_2(void* pms)
 
 		memcpy(_in_s_encrypted, _tmp_s_encrypted, _len_s_encrypted);
 	}
-	if (_tmp_p_sealed_s != NULL) {
+	if (_tmp_p_sealed_s != NULL && _len_p_sealed_s != 0) {
 		if ((_in_p_sealed_s = (sgx_sealed_data_t*)malloc(_len_p_sealed_s)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -351,6 +351,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_exec_t));
 	ms_bb_exec_t* ms = SGX_CAST(ms_bb_exec_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	uint8_t* _tmp_B_in = ms->ms_B_in;
@@ -362,11 +363,10 @@ static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 	size_t _len_B_out = _tmp_B_out_size;
 	uint8_t* _in_B_out = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_exec_t));
 	CHECK_UNIQUE_POINTER(_tmp_B_in, _len_B_in);
 	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
 
-	if (_tmp_B_in != NULL) {
+	if (_tmp_B_in != NULL && _len_B_in != 0) {
 		_in_B_in = (uint8_t*)malloc(_len_B_in);
 		if (_in_B_in == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -375,7 +375,7 @@ static sgx_status_t SGX_CDECL sgx_bb_exec(void* pms)
 
 		memcpy(_in_B_in, _tmp_B_in, _len_B_in);
 	}
-	if (_tmp_B_out != NULL) {
+	if (_tmp_B_out != NULL && _len_B_out != 0) {
 		if ((_in_B_out = (uint8_t*)malloc(_len_B_out)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -396,6 +396,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_bb_generate_first_msg(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_generate_first_msg_t));
 	ms_bb_generate_first_msg_t* ms = SGX_CAST(ms_bb_generate_first_msg_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	uint8_t* _tmp_B_out = ms->ms_B_out;
@@ -403,10 +404,9 @@ static sgx_status_t SGX_CDECL sgx_bb_generate_first_msg(void* pms)
 	size_t _len_B_out = _tmp_B_out_size;
 	uint8_t* _in_B_out = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_generate_first_msg_t));
 	CHECK_UNIQUE_POINTER(_tmp_B_out, _len_B_out);
 
-	if (_tmp_B_out != NULL) {
+	if (_tmp_B_out != NULL && _len_B_out != 0) {
 		if ((_in_B_out = (uint8_t*)malloc(_len_B_out)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -426,6 +426,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_bb_re_init_t));
 	ms_bb_re_init_t* ms = SGX_CAST(ms_bb_re_init_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_sealed_data_t* _tmp_p_sealed_s = ms->ms_p_sealed_s;
@@ -437,11 +438,10 @@ static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 	size_t _len_config = _tmp_config_size;
 	bb_config_t* _in_config = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_bb_re_init_t));
 	CHECK_UNIQUE_POINTER(_tmp_p_sealed_s, _len_p_sealed_s);
 	CHECK_UNIQUE_POINTER(_tmp_config, _len_config);
 
-	if (_tmp_p_sealed_s != NULL) {
+	if (_tmp_p_sealed_s != NULL && _len_p_sealed_s != 0) {
 		_in_p_sealed_s = (sgx_sealed_data_t*)malloc(_len_p_sealed_s);
 		if (_in_p_sealed_s == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -450,7 +450,7 @@ static sgx_status_t SGX_CDECL sgx_bb_re_init(void* pms)
 
 		memcpy(_in_p_sealed_s, _tmp_p_sealed_s, _len_p_sealed_s);
 	}
-	if (_tmp_config != NULL) {
+	if (_tmp_config != NULL && _len_config != 0) {
 		_in_config = (bb_config_t*)malloc(_len_config);
 		if (_in_config == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -469,16 +469,16 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_enclave_init_ra(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_enclave_init_ra_t));
 	ms_enclave_init_ra_t* ms = SGX_CAST(ms_enclave_init_ra_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_ra_context_t* _tmp_p_context = ms->ms_p_context;
 	size_t _len_p_context = sizeof(*_tmp_p_context);
 	sgx_ra_context_t* _in_p_context = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_enclave_init_ra_t));
 	CHECK_UNIQUE_POINTER(_tmp_p_context, _len_p_context);
 
-	if (_tmp_p_context != NULL) {
+	if (_tmp_p_context != NULL && _len_p_context != 0) {
 		if ((_in_p_context = (sgx_ra_context_t*)malloc(_len_p_context)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -498,10 +498,10 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_enclave_ra_close(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_enclave_ra_close_t));
 	ms_enclave_ra_close_t* ms = SGX_CAST(ms_enclave_ra_close_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_enclave_ra_close_t));
 
 	ms->ms_retval = enclave_ra_close(ms->ms_context);
 
@@ -511,6 +511,7 @@ static sgx_status_t SGX_CDECL sgx_enclave_ra_close(void* pms)
 
 static sgx_status_t SGX_CDECL sgx_derive_smk(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_derive_smk_t));
 	ms_derive_smk_t* ms = SGX_CAST(ms_derive_smk_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_ec256_public_t* _tmp_pk = ms->ms_pk;
@@ -522,11 +523,10 @@ static sgx_status_t SGX_CDECL sgx_derive_smk(void* pms)
 	size_t _len_smk = _tmp_smk_size;
 	sgx_ec_key_128bit_t* _in_smk = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_derive_smk_t));
 	CHECK_UNIQUE_POINTER(_tmp_pk, _len_pk);
 	CHECK_UNIQUE_POINTER(_tmp_smk, _len_smk);
 
-	if (_tmp_pk != NULL) {
+	if (_tmp_pk != NULL && _len_pk != 0) {
 		_in_pk = (sgx_ec256_public_t*)malloc(_len_pk);
 		if (_in_pk == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -535,7 +535,7 @@ static sgx_status_t SGX_CDECL sgx_derive_smk(void* pms)
 
 		memcpy(_in_pk, _tmp_pk, _len_pk);
 	}
-	if (_tmp_smk != NULL) {
+	if (_tmp_smk != NULL && _len_smk != 0) {
 		if ((_in_smk = (sgx_ec_key_128bit_t*)malloc(_len_smk)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -556,16 +556,16 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_sgx_ra_get_ga(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_get_ga_t));
 	ms_sgx_ra_get_ga_t* ms = SGX_CAST(ms_sgx_ra_get_ga_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_ec256_public_t* _tmp_g_a = ms->ms_g_a;
 	size_t _len_g_a = sizeof(*_tmp_g_a);
 	sgx_ec256_public_t* _in_g_a = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_get_ga_t));
 	CHECK_UNIQUE_POINTER(_tmp_g_a, _len_g_a);
 
-	if (_tmp_g_a != NULL) {
+	if (_tmp_g_a != NULL && _len_g_a != 0) {
 		if ((_in_g_a = (sgx_ec256_public_t*)malloc(_len_g_a)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -585,6 +585,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_sgx_ra_proc_msg2_trusted(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_proc_msg2_trusted_t));
 	ms_sgx_ra_proc_msg2_trusted_t* ms = SGX_CAST(ms_sgx_ra_proc_msg2_trusted_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_ra_msg2_t* _tmp_p_msg2 = ms->ms_p_msg2;
@@ -600,13 +601,12 @@ static sgx_status_t SGX_CDECL sgx_sgx_ra_proc_msg2_trusted(void* pms)
 	size_t _len_p_nonce = sizeof(*_tmp_p_nonce);
 	sgx_quote_nonce_t* _in_p_nonce = NULL;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_proc_msg2_trusted_t));
 	CHECK_UNIQUE_POINTER(_tmp_p_msg2, _len_p_msg2);
 	CHECK_UNIQUE_POINTER(_tmp_p_qe_target, _len_p_qe_target);
 	CHECK_UNIQUE_POINTER(_tmp_p_report, _len_p_report);
 	CHECK_UNIQUE_POINTER(_tmp_p_nonce, _len_p_nonce);
 
-	if (_tmp_p_msg2 != NULL) {
+	if (_tmp_p_msg2 != NULL && _len_p_msg2 != 0) {
 		_in_p_msg2 = (sgx_ra_msg2_t*)malloc(_len_p_msg2);
 		if (_in_p_msg2 == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -615,7 +615,7 @@ static sgx_status_t SGX_CDECL sgx_sgx_ra_proc_msg2_trusted(void* pms)
 
 		memcpy((void*)_in_p_msg2, _tmp_p_msg2, _len_p_msg2);
 	}
-	if (_tmp_p_qe_target != NULL) {
+	if (_tmp_p_qe_target != NULL && _len_p_qe_target != 0) {
 		_in_p_qe_target = (sgx_target_info_t*)malloc(_len_p_qe_target);
 		if (_in_p_qe_target == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -624,7 +624,7 @@ static sgx_status_t SGX_CDECL sgx_sgx_ra_proc_msg2_trusted(void* pms)
 
 		memcpy((void*)_in_p_qe_target, _tmp_p_qe_target, _len_p_qe_target);
 	}
-	if (_tmp_p_report != NULL) {
+	if (_tmp_p_report != NULL && _len_p_report != 0) {
 		if ((_in_p_report = (sgx_report_t*)malloc(_len_p_report)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -632,7 +632,7 @@ static sgx_status_t SGX_CDECL sgx_sgx_ra_proc_msg2_trusted(void* pms)
 
 		memset((void*)_in_p_report, 0, _len_p_report);
 	}
-	if (_tmp_p_nonce != NULL) {
+	if (_tmp_p_nonce != NULL && _len_p_nonce != 0) {
 		if ((_in_p_nonce = (sgx_quote_nonce_t*)malloc(_len_p_nonce)) == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
 			goto err;
@@ -658,6 +658,7 @@ err:
 
 static sgx_status_t SGX_CDECL sgx_sgx_ra_get_msg3_trusted(void* pms)
 {
+	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_get_msg3_trusted_t));
 	ms_sgx_ra_get_msg3_trusted_t* ms = SGX_CAST(ms_sgx_ra_get_msg3_trusted_t*, pms);
 	sgx_status_t status = SGX_SUCCESS;
 	sgx_report_t* _tmp_qe_report = ms->ms_qe_report;
@@ -665,10 +666,9 @@ static sgx_status_t SGX_CDECL sgx_sgx_ra_get_msg3_trusted(void* pms)
 	sgx_report_t* _in_qe_report = NULL;
 	sgx_ra_msg3_t* _tmp_p_msg3 = ms->ms_p_msg3;
 
-	CHECK_REF_POINTER(pms, sizeof(ms_sgx_ra_get_msg3_trusted_t));
 	CHECK_UNIQUE_POINTER(_tmp_qe_report, _len_qe_report);
 
-	if (_tmp_qe_report != NULL) {
+	if (_tmp_qe_report != NULL && _len_qe_report != 0) {
 		_in_qe_report = (sgx_report_t*)malloc(_len_qe_report);
 		if (_in_qe_report == NULL) {
 			status = SGX_ERROR_OUT_OF_MEMORY;
@@ -1177,7 +1177,7 @@ sgx_status_t SGX_CDECL sgx_oc_cpuidex(int cpuinfo[4], int leaf, int subleaf)
 	if (cpuinfo != NULL && sgx_is_within_enclave(cpuinfo, _len_cpuinfo)) {
 		ms->ms_cpuinfo = (int*)__tmp;
 		__tmp = (void *)((size_t)__tmp + _len_cpuinfo);
-		memcpy(ms->ms_cpuinfo, cpuinfo, _len_cpuinfo);
+		memset(ms->ms_cpuinfo, 0, _len_cpuinfo);
 	} else if (cpuinfo == NULL) {
 		ms->ms_cpuinfo = NULL;
 	} else {
