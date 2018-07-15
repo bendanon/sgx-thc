@@ -11,9 +11,6 @@
 #include "sgx_tseal.h"
 #include "sgx_key_exchange.h"
 #include "sgx_trts.h"
-#include "wolfssl/ssl.h"
-#include "wolfssl/wolfcrypt/settings.h"
-#include "wolfssl/wolfcrypt/types.h"
 
 #include <stdlib.h> /* for size_t */
 

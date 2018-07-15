@@ -3,9 +3,6 @@ enclave {
     include "sgx_tseal.h"
     include "sgx_key_exchange.h"
     include "sgx_trts.h"
-    include "wolfssl/ssl.h"
-	include "wolfssl/wolfcrypt/settings.h"
-	include "wolfssl/wolfcrypt/types.h"
 
     trusted {
         public sgx_status_t enclave_init_ra(int b_pse, [out] sgx_ra_context_t *p_context);

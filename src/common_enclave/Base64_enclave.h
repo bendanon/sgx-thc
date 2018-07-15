@@ -1,5 +1,7 @@
 #ifndef BASE64_ENCLAVE
 #define BASE64_ENCLAVE
+#include <ctype.h>
+
 static const std::string base64_chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
